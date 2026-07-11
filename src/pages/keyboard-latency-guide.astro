@@ -1,0 +1,213 @@
+---
+import Base from '@layouts/Base.astro';
+---
+<Base
+  title="Keyboard Latency Explained: What It Is and Why It Matters for Gaming"
+  description="Understand the difference between scan rate, polling rate, and response time — and how they affect your gaming performance. Test your keyboard for free."
+  canonical="https://laptopsspecial.com/keyboard-latency-guide"
+>
+<style>
+  .post-hero {
+    background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+    border-bottom: 1px solid #1e293b;
+    padding: 3.5rem 1.5rem 2.5rem;
+    text-align: center;
+  }
+  .post-meta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .post-cat {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #00d4ff;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.2);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+  }
+  .post-date { font-size: 0.78rem; color: var(--muted); }
+  .post-read { font-size: 0.78rem; color: var(--muted); }
+  .dot { color: #334155; }
+  .post-hero h1 { font-size: clamp(1.5rem, 3.5vw, 2.25rem); font-weight: 700; color: var(--text); line-height: 1.25; margin-bottom: 1rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+  .post-hero .lead { color: var(--text2); font-size: 1rem; max-width: 580px; margin: 0 auto; line-height: 1.7; }
+
+  .post-wrap { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+  .post-wrap h2 { font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 2.5rem 0 0.75rem; border-left: 3px solid #00d4ff; padding-left: 0.75rem; }
+  .post-wrap h3 { font-size: 1rem; font-weight: 600; color: var(--text); margin: 1.5rem 0 0.5rem; }
+  .post-wrap p { color: var(--text2); font-size: 0.9rem; line-height: 1.85; margin-bottom: 1rem; }
+  .post-wrap ul, .post-wrap ol { color: var(--text2); font-size: 0.9rem; line-height: 1.85; padding-left: 1.5rem; margin-bottom: 1rem; }
+  .post-wrap li { margin-bottom: 0.4rem; }
+  .post-wrap strong { color: var(--text); }
+  .post-wrap a { color: #00d4ff; text-decoration: none; }
+  .post-wrap a:hover { text-decoration: underline; }
+
+  .callout {
+    background: rgba(0,212,255,0.06);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.875rem;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .callout strong { color: #00d4ff; }
+
+  .metric-table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.85rem; }
+  .metric-table th { background: var(--bg3); color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 1rem; text-align: left; }
+  .metric-table td { padding: 0.65rem 1rem; border-bottom: 1px solid #1e293b; color: var(--text2); }
+  .metric-table tr:last-child td { border-bottom: none; }
+
+  .cta-box {
+    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    margin: 2.5rem 0;
+  }
+  .cta-box h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+  .cta-box p { font-size: 0.875rem; color: var(--text2); margin-bottom: 1.25rem; }
+  .btn-cta {
+    display: inline-block;
+    background: var(--accent);
+    color: #000 !important;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none !important;
+    transition: opacity 0.2s;
+    -webkit-font-smoothing: antialiased;
+  }
+  .btn-cta:hover { opacity: 0.85; text-decoration: none !important; color: #000 !important; }
+  [data-theme="light"] .btn-cta { background: #0284c7; color: #fff !important; }
+  [data-theme="light"] .btn-cta:hover { color: #fff !important; }
+
+  .related-posts { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  .related-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1rem; }
+  .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+  .related-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-decoration: none;
+    transition: border-color 0.2s;
+  }
+  .related-card:hover { border-color: rgba(0,212,255,0.3); }
+  .related-card-icon { font-size: 1.25rem; margin-bottom: 0.4rem; }
+  .related-card-title { font-size: 0.825rem; font-weight: 600; color: var(--text); line-height: 1.4; }
+</style>
+
+<div class="post-hero">
+  <div class="post-meta-bar">
+    <span class="post-cat">Keyboards</span>
+    <span class="dot">·</span>
+    <span class="post-date">June 15, 2026</span>
+    <span class="dot">·</span>
+    <span class="post-read">6 min read</span>
+  </div>
+  <h1>Keyboard Latency Explained: What It Is and Why It Matters for Gaming</h1>
+  <p class="lead">Scan rate, polling rate, response time — these terms get thrown around a lot. Here's what they actually mean and how they affect your gameplay.</p>
+</div>
+
+<div class="post-wrap">
+
+  <p>You press a key. The character jumps. Simple, right? But between that keypress and the action on screen, several tiny delays stack up — and in competitive gaming, those milliseconds matter.</p>
+
+  <p>This guide breaks down everything you need to know about keyboard latency: what causes it, how to measure it, and what you can do to reduce it.</p>
+
+  <h2>What is Keyboard Latency?</h2>
+  <p>Keyboard latency is the total time delay between when a physical key is pressed and when the corresponding input is processed by your computer. It's sometimes called "keyboard input lag" and is measured in milliseconds (ms).</p>
+
+  <div class="callout">
+    <strong>Quick example:</strong> You press the fire button in a game. If your keyboard latency is 15ms, there's a 15-millisecond gap before the game engine registers the action. At 60fps, one frame takes ~16.7ms — so 15ms of keyboard lag is nearly a full frame of delay.
+  </div>
+
+  <h2>The 3 Components of Keyboard Latency</h2>
+  <p>Total keyboard latency is actually the sum of three separate delays:</p>
+
+  <h3>1. Scan Rate</h3>
+  <p>The scan rate is how many times per second the keyboard's internal controller scans all the key switches to detect presses. A typical keyboard scans at 1000Hz (1ms). Lower-end keyboards may only scan at 125Hz (8ms between scans).</p>
+
+  <h3>2. Polling Rate</h3>
+  <p>Once a keypress is detected, the keyboard needs to report it to your PC. The polling rate is how often this report is sent — typically 1000 times per second (1000Hz = 1ms). Some gaming keyboards now offer 4000Hz or 8000Hz polling.</p>
+
+  <h3>3. System Latency</h3>
+  <p>After the signal reaches your PC, the operating system and application need to process it. This adds another 3–10ms depending on your system load, drivers, and software.</p>
+
+  <table class="metric-table">
+    <thead>
+      <tr><th>Component</th><th>Typical Delay</th><th>Gaming Keyboards</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Scan Rate</td><td>1–8 ms</td><td>0.25–1 ms</td></tr>
+      <tr><td>Polling Rate</td><td>1–8 ms</td><td>0.125–1 ms</td></tr>
+      <tr><td>System Latency</td><td>3–10 ms</td><td>1–5 ms</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>5–26 ms</strong></td><td><strong>1.4–7 ms</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Does Keyboard Latency Actually Affect Gaming?</h2>
+  <p>For casual gaming and everyday use — no, you won't notice the difference. But in competitive scenarios, it adds up:</p>
+  <ul>
+    <li><strong>FPS games:</strong> Firing speed and reaction windows are measured in frames. At 240fps, one frame = 4.17ms. Every ms counts.</li>
+    <li><strong>Fighting games:</strong> Frame data is everything. A 10ms delay could cause you to miss a punish window entirely.</li>
+    <li><strong>RTS and MOBA:</strong> Less critical, but consistent, low-latency input prevents misclicks and double inputs.</li>
+  </ul>
+
+  <h2>Wired vs Wireless Keyboard Latency</h2>
+  <p>Wired USB keyboards have traditionally offered lower latency than wireless. However, modern wireless technology — especially 2.4GHz USB dongles — has nearly closed the gap. Bluetooth keyboards still have noticeably higher latency (~10–30ms extra) and are not recommended for gaming.</p>
+
+  <h2>How to Test Your Keyboard Latency</h2>
+  <p>You can test your keyboard's response time and scan rate right now using our free tool — no downloads or accounts required.</p>
+
+  <div class="cta-box">
+    <h3>⌨️ Free Keyboard Latency Test</h3>
+    <p>Measure your keyboard's shortest key press time and estimated scan rate instantly in your browser.</p>
+    <a href="/" class="btn-cta">Test My Keyboard →</a>
+  </div>
+
+  <h2>How to Reduce Keyboard Latency</h2>
+  <ul>
+    <li><strong>Use a wired connection</strong> — avoid Bluetooth for gaming</li>
+    <li><strong>Update keyboard drivers</strong> — outdated drivers add overhead</li>
+    <li><strong>Disable Filter Keys</strong> in Windows accessibility settings</li>
+    <li><strong>Use a USB 3.0 port</strong> for better data transfer speeds</li>
+    <li><strong>Close background apps</strong> — they add system latency</li>
+    <li><strong>Consider a gaming keyboard</strong> with 1000Hz+ polling rate</li>
+  </ul>
+
+  <h2>Summary</h2>
+  <p>Keyboard latency is a combination of scan rate, polling rate, and system processing time. For everyday users, even a 20ms keyboard is perfectly fine. But for competitive gamers, targeting total input latency below 5ms — through a quality gaming keyboard and clean system setup — can make a real difference.</p>
+
+  <p>The best first step? Test your current keyboard with our free tool and see what you're actually working with.</p>
+
+  <div class="related-posts">
+    <div class="related-title">Related Articles</div>
+    <div class="related-grid">
+      <a href="/mouse-polling-rate-guide" class="related-card">
+        <div class="related-card-icon">🖱</div>
+        <div class="related-card-title">Mouse Polling Rate: 125Hz vs 1000Hz vs 8000Hz</div>
+      </a>
+      <a href="/anti-ghosting-explained" class="related-card">
+        <div class="related-card-icon">👻</div>
+        <div class="related-card-title">What is Anti-Ghosting? Test Your Keyboard</div>
+      </a>
+      <a href="/best-low-latency-keyboards-2026" class="related-card">
+        <div class="related-card-icon">🏆</div>
+        <div class="related-card-title">Best Low-Latency Gaming Keyboards 2026</div>
+      </a>
+    </div>
+  </div>
+</div>
+</Base>
