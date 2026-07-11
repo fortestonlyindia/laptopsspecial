@@ -232,68 +232,75 @@ const canonicalURL = canonical || Astro.url.href;
   <button id="back-to-top" aria-label="Scroll back to top of page">↑</button>
 
   <script>
-    // 1. Scroll listener (Attached only once using a global window check)
-    if (!window.lsScrollAttached) {
-      window.addEventListener('scroll', () => {
-        const btt = document.getElementById('back-to-top');
-        if (btt) btt.classList.toggle('visible', window.scrollY > 200);
-      }, { passive: true });
-      window.lsScrollAttached = true;
-    }
+    // ─────────────────────────────────────────────────────────────
+    // THEME — attached ONCE on first load, never re-attached.
+    // View Transitions keep <html> and <head> alive, so this
+    // listener survives every navigation automatically.
+    // The is:inline script in <head> re-applies data-theme
+    // before every paint so there is never a flash.
+    // ─────────────────────────────────────────────────────────────
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      const html = document.documentElement;
+      const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+      html.dataset.theme = next;
+      localStorage.setItem('ls-theme', next);
+    });
 
-    // 2. Logic to run on FIRST LOAD and after EVERY VIEW TRANSITION
-    document.addEventListener('astro:page-load', () => {
-      
-      // Theme Button
-      const themeBtn = document.getElementById('theme-btn');
-      if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-          const html = document.documentElement;
-          const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
-          html.dataset.theme = next;
-          localStorage.setItem('ls-theme', next);
-        });
-      }
+    // ─────────────────────────────────────────────────────────────
+    // BACK TO TOP — also attached once; btt element never changes
+    // ─────────────────────────────────────────────────────────────
+    const btt = document.getElementById('back-to-top');
+    window.addEventListener('scroll',
+      () => btt.classList.toggle('visible', window.scrollY > 400),
+      { passive: true }
+    );
+    btt.addEventListener('click',
+      () => window.scrollTo({ top: 0, behavior: 'smooth' })
+    );
 
-      // Back to top click logic
-      const btt = document.getElementById('back-to-top');
-      if (btt) {
-        btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        // Ensure correct state immediately after navigation
-        btt.classList.toggle('visible', window.scrollY > 400);
-      }
+    // ─────────────────────────────────────────────────────────────
+    // PER-PAGE LOGIC — runs after every View Transition swap.
+    // Only things that depend on current URL go here.
+    // ─────────────────────────────────────────────────────────────
+    function onPageLoad() {
+      // Re-apply theme (View Transitions can reset data-theme on <html>)
+      document.documentElement.dataset.theme =
+        localStorage.getItem('ls-theme') || 'dark';
 
-      // Mobile Menu setup
-      const ham = document.getElementById('hamburger');
-      const navMenu = document.getElementById('nav-links');
-      if (ham && navMenu) {
-        ham.addEventListener('click', () => {
-          const open = navMenu.classList.toggle('open');
-          ham.setAttribute('aria-expanded', String(open));
-        });
-      }
-
-      // Re-apply theme correctly
-      document.documentElement.dataset.theme = localStorage.getItem('ls-theme') || 'dark';
-
-      // Active Nav States
+      // Active nav
       document.querySelectorAll('.nav-links a').forEach(a => {
         const href = a.getAttribute('href');
-        const active = href === location.pathname || 
+        const active = href === location.pathname ||
           (href !== '/' && location.pathname.startsWith(href));
         a.setAttribute('aria-current', active ? 'page' : 'false');
       });
 
-      // Scroll to top instantly on new page load
+      // Scroll to top (Ctrl+Home/End native browser behaviour is preserved;
+      // this just ensures page starts at top after navigation)
       window.scrollTo({ top: 0, behavior: 'instant' });
-    });
 
-    // 3. Cleanup logic before navigation leaves the page
+      // Reset back-to-top visibility
+      btt.classList.remove('visible');
+    }
+
+    // Run immediately on first load
+    onPageLoad();
+
+    // Run after every subsequent navigation
+    document.addEventListener('astro:page-load', onPageLoad);
+
+    // ─────────────────────────────────────────────────────────────
+    // MOBILE NAV — attached once, hamburger element persists
+    // ─────────────────────────────────────────────────────────────
+    const ham     = document.getElementById('hamburger');
+    const navMenu = document.getElementById('nav-links');
+    ham.addEventListener('click', () => {
+      const open = navMenu.classList.toggle('open');
+      ham.setAttribute('aria-expanded', String(open));
+    });
     document.addEventListener('astro:before-preparation', () => {
-      const navMenu = document.getElementById('nav-links');
-      const ham = document.getElementById('hamburger');
-      if (navMenu) navMenu.classList.remove('open');
-      if (ham) ham.setAttribute('aria-expanded', 'false');
+      navMenu.classList.remove('open');
+      ham.setAttribute('aria-expanded', 'false');
     });
   </script>
 </body>

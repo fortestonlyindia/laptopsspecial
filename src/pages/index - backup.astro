@@ -552,134 +552,83 @@ import Base from '@layouts/Base.astro';
      JAVASCRIPT
 ════════════════════════ -->
 <script>
-  // Variables ko global script scope mein define kiya hai taaki
-  // functions unko har jagah access kar sakein
+  const sShort   = document.getElementById('s-short');
+  const sScan    = document.getElementById('s-scan');
+  const sCount   = document.getElementById('s-count');
+  const sUnique  = document.getElementById('s-unique');
+  const feed     = document.getElementById('history-feed');
+  const prompt   = document.getElementById('kb-prompt');
+  const btnReset = document.getElementById('btn-reset');
+
   let shortestPress = Infinity;
   let totalKeys = 0;
   let historyCleared = false;
-  let keyDownTimes = new Map();
-  let pressedCodes = new Set();
-  
-  // Handlers ko reference mein store karenge taaki removeEventListener kaam kare
-  let handleKeyDown;
-  let handleKeyUp;
-  let handleReset;
+  const keyDownTimes = new Map();
+  const pressedCodes = new Set();
 
   function getKeyEl(code) {
     return document.querySelector(`.k[data-code="${code}"]`);
   }
 
-  function initKeyboardTester() {
-    const sShort   = document.getElementById('s-short');
-    const sScan    = document.getElementById('s-scan');
-    const sCount   = document.getElementById('s-count');
-    const sUnique  = document.getElementById('s-unique');
-    const feed     = document.getElementById('history-feed');
-    const prompt   = document.getElementById('kb-prompt');
-    const btnReset = document.getElementById('btn-reset');
+  document.addEventListener('keydown', e => {
+    e.preventDefault();
+    const el = getKeyEl(e.code);
+    if (el) el.classList.add('pressed');
+    if (!keyDownTimes.has(e.code)) {
+      keyDownTimes.set(e.code, performance.now());
+    }
+    if (prompt) prompt.style.display = 'none';
+  });
 
-    // Agar elements page par nahi hain (yani hum dusre page par hain), toh exit
-    if (!sShort) return; 
+  document.addEventListener('keyup', e => {
+    const el = getKeyEl(e.code);
+    if (el) el.classList.remove('pressed');
 
-    handleKeyDown = (e) => {
-      // Browser ke zaroori shortcuts ko block nahi hone dena hai
-      const isSystemKey = 
-        (e.ctrlKey && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) || // Ctrl+A/C/V/X
-        (e.ctrlKey && ['Home', 'End'].includes(e.key)) || // Ctrl+Home/End
-        (e.key === 'F5') || // Page Refresh
-        (e.ctrlKey && e.key.toLowerCase() === 'r'); // Ctrl+R
+    const t = keyDownTimes.get(e.code);
+    if (t === undefined) return;
+    keyDownTimes.delete(e.code);
 
-      if (!isSystemKey) {
-        e.preventDefault(); // Baaki saari keys (space, arrows) ko default scroll karne se roko
-      }
+    const dur = performance.now() - t;
 
-      const el = getKeyEl(e.code);
-      if (el) el.classList.add('pressed');
-      if (!keyDownTimes.has(e.code)) {
-        keyDownTimes.set(e.code, performance.now());
-      }
-      if (prompt) prompt.style.display = 'none';
-    };
+    if (!historyCleared) {
+      feed.innerHTML = '';
+      historyCleared = true;
+    }
 
-    handleKeyUp = (e) => {
-      const el = getKeyEl(e.code);
-      if (el) el.classList.remove('pressed');
+    // History tag
+    const tag = document.createElement('span');
+    tag.className = 'hkey';
+    tag.textContent = e.key === ' ' ? 'Space' : (e.key.length > 8 ? e.code.replace('Key','').replace('Digit','').replace('Numpad','Num') : e.key);
+    tag.title = `${dur.toFixed(1)} ms`;
+    feed.prepend(tag);
+    while (feed.children.length > 36) feed.removeChild(feed.lastChild);
 
-      const t = keyDownTimes.get(e.code);
-      if (t === undefined) return;
-      keyDownTimes.delete(e.code);
+    // Stats
+    totalKeys++;
+    sCount.textContent = totalKeys;
 
-      const dur = performance.now() - t;
+    pressedCodes.add(e.code);
+    sUnique.textContent = pressedCodes.size;
 
-      if (!historyCleared) {
-        if(feed) feed.innerHTML = '';
-        historyCleared = true;
-      }
+    if (dur < shortestPress) {
+      shortestPress = dur;
+      sShort.textContent = dur.toFixed(1);
+      sScan.textContent  = (1000 / dur).toFixed(0);
+    }
+  });
 
-      // History tag
-      if (feed) {
-        const tag = document.createElement('span');
-        tag.className = 'hkey';
-        tag.textContent = e.key === ' ' ? 'Space' : (e.key.length > 8 ? e.code.replace('Key','').replace('Digit','').replace('Numpad','Num') : e.key);
-        tag.title = `${dur.toFixed(1)} ms`;
-        feed.prepend(tag);
-        while (feed.children.length > 36) feed.removeChild(feed.lastChild);
-      }
-
-      // Stats
-      totalKeys++;
-      if(sCount) sCount.textContent = totalKeys;
-
-      pressedCodes.add(e.code);
-      if(sUnique) sUnique.textContent = pressedCodes.size;
-
-      if (dur < shortestPress) {
-        shortestPress = dur;
-        if(sShort) sShort.textContent = dur.toFixed(1);
-        if(sScan) sScan.textContent  = (1000 / dur).toFixed(0);
-      }
-    };
-
-    handleReset = () => {
-      shortestPress = Infinity;
-      totalKeys = 0;
-      historyCleared = false;
-      pressedCodes.clear();
-      if(sShort) sShort.textContent  = '—';
-      if(sScan) sScan.textContent    = '—';
-      if(sCount) sCount.textContent  = '0';
-      if(sUnique) sUnique.textContent = '0';
-      if(feed) feed.innerHTML = '<span style="color:var(--muted);font-size:.78rem;">Keys will appear here…</span>';
-      document.querySelectorAll('.k.pressed').forEach(k => k.classList.remove('pressed'));
-      if (prompt) prompt.style.display = '';
-    };
-
-    // Attach Event Listeners
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
-    if(btnReset) btnReset.addEventListener('click', handleReset);
-  }
-
-  function cleanupKeyboardTester() {
-    // Ye function jab page switch hoga tab run hoga, taaki purane listeners hata sakein
-    document.removeEventListener('keydown', handleKeyDown);
-    document.removeEventListener('keyup', handleKeyUp);
-    
-    const btnReset = document.getElementById('btn-reset');
-    if(btnReset && handleReset) btnReset.removeEventListener('click', handleReset);
-    
-    // Variables reset kar dein memory save karne ke liye
+  btnReset.addEventListener('click', () => {
     shortestPress = Infinity;
     totalKeys = 0;
-    keyDownTimes.clear();
+    historyCleared = false;
     pressedCodes.clear();
-  }
-
-  // Astro Lifecycle hooks
-  // 1. Jab bhi page load ho (first time ya View Transition se), setup chalayein
-  document.addEventListener('astro:page-load', initKeyboardTester);
-
-  // 2. Jaise hi user is page se doosre page par jane lage, listeners destroy kar dein
-  document.addEventListener('astro:before-preparation', cleanupKeyboardTester);
+    sShort.textContent  = '—';
+    sScan.textContent   = '—';
+    sCount.textContent  = '0';
+    sUnique.textContent = '0';
+    feed.innerHTML = '<span style="color:var(--muted);font-size:.78rem;">Keys will appear here…</span>';
+    document.querySelectorAll('.k.pressed').forEach(k => k.classList.remove('pressed'));
+    if (prompt) prompt.style.display = '';
+  });
 </script>
 </Base>
