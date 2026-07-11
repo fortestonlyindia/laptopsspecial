@@ -43,6 +43,7 @@ import Base from '@layouts/Base.astro';
   .field { display: flex; flex-direction: column; gap: 0.4rem; }
   .field label { font-size: 0.78rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
   .field input, .field select, .field textarea {
+    box-sizing: border-box; /* 👈 Yeh sabse important line hai jo overlap rokkegi */
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 8px;
