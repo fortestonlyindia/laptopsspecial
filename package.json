@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+<<<<<<< HEAD
     "preview": "astro preview",
     "postinstall": ""
   },
@@ -12,5 +13,11 @@
     "astro": "4.16.19",
     "@sanity/client": "^6.28.4",
     "@sanity/image-url": "^1.1.0"
+=======
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "4.16.19"
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
   }
 }

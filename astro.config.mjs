@@ -21,7 +21,10 @@ export default defineConfig({
       { protocol: 'https', hostname: '**.unsplash.com' },
       { protocol: 'https', hostname: '**.pexels.com' },
       { protocol: 'https', hostname: '**.githubusercontent.com' },
+<<<<<<< HEAD
       { protocol: 'https', hostname: 'cdn.sanity.io' },
+=======
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
     ],
   },
 
@@ -41,7 +44,10 @@ export default defineConfig({
       alias: {
         '@layouts': path.resolve(__dirname, 'src/layouts'),
         '@pages':   path.resolve(__dirname, 'src/pages'),
+<<<<<<< HEAD
         '@lib':     path.resolve(__dirname, 'src/lib'),
+=======
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
         '@':        path.resolve(__dirname, 'src'),
       },
     },
@@ -52,9 +58,12 @@ export default defineConfig({
         output: { manualChunks: undefined },
       },
     },
+<<<<<<< HEAD
     optimizeDeps: {
       exclude: ['@sanity/client'],
     },
+=======
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
     esbuild: {
       drop: ['console', 'debugger'],
       legalComments: 'none',

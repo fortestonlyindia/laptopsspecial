@@ -1,4 +1,5 @@
 ---
+<<<<<<< HEAD
 import Base from "@layouts/Base.astro";
 ---
 
@@ -291,4 +292,163 @@ import Base from "@layouts/Base.astro";
                 document.getElementById("success-msg").style.display = "block";
             });
     </script>
+=======
+import Base from '@layouts/Base.astro';
+---
+<Base
+  title="Contact Us — Laptops Special"
+  description="Get in touch with the Laptops Special team. Report bugs, suggest new tools, or ask any question."
+  canonical="https://laptopsspecial.com/contact"
+>
+<style>
+  .page-hero {
+    background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+    border-bottom: 1px solid #1e293b;
+    padding: 3.5rem 1.5rem 2.5rem;
+    text-align: center;
+  }
+  .page-eyebrow { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #00d4ff; margin-bottom: 0.75rem; }
+  .page-hero h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; color: var(--text); margin-bottom: 0.75rem; }
+  .page-hero p { color: var(--text2); max-width: 500px; margin: 0 auto; font-size: 0.95rem; line-height: 1.7; }
+
+  .content-wrap { max-width: 700px; margin: 0 auto; padding: 3rem 1.5rem; }
+
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.5rem; }
+  @media(max-width:560px){ .contact-grid { grid-template-columns: 1fr; } }
+  .contact-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .contact-card-icon { font-size: 1.75rem; margin-bottom: 0.6rem; }
+  .contact-card-title { font-size: 0.875rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
+  .contact-card-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem; }
+  .contact-card a { font-size: 0.8rem; color: #00d4ff; text-decoration: none; font-weight: 600; }
+  .contact-card a:hover { text-decoration: underline; }
+
+  .form-section h2 { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; border-left: 3px solid #00d4ff; padding-left: 0.75rem; }
+  .form-note { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.5rem; margin-left: 1rem; }
+
+  .form { display: flex; flex-direction: column; gap: 1rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:480px){ .form-row { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field label { font-size: 0.78rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
+  .field input, .field select, .field textarea {
+    box-sizing: border-box; /* 👈 Yeh sabse important line hai jo overlap rokkegi */
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.7rem 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    resize: vertical;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #00d4ff; }
+  .field select option { background: var(--bg2); }
+
+  .btn-submit {
+    background: #00d4ff;
+    color: #0a0e1a;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.85rem 2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    align-self: flex-start;
+  }
+  .btn-submit:hover { opacity: 0.85; }
+
+  .success-msg {
+    display: none;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 10px;
+    padding: 1.25rem;
+    color: #22c55e;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 1rem;
+  }
+</style>
+
+<div class="page-hero">
+  <div class="page-eyebrow">Get In Touch</div>
+  <h1>Contact Us</h1>
+  <p>Found a bug? Have a tool suggestion? Want to collaborate? We're always happy to hear from our users.</p>
+</div>
+
+<div class="content-wrap">
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-card-icon">📧</div>
+      <div class="contact-card-title">Email Us</div>
+      <div class="contact-card-desc">For business inquiries, partnerships, or detailed technical questions.</div>
+      <a href="mailto:contact@laptopsspecial.com">contact@laptopsspecial.com</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-card-icon">⏱</div>
+      <div class="contact-card-title">Response Time</div>
+      <div class="contact-card-desc">We typically respond within 24–48 hours on business days.</div>
+      <span style="font-size:0.8rem;color:var(--muted);">Mon–Fri, 9AM–6PM IST</span>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2>Send a Message</h2>
+    <p class="form-note">Fill in the form below and we'll get back to you as soon as possible.</p>
+
+    <form class="form" id="contact-form" novalidate>
+      <div class="form-row">
+        <div class="field">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" placeholder="John Doe" required />
+        </div>
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="subject">Subject</label>
+        <select id="subject">
+          <option value="">Select a topic…</option>
+          <option>Bug Report</option>
+          <option>Tool Suggestion</option>
+          <option>Partnership / Collaboration</option>
+          <option>Advertising</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="message">Message</label>
+        <textarea id="message" rows="5" placeholder="Describe your question or feedback in detail…" required></textarea>
+      </div>
+      <button type="submit" class="btn-submit">Send Message →</button>
+    </form>
+    <div class="success-msg" id="success-msg">✅ Message sent! We'll get back to you within 24–48 hours.</div>
+  </div>
+</div>
+
+<script>
+  // NOTE: Replace this with a real form backend — Formspree, Web3Forms, or EmailJS
+  // Example with Formspree: set action="https://formspree.io/f/YOUR_ID" on the form
+  document.getElementById('contact-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    // Simulate submission — replace with real fetch() to your form handler
+    document.getElementById('contact-form').style.display = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+  });
+</script>
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
 </Base>

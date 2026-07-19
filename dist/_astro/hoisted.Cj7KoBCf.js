@@ -1,0 +1,1 @@
+import"./hoisted.UTH-gtXZ.js";import"./index.Bel2lkwj.js";document.getElementById("contact-form").addEventListener("submit",e=>{e.preventDefault(),document.getElementById("contact-form").style.display="none",document.getElementById("success-msg").style.display="block"});

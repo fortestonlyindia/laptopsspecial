@@ -6,8 +6,11 @@
   <url><loc>https://laptopsspecial.com/keyboard-latency-guide</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://laptopsspecial.com/about</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://laptopsspecial.com/contact</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+<<<<<<< HEAD
   <url><loc>https://laptopsspecial.com/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://laptopsspecial.com/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://laptopsspecial.com/disclaimer</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://laptopsspecial.com/dmca</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+=======
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
 </urlset>

@@ -1,5 +1,6 @@
 ---
 import Base from '@layouts/Base.astro';
+<<<<<<< HEAD
 import { getAllPosts, urlFor } from '../../lib/sanity';
 
 let posts: any[] = [];
@@ -35,18 +36,139 @@ function formatDate(d: string) {
   .post-cats { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.6rem; }
   .post-cat-badge { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); background:rgba(0,212,255,.1); border:1px solid rgba(0,212,255,.2); padding:.18rem .48rem; border-radius:4px; }
   .post-title { font-size:.95rem; font-weight:700; color:var(--text); line-height:1.4; margin-bottom:.55rem; }
+=======
+
+const posts = [
+  {
+    slug: "keyboard-latency-guide",
+    title: "Keyboard Latency Explained: What It Is and Why It Matters for Gaming",
+    excerpt: "Understand the difference between scan rate, polling rate, and response time — and how each affects your gameplay.",
+    category: "Keyboards",
+    date: "June 15, 2026",
+    readTime: "6 min read",
+    icon: "⌨️"
+  },
+  {
+    slug: "mouse-polling-rate-guide",
+    title: "Mouse Polling Rate Guide: 125Hz vs 500Hz vs 1000Hz vs 8000Hz",
+    excerpt: "Does a higher polling rate actually make you a better gamer? We break down the numbers and tell you what really matters.",
+    category: "Mouse",
+    date: "June 10, 2026",
+    readTime: "5 min read",
+    icon: "🖱"
+  },
+  {
+    slug: "wired-vs-wireless-gaming-mouse",
+    title: "Wired vs Wireless Gaming Mouse: Which Has Lower Latency in 2026?",
+    excerpt: "Modern wireless technology has changed the game. An honest comparison of wired and wireless mouse latency.",
+    category: "Mouse",
+    date: "June 5, 2026",
+    readTime: "7 min read",
+    icon: "📡"
+  },
+  {
+    slug: "best-low-latency-keyboards-2026",
+    title: "5 Best Low-Latency Gaming Keyboards in 2026 (Ranked by Response Time)",
+    excerpt: "We tested and ranked the top gaming keyboards by actual input lag. Price does not always mean best latency.",
+    category: "Keyboards",
+    date: "May 28, 2026",
+    readTime: "8 min read",
+    icon: "🏆"
+  },
+  {
+    slug: "anti-ghosting-explained",
+    title: "What is Anti-Ghosting? How to Test If Your Keyboard Supports It",
+    excerpt: "Anti-ghosting is critical for gaming. Learn what it means and test your keyboard for free using our tool.",
+    category: "Keyboards",
+    date: "May 20, 2026",
+    readTime: "4 min read",
+    icon: "👻"
+  },
+  {
+    slug: "dpi-vs-polling-rate",
+    title: "DPI vs Polling Rate: What is the Difference and Which Should You Optimise?",
+    excerpt: "Many gamers confuse DPI and polling rate. They affect your mouse performance in completely different ways.",
+    category: "Mouse",
+    date: "May 12, 2026",
+    readTime: "5 min read",
+    icon: "🎯"
+  }
+];
+---
+<Base
+  title="Blog — Keyboards, Mouse &amp; PC Peripheral Guides | Laptops Special"
+  description="Expert guides on keyboard latency, mouse polling rate, gaming peripherals and performance optimisation. Free tips from Laptops Special."
+  canonical="https://laptopsspecial.com/blog"
+>
+<style>
+  .page-hero {
+    background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06));
+    border-bottom:1px solid var(--border);
+    padding:3.5rem 1.5rem 2rem; text-align:center;
+  }
+  .page-eyebrow { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); margin-bottom:.75rem; }
+  .page-hero h1 { font-size:clamp(1.75rem,4vw,2.5rem); font-weight:700; color:var(--text); margin-bottom:.75rem; }
+  .page-hero p { color:var(--text2); max-width:500px; margin:0 auto; font-size:.95rem; }
+
+  .blog-wrap { max-width:1000px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
+
+  .cat-bar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:2rem; }
+  .cat-btn {
+    background:var(--bg2); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-display);
+    font-size:.8rem; font-weight:600;
+    padding:.4rem .9rem; border-radius:100px;
+    cursor:pointer; transition:all .2s;
+  }
+  .cat-btn:hover,.cat-btn[aria-pressed="true"] {
+    border-color:var(--accent); color:var(--accent);
+    background:rgba(0,212,255,.07);
+  }
+
+  .posts-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.25rem; }
+
+  .post-card {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:14px; overflow:hidden;
+    text-decoration:none; display:flex; flex-direction:column;
+    transition:border-color .2s, transform .2s;
+  }
+  .post-card:hover { border-color:rgba(0,212,255,.35); transform:translateY(-2px); }
+  .post-card[hidden] { display:none; }
+
+  .post-header {
+    background:linear-gradient(135deg,var(--bg3),var(--bg2));
+    padding:1.25rem 1.5rem;
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:1.75rem;
+  }
+  .post-cat-badge {
+    font-size:.66rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--accent);
+    background:rgba(0,212,255,.1); border:1px solid rgba(0,212,255,.2);
+    padding:.2rem .5rem; border-radius:4px;
+  }
+  .post-body { padding:1.25rem; flex:1; display:flex; flex-direction:column; }
+  .post-title { font-size:.92rem; font-weight:700; color:var(--text); line-height:1.4; margin-bottom:.6rem; }
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
   .post-excerpt { font-size:.8rem; color:var(--text2); line-height:1.6; flex:1; margin-bottom:1rem; }
   .post-meta { display:flex; align-items:center; gap:.65rem; font-size:.72rem; color:var(--muted); }
   .meta-dot { width:3px; height:3px; background:var(--border); border-radius:50%; }
   .read-more { font-size:.75rem; font-weight:600; color:var(--accent); margin-top:.75rem; display:inline-block; }
+<<<<<<< HEAD
   .empty-state { text-align:center; padding:4rem 1rem; color:var(--muted); grid-column:1/-1; }
   .empty-state h3 { font-size:1.1rem; color:var(--text2); margin-bottom:.5rem; }
 </style>
+=======
+</style>
+
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
 <div class="page-hero">
   <div class="page-eyebrow">Guides &amp; Tips</div>
   <h1>Keyboard &amp; Mouse Blog</h1>
   <p>In-depth guides on latency, polling rates, gaming peripherals, and performance optimisation.</p>
 </div>
+<<<<<<< HEAD
 <div class="blog-wrap">
   <div class="cat-bar" role="group" id="cat-bar">
     <button class="cat-btn" aria-pressed="true" data-cat="All">All Posts</button>
@@ -90,6 +212,61 @@ function formatDate(d: string) {
       cards.forEach(card=>{
         const cats:string[]=JSON.parse((card as HTMLElement).dataset.cats||'[]');
         sel==='All'||cats.includes(sel!) ? card.removeAttribute('hidden') : card.setAttribute('hidden','');
+=======
+
+<div class="blog-wrap">
+  <div class="cat-bar" role="group" aria-label="Filter posts by category" id="cat-bar">
+    <button class="cat-btn" aria-pressed="true" data-cat="All">All Posts</button>
+    <button class="cat-btn" aria-pressed="false" data-cat="Keyboards">Keyboards</button>
+    <button class="cat-btn" aria-pressed="false" data-cat="Mouse">Mouse</button>
+  </div>
+
+  <div class="posts-grid" id="posts-grid">
+    {posts.map(post => (
+      <a
+        href={`/${post.slug}`}
+        class="post-card"
+        data-cat={post.category}
+        aria-label={`Read article: ${post.title}`}
+      >
+        <div class="post-header" aria-hidden="true">
+          <span>{post.icon}</span>
+          <span class="post-cat-badge">{post.category}</span>
+        </div>
+        <div class="post-body">
+          <div class="post-title">{post.title}</div>
+          <div class="post-excerpt">{post.excerpt}</div>
+          <div class="post-meta">
+            <span>{post.date}</span>
+            <span class="meta-dot" aria-hidden="true"></span>
+            <span>{post.readTime}</span>
+          </div>
+          <span class="read-more" aria-hidden="true">Read article →</span>
+        </div>
+      </a>
+    ))}
+  </div>
+</div>
+
+<script>
+  const btns  = document.querySelectorAll('#cat-bar .cat-btn');
+  const cards = document.querySelectorAll('#posts-grid .post-card');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // update aria-pressed
+      btns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+
+      const sel = btn.dataset.cat;
+      cards.forEach(card => {
+        const match = sel === 'All' || card.dataset.cat === sel;
+        if (match) {
+          card.removeAttribute('hidden');
+        } else {
+          card.setAttribute('hidden', '');
+        }
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
       });
     });
   });

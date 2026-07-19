@@ -4,9 +4,16 @@
     "baseUrl": ".",
     "paths": {
       "@layouts/*": ["src/layouts/*"],
+<<<<<<< HEAD
       "@pages/*": ["src/pages/*"],
       "@assets/*": ["src/assets/*"],
       "@/*": ["src/*"],
     },
   },
+=======
+      "@pages/*":   ["src/pages/*"],
+      "@/*":        ["src/*"]
+    }
+  }
+>>>>>>> 10aa9b0395d12fd37a4b7d811a6f353732146442
 }
