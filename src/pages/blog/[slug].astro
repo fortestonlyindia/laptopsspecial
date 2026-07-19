@@ -1,0 +1,630 @@
+---
+import Base from '@layouts/Base.astro';
+import { getAllPostSlugs, getPostBySlug, getRelatedPosts, urlFor } from '../../lib/sanity';
+
+export async function getStaticPaths() {
+  try {
+    const slugs = await getAllPostSlugs();
+    return (slugs || []).map((s: any) => ({ params: { slug: s.slug } }));
+  } catch(e) { return []; }
+}
+
+const { slug } = Astro.params;
+let post: any = null;
+try { post = await getPostBySlug(slug as string); } catch(e) {}
+if (!post) return Astro.redirect('/blog');
+
+let relatedPosts: any[] = [];
+try {
+  if (post.categories?.length) relatedPosts = await getRelatedPosts(slug as string, post.categories);
+} catch(e) {}
+
+const seoTitle       = post.seoTitle       || post.title;
+const seoDescription = post.seoDescription || post.excerpt || '';
+const canonicalUrl   = `https://laptopsspecial.com/${slug}`;
+const ogImage = (post.seoImage?.asset || post.mainImage?.asset)
+  ? urlFor((post.seoImage?.asset || post.mainImage.asset)).width(1200).height(630).url()
+  : '';
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+
+// ── PORTABLE TEXT → HTML ──────────────────────────────────────────────────
+function escapeHtml(t: string) {
+  return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function applyMarks(child: any, markDefs: any[]): string {
+  let t = escapeHtml(child.text || '');
+  const marks: string[] = child.marks || [];
+  if (marks.includes('strong'))        t = `<strong>${t}</strong>`;
+  if (marks.includes('em'))            t = `<em>${t}</em>`;
+  if (marks.includes('underline'))     t = `<u>${t}</u>`;
+  if (marks.includes('strike-through'))t = `<s>${t}</s>`;
+  if (marks.includes('code'))          t = `<code>${t}</code>`;
+  // Annotations (links, affiliate links)
+  for (const mk of marks) {
+    const def = markDefs?.find((d: any) => d._key === mk);
+    if (!def) continue;
+    if (def._type === 'link') {
+      const rel = def.rel ? ` rel="${escapeHtml(def.rel)}"` : '';
+      const target = def.blank !== false ? ' target="_blank" rel="noopener noreferrer"' : '';
+      t = `<a href="${escapeHtml(def.href)}"${def.blank !== false ? target : rel}>${t}</a>`;
+    }
+    if (def._type === 'affiliateLink') {
+      t = `<a href="${escapeHtml(def.href)}" target="_blank" rel="sponsored noopener">${t}</a>`;
+    }
+  }
+  return t;
+}
+
+function renderBlock(block: any): string {
+  if (block._type === 'block') {
+    const style = block.style || 'normal';
+    const text = (block.children || []).map((c: any) => applyMarks(c, block.markDefs || [])).join('');
+    if (style === 'h2')         return `<h2>${text}</h2>`;
+    if (style === 'h3')         return `<h3>${text}</h3>`;
+    if (style === 'h4')         return `<h4>${text}</h4>`;
+    if (style === 'blockquote') return `<blockquote>${text}</blockquote>`;
+    if (!text.trim())           return '<br>';
+    return `<p>${text}</p>`;
+  }
+
+  if (block._type === 'image' && block.asset) {
+    const src = urlFor(block.asset).width(860).auto('format').url();
+    const alt = escapeHtml(block.alt || '');
+    const cap = block.caption ? `<figcaption>${escapeHtml(block.caption)}</figcaption>` : '';
+    return `<figure><img src="${src}" alt="${alt}" loading="lazy" width="860"/>${cap}</figure>`;
+  }
+
+  if (block._type === 'codeBlock') {
+    // @sanity/code-input stores code in block.code.code and language in block.code.language
+    const lang     = escapeHtml(block.code?.language || block.language || 'text');
+    const codeText = escapeHtml(block.code?.code     || block.code     || '');
+    const filename = block.filename || block.code?.filename || '';
+    const file     = filename ? `<div class="code-filename"><span class="code-lang">${escapeHtml(lang)}</span>${escapeHtml(filename)}</div>` : `<div class="code-filename code-filename-lang"><span class="code-lang">${escapeHtml(lang)}</span></div>`;
+
+    // Build highlighted lines set
+    const highlighted = new Set((block.highlightedLines || []).map((n: number) => n));
+    let codeLines = '';
+    if (highlighted.size > 0) {
+      codeLines = codeText.split('\n').map((line: string, i: number) => {
+        const ln = i + 1;
+        const cls = highlighted.has(ln) ? ' class="highlight"' : '';
+        return `<span${cls}>${line}</span>`;
+      }).join('\n');
+    } else {
+      codeLines = codeText;
+    }
+
+    return `<div class="code-block">${file}<button class="copy-btn" aria-label="Copy code to clipboard" data-code="${codeText.replace(/"/g, '&quot;')}">Copy</button><pre><code class="language-${lang}">${codeLines}</code></pre></div>`;
+  }
+
+  if (block._type === 'tabbedCode') {
+    const tabs = block.tabs || [];
+    if (tabs.length === 0) return '';
+    const blockId = 'tc-' + Math.random().toString(36).slice(2, 8);
+
+    const tabButtons = tabs.map((tab: any, i: number) => {
+      const label = escapeHtml(tab.label || tab.language || 'Code');
+      const lang  = escapeHtml(tab.language || 'text');
+      const active = i === 0 ? ' class="tab-btn active" aria-selected="true"' : ' class="tab-btn" aria-selected="false"';
+      return `<button${active} data-tab="${blockId}-${i}" role="tab" aria-controls="${blockId}-panel-${i}">${label}</button>`;
+    }).join('');
+
+    const tabPanels = tabs.map((tab: any, i: number) => {
+      const lang     = escapeHtml(tab.language || 'text');
+      const filename = tab.filename ? escapeHtml(tab.filename) : '';
+      const code     = escapeHtml(tab.code || '');
+      const hidden   = i === 0 ? '' : ' hidden';
+      const fileEl   = filename ? `<span class="tab-filename">${filename}</span>` : '';
+      const copyData = (tab.code || '').replace(/"/g, '&quot;');
+      return `<div id="${blockId}-panel-${i}" class="tab-panel"${hidden} role="tabpanel">
+        <div class="tab-panel-header"><span class="code-lang">${lang}</span>${fileEl}<button class="copy-btn" aria-label="Copy code" data-code="${copyData}">Copy</button></div>
+        <pre><code class="language-${lang}">${code}</code></pre>
+      </div>`;
+    }).join('');
+
+    const title = block.title ? `<div class="tabbed-code-title">${escapeHtml(block.title)}</div>` : '';
+
+    return `<div class="tabbed-code-block" id="${blockId}">
+      ${title}
+      <div class="tab-bar" role="tablist">${tabButtons}</div>
+      <div class="tab-panels">${tabPanels}</div>
+    </div>`;
+  }
+
+  if (block._type === 'callout') {
+    const emoji = escapeHtml(block.emoji || '💡');
+    const text  = escapeHtml(block.text  || '');
+    return `<div class="callout-box"><span class="callout-emoji">${emoji}</span><p>${text}</p></div>`;
+  }
+
+  if (block._type === 'youtube') {
+    const videoId = block.url?.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1];
+    if (!videoId) return '';
+    const title = escapeHtml(block.title || 'YouTube video');
+    return `<div class="yt-embed"><iframe src="https://www.youtube.com/embed/${videoId}" loading="lazy" allowfullscreen title="${title}"></iframe></div>`;
+  }
+
+  if (block._type === 'table' && block.rows) {
+    const cap = block.caption ? `<caption>${escapeHtml(block.caption)}</caption>` : '';
+    const rows = block.rows.map((row: any, i: number) => {
+      const isHeader = i === 0 && block.hasHeaderRow !== false;
+      const tag = isHeader ? 'th' : 'td';
+      const cells = (row.cells || []).map((c: string) => `<${tag}>${escapeHtml(c)}</${tag}>`).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    return `<div class="table-wrap"><table>${cap}${rows}</table></div>`;
+  }
+
+  return '';
+}
+
+function renderBody(blocks: any[]): string {
+  if (!blocks?.length) return '';
+  let html = '';
+  let listType = '';
+  let listHtml = '';
+
+  for (const block of blocks) {
+    if (block._type === 'block' && block.listItem) {
+      const tag = block.listItem === 'number' ? 'ol' : 'ul';
+      const text = (block.children || []).map((c: any) => applyMarks(c, block.markDefs || [])).join('');
+      if (listType !== tag) {
+        if (listType) { html += `<${listType}>${listHtml}</${listType}>`; listHtml = ''; }
+        listType = tag;
+      }
+      listHtml += `<li>${text}</li>`;
+    } else {
+      if (listType) { html += `<${listType}>${listHtml}</${listType}>`; listType=''; listHtml=''; }
+      html += renderBlock(block);
+    }
+  }
+  if (listType) html += `<${listType}>${listHtml}</${listType}>`;
+  return html;
+}
+
+const bodyHtml = renderBody(post.body || []);
+
+// ── SCHEMAS ──────────────────────────────────────────────────────────────
+
+// 1. Article Schema (always present)
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": seoTitle,
+  "description": seoDescription,
+  "datePublished": post.publishedAt,
+  "dateModified": post.publishedAt,
+  "author": { "@type": "Person", "name": post.author?.name || "Laptops Special" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Laptops Special",
+    "url": "https://laptopsspecial.com",
+    "logo": { "@type": "ImageObject", "url": "https://laptopsspecial.com/favicon.svg" }
+  },
+  "url": canonicalUrl,
+  "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
+  ...(ogImage && { "image": { "@type": "ImageObject", "url": ogImage } }),
+  ...(post.categories?.length && { "keywords": [...(post.categories || []), ...(post.tags || [])].join(", ") }),
+};
+
+// 2. FAQ Schema (only when FAQs exist)
+const faqSchema = post.faqs?.length ? {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": post.faqs.map((f: any) => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+  }))
+} : null;
+
+// 3. WebApplication Schema — for tool-related posts (keyboard/mouse categories)
+const toolCategories = ["Keyboards", "Mouse", "Gaming", "Tools"];
+const isToolPost = post.categories?.some((cat: string) => toolCategories.includes(cat));
+const webAppSchema = isToolPost ? {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Laptops Special — Free Keyboard & Mouse Testing Tools",
+  "description": "Free online tools to test keyboard latency, mouse polling rate, scan rate and gaming peripheral performance.",
+  "url": "https://laptopsspecial.com",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "publisher": { "@type": "Organization", "name": "Laptops Special", "url": "https://laptopsspecial.com" }
+} : null;
+
+// 4. SoftwareSourceCode Schema — for posts that contain code snippets
+const codeBlocks = (post.body || []).filter((b: any) => b._type === "codeBlock");
+const codeSchema = codeBlocks.length > 0 ? codeBlocks.map((block: any) => ({
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": block.filename || `${block.language || "code"} snippet`,
+  "programmingLanguage": {
+    "@type": "ComputerLanguage",
+    "name": block.language || "text"
+  },
+  "codeRepository": "https://laptopsspecial.com",
+  "text": block.code || "",
+  "author": { "@type": "Organization", "name": "Laptops Special" }
+})) : null;
+
+// 5. BreadcrumbList Schema
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://laptopsspecial.com" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://laptopsspecial.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": seoTitle, "item": canonicalUrl },
+  ]
+};
+---
+
+<Base
+  title={`${seoTitle} | Laptops Special`}
+  description={seoDescription}
+  canonical={canonicalUrl}
+  ogImage={ogImage}
+  noWebAppSchema={true}
+>
+  <Fragment slot="head">
+    {/* Article Schema — always */}
+    <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+    {/* FAQ Schema — when FAQs exist */}
+    {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+    {/* WebApp Schema — for tool-related posts */}
+    {webAppSchema && <script type="application/ld+json" set:html={JSON.stringify(webAppSchema)} />}
+    {/* SoftwareSourceCode Schema — for posts with code snippets */}
+    {codeSchema && codeSchema.map((cs: any) => (
+      <script type="application/ld+json" set:html={JSON.stringify(cs)} />
+    ))}
+    {/* BreadcrumbList Schema — always */}
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  </Fragment>
+
+<style>
+  .post-hero { background:linear-gradient(135deg,rgba(0,212,255,.05),rgba(124,58,237,.05)); border-bottom:1px solid var(--border); padding:3rem 1.5rem 2.5rem; text-align:center; }
+  .post-cats { display:flex; justify-content:center; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .post-cat { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); background:rgba(0,212,255,.1); border:1px solid rgba(0,212,255,.2); padding:.22rem .55rem; border-radius:4px; }
+  .post-hero h1 { font-size:clamp(1.5rem,3.5vw,2.5rem); font-weight:700; color:var(--text); line-height:1.25; margin-bottom:1rem; max-width:760px; margin-left:auto; margin-right:auto; }
+  .post-meta-bar { display:flex; align-items:center; justify-content:center; gap:.65rem; flex-wrap:wrap; font-size:.78rem; color:var(--muted); }
+  .author-img { width:28px; height:28px; border-radius:50%; object-fit:cover; }
+
+  .feature-img-wrap { max-width:900px; margin:0 auto; padding:0 1.5rem; }
+  .feature-img { width:100%; border-radius:12px; display:block; margin-top:-1.5rem; aspect-ratio:16/9; object-fit:cover; box-shadow:0 8px 32px rgba(0,0,0,.3); }
+
+  .post-layout { max-width:860px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
+
+  /* PROSE */
+  .prose h2 { font-size:1.3rem; font-weight:700; color:var(--text); margin:2.25rem 0 .75rem; padding-left:.75rem; border-left:3px solid var(--accent); }
+  .prose h3 { font-size:1.05rem; font-weight:600; color:var(--text); margin:1.75rem 0 .6rem; }
+  .prose h4 { font-size:.95rem; font-weight:600; color:var(--text2); margin:1.25rem 0 .5rem; }
+  .prose p  { color:var(--text2); line-height:1.85; font-size:.92rem; margin-bottom:.9rem; }
+  .prose br { display:block; margin:.4rem 0; content:''; }
+  .prose a  { color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(0,212,255,.3); }
+  .prose a:hover { border-bottom-color:var(--accent); }
+  .prose strong { color:var(--text); font-weight:600; }
+  .prose em { font-style:italic; }
+  .prose u  { text-decoration:underline; }
+  .prose s  { text-decoration:line-through; }
+  .prose code { font-family:var(--font-mono); font-size:.82rem; background:var(--bg3); padding:.15rem .35rem; border-radius:4px; color:var(--accent); }
+  .prose blockquote { border-left:3px solid var(--accent2); padding:.75rem 1rem; background:rgba(124,58,237,.06); border-radius:0 8px 8px 0; margin:1.25rem 0; color:var(--text2); font-style:italic; }
+  .prose ul,.prose ol { color:var(--text2); font-size:.92rem; line-height:1.85; padding-left:1.6rem; margin-bottom:.9rem; }
+  .prose li { margin-bottom:.35rem; }
+  .prose figure { margin:1.5rem 0; }
+  .prose figure img { width:100%; border-radius:8px; display:block; }
+  .prose figure figcaption { font-size:.78rem; color:var(--muted); text-align:center; margin-top:.5rem; }
+
+  /* CODE BLOCKS */
+  /* CODE BLOCKS */
+  .prose .code-block { position:relative; margin:1.5rem 0; border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .prose .code-filename {
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--bg3); color:var(--muted);
+    font-family:var(--font-mono); font-size:.74rem;
+    padding:.45rem 1rem; border-bottom:1px solid var(--border);
+  }
+  .prose .code-lang {
+    font-size:.68rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--accent);
+    background:rgba(0,212,255,.1); border:1px solid rgba(0,212,255,.2);
+    padding:.15rem .5rem; border-radius:4px; margin-right:.5rem;
+  }
+  .prose .copy-btn {
+    position:absolute; top:.5rem; right:.75rem;
+    background:var(--bg3); border:1px solid var(--border);
+    color:var(--muted); font-family:var(--font-display);
+    font-size:.7rem; font-weight:600;
+    padding:.25rem .65rem; border-radius:5px;
+    cursor:pointer; transition:all .15s; z-index:1;
+  }
+  .prose .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .prose .copy-btn.copied { border-color:var(--success); color:var(--success); }
+  .prose pre {
+    background:#0d1117; margin:0; padding:1.25rem 1rem;
+    overflow-x:auto; line-height:1.7;
+  }
+  [data-theme="light"] .prose pre { background:#1e2432; }
+  .prose pre code {
+    font-family:var(--font-mono); font-size:.82rem;
+    color:#e2e8f0; background:none; padding:0; border-radius:0;
+  }
+  .prose pre code span.highlight {
+    display:block; background:rgba(0,212,255,.08);
+    border-left:2px solid var(--accent); margin:0 -1rem; padding:0 1rem;
+  }
+  .prose .code-filename {
+    background:var(--bg3); color:var(--muted);
+    font-family:var(--font-mono); font-size:.75rem;
+    padding:.45rem 1rem; border-bottom:1px solid var(--border);
+  }
+  .prose pre {
+    background:#0d1117; margin:0; padding:1.25rem;
+    overflow-x:auto; line-height:1.65;
+  }
+  [data-theme="light"] .prose pre { background:#1e2432; }
+  .prose pre code {
+    font-family:var(--font-mono); font-size:.82rem;
+    color:#e2e8f0; background:none; padding:0;
+  }
+
+  /* CALLOUT */
+  .prose .callout-box { display:flex; gap:.75rem; align-items:flex-start; background:rgba(0,212,255,.06); border:1px solid rgba(0,212,255,.15); border-radius:10px; padding:1rem 1.25rem; margin:1.25rem 0; }
+  .prose .callout-emoji { font-size:1.25rem; flex-shrink:0; }
+  .prose .callout-box p { margin:0; color:var(--text2); font-size:.875rem; }
+
+  /* YOUTUBE */
+  .prose .yt-embed { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:1.5rem 0; }
+  .prose .yt-embed iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+
+  /* TABLE */
+  .prose .table-wrap { overflow-x:auto; margin:1.25rem 0; border-radius:8px; border:1px solid var(--border); }
+  .prose table { width:100%; border-collapse:collapse; font-size:.85rem; }
+  .prose caption { font-size:.78rem; color:var(--muted); padding:.5rem; text-align:left; }
+  .prose th { background:var(--bg3); color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; padding:.6rem 1rem; text-align:left; }
+  .prose td { padding:.6rem 1rem; border-bottom:1px solid var(--border); color:var(--text2); }
+  .prose tr:last-child td { border-bottom:none; }
+
+  /* FAQ */
+  .faq-section { margin-top:2.5rem; padding-top:2rem; border-top:1px solid var(--border); }
+  .faq-section h2 { font-size:1.3rem; font-weight:700; color:var(--text); margin-bottom:1rem; }
+  .faq-list { display:flex; flex-direction:column; gap:.75rem; }
+  .faq-item { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1rem; }
+  .faq-q { font-size:.88rem; font-weight:600; color:var(--text); margin-bottom:.35rem; }
+  .faq-a { font-size:.82rem; color:var(--text2); line-height:1.65; }
+
+  /* TAGS */
+  .tags-row { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:1.5rem; }
+  .tag { font-size:.72rem; font-weight:600; color:var(--muted); background:var(--bg3); border:1px solid var(--border); padding:.22rem .6rem; border-radius:100px; }
+
+  /* RELATED */
+  .related-section { margin-top:2.5rem; padding-top:2rem; border-top:1px solid var(--border); }
+  .related-title { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:1rem; }
+  .related-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
+  .related-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; overflow:hidden; text-decoration:none; transition:border-color .2s; }
+  .related-card:hover { border-color:rgba(0,212,255,.35); }
+  .related-card-img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:var(--bg3); }
+  .related-card-body { padding:.9rem; }
+  .related-card-cat { font-size:.65rem; font-weight:700; text-transform:uppercase; color:var(--accent); margin-bottom:.35rem; }
+  .related-card-title { font-size:.83rem; font-weight:600; color:var(--text); line-height:1.4; }
+
+  .back-link { display:inline-flex; align-items:center; gap:.4rem; color:var(--muted); text-decoration:none; font-size:.82rem; font-weight:600; margin-bottom:1.5rem; transition:color .15s; }
+  .back-link:hover { color:var(--accent); }
+
+  /* ── TABBED CODE BLOCKS ───────────────────────────────── */
+  .prose .tabbed-code-block {
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .prose .tabbed-code-title {
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: .78rem;
+    font-weight: 600;
+    padding: .5rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .prose .tab-bar {
+    display: flex;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .prose .tab-bar::-webkit-scrollbar { display: none; }
+  .prose .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    font-weight: 600;
+    padding: .55rem 1.1rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .prose .tab-btn:hover { color: var(--text2); }
+  .prose .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(0,212,255,.04);
+  }
+  .prose .tab-panel-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--bg3);
+    padding: .4rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: .72rem;
+  }
+  .prose .tab-filename {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    flex: 1;
+  }
+  .prose .tab-panel[hidden] { display: none; }
+  .prose .tab-panel pre {
+    margin: 0;
+    border-radius: 0;
+    border: none;
+  }
+</style>
+
+<!-- Hero -->
+<div class="post-hero">
+  {post.categories?.length > 0 && (
+    <div class="post-cats">{post.categories.map((c: string) => <span class="post-cat">{c}</span>)}</div>
+  )}
+  <h1>{post.title}</h1>
+  <div class="post-meta-bar">
+    {post.author?.image && (
+      <img src={urlFor(post.author.image).width(56).height(56).url()} alt={post.author.name} class="author-img" width="28" height="28"/>
+    )}
+    {post.author?.name && <span>{post.author.name}</span>}
+    {post.author?.name && post.publishedAt && <span>·</span>}
+    {post.publishedAt && <span>{formatDate(post.publishedAt)}</span>}
+    {post.readTime && <><span>·</span><span>{post.readTime}</span></>}
+  </div>
+</div>
+
+<!-- Feature Image -->
+{post.mainImage?.asset && (
+  <div class="feature-img-wrap">
+    <img
+      src={urlFor(post.mainImage.asset).width(900).height(506).auto('format').url()}
+      alt={post.mainImage.altText || post.title}
+      class="feature-img" width="900" height="506" loading="eager"
+    />
+  </div>
+)}
+
+<!-- Content -->
+<div class="post-layout">
+  <a href="/blog" class="back-link">← Back to Blog</a>
+  <div class="prose" set:html={bodyHtml} />
+
+  {post.tags?.length > 0 && (
+    <div class="tags-row">{post.tags.map((t: string) => <span class="tag"># {t}</span>)}</div>
+  )}
+
+  {post.faqs?.length > 0 && (
+    <div class="faq-section">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">
+        {post.faqs.map((f: any) => (
+          <div class="faq-item">
+            <div class="faq-q">{f.question}</div>
+            <div class="faq-a">{f.answer}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {relatedPosts.length > 0 && (
+    <div class="related-section">
+      <div class="related-title">Related Articles</div>
+      <div class="related-grid">
+        {relatedPosts.map((rp: any) => (
+          <a href={`/${rp.slug}`} class="related-card" aria-label={`Read: ${rp.title}`}>
+            {rp.mainImage?.asset
+              ? <img src={urlFor(rp.mainImage.asset).width(400).height(225).auto('format').url()} alt={rp.mainImage.altText||rp.title} class="related-card-img" loading="lazy" width="400" height="225"/>
+              : <div class="related-card-img" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📝</div>
+            }
+            <div class="related-card-body">
+              {rp.categories?.[0] && <div class="related-card-cat">{rp.categories[0]}</div>}
+              <div class="related-card-title">{rp.title}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  // ── COPY BUTTON ─────────────────────────────────────────
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  document.addEventListener('click', function(e) {
+    // ── Copy button handler ──
+    var copyBtn = e.target.closest('.copy-btn');
+    if (copyBtn) {
+      var code = copyBtn.getAttribute('data-code') || '';
+      if (!code) {
+        var pre = copyBtn.closest('.code-block, .tab-panel-header')
+          ? copyBtn.parentElement.nextElementSibling
+          : copyBtn.parentElement.querySelector('pre code');
+        code = (pre && pre.textContent) || '';
+      }
+      if (!code) return;
+
+      function showCopied(btn) {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+          .then(function() { showCopied(copyBtn); })
+          .catch(function() { fallbackCopy(code); showCopied(copyBtn); });
+      } else {
+        fallbackCopy(code);
+        showCopied(copyBtn);
+      }
+      return;
+    }
+
+    // ── Tab button handler ──
+    var tabBtn = e.target.closest('.tab-btn');
+    if (tabBtn) {
+      var tabBar = tabBtn.closest('.tab-bar');
+      var block  = tabBtn.closest('.tabbed-code-block');
+      if (!tabBar || !block) return;
+
+      var allBtns   = Array.from(tabBar.querySelectorAll('.tab-btn'));
+      var allPanels = Array.from(block.querySelectorAll('.tab-panel'));
+      var idx       = allBtns.indexOf(tabBtn);
+
+      // Deactivate all
+      allBtns.forEach(function(b) {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      allPanels.forEach(function(p) {
+        p.setAttribute('hidden', '');
+      });
+
+      // Activate selected
+      tabBtn.classList.add('active');
+      tabBtn.setAttribute('aria-selected', 'true');
+      if (allPanels[idx]) allPanels[idx].removeAttribute('hidden');
+    }
+  });
+</script>
+</Base>

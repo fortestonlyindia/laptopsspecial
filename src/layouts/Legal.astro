@@ -1,0 +1,90 @@
+---
+import Base from './Base.astro';
+export interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  heading: string;
+  lastUpdated: string;
+}
+const { title, description, canonical, heading, lastUpdated } = Astro.props;
+---
+<Base title={title} description={description} canonical={canonical}>
+  <style>
+    .legal-hero {
+      background: linear-gradient(135deg, rgba(0,212,255,0.04), rgba(124,58,237,0.04));
+      border-bottom: 1px solid #1e293b;
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+    }
+    .legal-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    .legal-hero h1 { font-size: clamp(1.5rem, 3.5vw, 2.25rem); font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+    .legal-meta { font-size: 0.8rem; color: var(--muted); }
+
+    .legal-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+    .legal-wrap :global(h2) {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 2rem 0 0.6rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #1e293b;
+    }
+    .legal-wrap :global(h3) {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text2);
+      margin: 1.25rem 0 0.4rem;
+    }
+    .legal-wrap :global(p) {
+      color: var(--text2);
+      font-size: 0.875rem;
+      line-height: 1.8;
+      margin-bottom: 0.75rem;
+    }
+    .legal-wrap :global(ul), .legal-wrap :global(ol) {
+      color: var(--text2);
+      font-size: 0.875rem;
+      line-height: 1.8;
+      padding-left: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .legal-wrap :global(li) { margin-bottom: 0.3rem; }
+    .legal-wrap :global(a) { color: #00d4ff; text-decoration: none; }
+    .legal-wrap :global(a:hover) { text-decoration: underline; }
+    .legal-wrap :global(strong) { color: var(--text); font-weight: 600; }
+    .legal-wrap :global(.highlight-box) {
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+  </style>
+
+  <div class="legal-hero">
+    <div class="legal-badge">Legal</div>
+    <h1>{heading}</h1>
+    <p class="legal-meta">Last updated: {lastUpdated}</p>
+  </div>
+
+  <div class="legal-wrap">
+    <slot />
+  </div>
+</Base>

@@ -1,0 +1,648 @@
+---
+import { Image } from "astro:assets"; // Import Image component
+import logo from "@assets/logo.svg"; // Import logo - light mode
+import whiteLogo from "@assets/white-logo.svg"; // Dark mode
+import favicon from "@assets/favicon.avif"; // Import favicon
+import { ViewTransitions } from "astro:transitions";
+export interface Props {
+    title: string;
+    description: string;
+    canonical?: string;
+    noWebAppSchema?: boolean;
+    ogImage?: string;
+}
+const { title, description, canonical, noWebAppSchema, ogImage } = Astro.props;
+const canonicalURL = canonical || Astro.url.href;
+
+const webAppSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: title,
+    description: description,
+    url: canonicalURL,
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Any",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    publisher: {
+        "@type": "Organization",
+        name: "Laptops Special",
+        url: "https://laptopsspecial.com",
+    },
+};
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={canonicalURL} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalURL} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+
+        <!-- Google Search Console Verification -->
+        <meta
+            name="google-site-verification"
+            content="CIZpwnt9inq2MZS7lEaeEe9J5kUdqVp-2qUWbIYMn30"
+        />
+
+        <!-- Favicon update -->
+        <link rel="icon" type="image/avif" href={favicon.src} />
+        <!-- ... -->
+
+        <!-- Pinterest Domain Verification -->
+        <meta
+            name="p:domain_verify"
+            content="984baf798ab42119d28e305bd32b3623"
+        />
+
+        <!-- Google Tag Manager -->
+        <script is:inline>
+            (function (w, d, s, l, i) {
+                w[l] = w[l] || [];
+                w[l].push({
+                    "gtm.start": new Date().getTime(),
+                    event: "gtm.js",
+                });
+                var f = d.getElementsByTagName(s)[0],
+                    j = d.createElement(s),
+                    dl = l != "dataLayer" ? "&l=" + l : "";
+                j.async = true;
+                j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+                f.parentNode.insertBefore(j, f);
+            })(window, document, "script", "dataLayer", "GTM-NHZMDCG2");
+        </script>
+        <!-- End Google Tag Manager -->
+
+        <!-- Google AdSense -->
+        <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9519394867922982"
+            crossorigin="anonymous"></script>
+
+        <!-- Microsoft Clarity -->
+        <script is:inline type="text/javascript">
+            (function (c, l, a, r, i, t, y) {
+                c[a] =
+                    c[a] ||
+                    function () {
+                        (c[a].q = c[a].q || []).push(arguments);
+                    };
+                t = l.createElement(r);
+                t.async = 1;
+                t.src = "https://www.clarity.ms/tag/" + i + "?ref=gtm2";
+                y = l.getElementsByTagName(r)[0];
+                y.parentNode.insertBefore(t, y);
+            })(window, document, "clarity", "script", "qnlz3299gs");
+        </script>
+
+        <ViewTransitions />
+
+        <!-- Runs before paint — prevents theme flash on every page load -->
+        <script is:inline>
+            document.documentElement.setAttribute(
+                "data-theme",
+                localStorage.getItem("ls-theme") || "dark",
+            );
+        </script>
+
+        <!-- Google Search Console verification -->
+        <meta
+            name="google-site-verification"
+            content="CIZpwnt9inq2MZS7lEaeEe9J5kUdqVp-2qUWbIYMn30"
+        />
+
+        <!-- Pinterest domain verification -->
+        <meta
+            name="p:domain_verify"
+            content="984baf798ab42119d28e305bd32b3623"
+        />
+
+        <!-- Google Tag Manager -->
+        <script is:inline>
+            (function (w, d, s, l, i) {
+                w[l] = w[l] || [];
+                w[l].push({
+                    "gtm.start": new Date().getTime(),
+                    event: "gtm.js",
+                });
+                var f = d.getElementsByTagName(s)[0],
+                    j = d.createElement(s),
+                    dl = l != "dataLayer" ? "&l=" + l : "";
+                j.async = true;
+                j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+                f.parentNode.insertBefore(j, f);
+            })(window, document, "script", "dataLayer", "GTM-NHZMDCG2");
+        </script>
+        <!-- End Google Tag Manager -->
+
+        <!-- Google AdSense -->
+        <script
+            is:inline
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9519394867922982"
+            crossorigin="anonymous"></script>
+
+        <!-- Microsoft Clarity -->
+        <script is:inline type="text/javascript">
+            (function (c, l, a, r, i, t, y) {
+                c[a] =
+                    c[a] ||
+                    function () {
+                        (c[a].q = c[a].q || []).push(arguments);
+                    };
+                t = l.createElement(r);
+                t.async = 1;
+                t.src = "https://www.clarity.ms/tag/" + i + "?ref=gtm2";
+                y = l.getElementsByTagName(r)[0];
+                y.parentNode.insertBefore(t, y);
+            })(window, document, "clarity", "script", "qnlz3299gs");
+        </script>
+
+        <!-- Per-page head additions (OG images, schemas etc.) -->
+        <slot name="head" />
+
+        <!-- WebApp Schema for tool pages (keyboard tester, mouse tester) -->
+        {
+            !noWebAppSchema && (
+                <script
+                    type="application/ld+json"
+                    set:html={JSON.stringify(webAppSchema)}
+                />
+            )
+        }
+
+        <!-- Non-blocking Google Fonts -->
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com"
+            crossorigin
+        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="preload"
+            as="style"
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+            onload="this.onload=null;this.rel='stylesheet'"
+        />
+        <noscript
+            ><link
+                rel="stylesheet"
+                href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+            /></noscript
+        >
+
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                --bg: #0a0e1a;
+                --bg2: #111827;
+                --bg3: #1a2235;
+                --border: #1e293b;
+                --accent: #00d4ff;
+                --accent2: #7c3aed;
+                --text: #e2e8f0;
+                --text2: #b8c5d6;
+                --muted: #8899aa;
+                --success: #22c55e;
+                --warning: #f59e0b;
+                --font-display: "Space Grotesk", sans-serif;
+                --font-mono: "JetBrains Mono", monospace;
+                color-scheme: dark;
+            }
+            [data-theme="light"] {
+                --bg: #f8fafc;
+                --bg2: #ffffff;
+                --bg3: #f1f5f9;
+                --border: #cbd5e1;
+                --accent: #0284c7;
+                --accent2: #7c3aed;
+                --text: #0f172a;
+                --text2: #334155;
+                --muted: #475569;
+                --success: #16a34a;
+                --warning: #d97706;
+                color-scheme: light;
+            }
+
+            html {
+                scroll-behavior: smooth;
+                overflow-y: scroll;
+            }
+
+            body {
+                font-family: var(--font-display);
+                background: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            nav {
+                background: rgba(10, 14, 26, 0.96);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                border-bottom: 1px solid var(--border);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                padding: 0 1.5rem;
+                will-change: transform;
+            }
+            [data-theme="light"] nav {
+                background: rgba(248, 250, 252, 0.96);
+            }
+
+            .nav-inner {
+                max-width: 1100px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                height: 60px;
+                gap: 1rem;
+            }
+            .nav-logo {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                white-space: nowrap;
+            }
+            .nav-logo img {
+                height: 60px;
+                width: auto;
+            }
+
+            /* Dark mode me white-logo dikhega, light mode me normal logo */
+            .logo-dark {
+                display: none;
+            }
+            [data-theme="dark"] .logo-light {
+                display: none;
+            }
+            [data-theme="dark"] .logo-dark {
+                display: block;
+            }
+            .nav-logo span {
+                color: var(--accent);
+            }
+            .nav-right {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+            .nav-links {
+                display: flex;
+                gap: 0.1rem;
+                list-style: none;
+            }
+            .nav-links a {
+                color: var(--text2);
+                text-decoration: none;
+                font-size: 0.875rem;
+                font-weight: 500;
+                padding: 0.4rem 0.7rem;
+                border-radius: 6px;
+                transition:
+                    color 0.15s,
+                    background 0.15s;
+                white-space: nowrap;
+            }
+            .nav-links a:hover,
+            .nav-links a[aria-current="page"] {
+                color: var(--accent);
+                background: rgba(0, 212, 255, 0.08);
+            }
+            [data-theme="light"] .nav-links a:hover,
+            [data-theme="light"] .nav-links a[aria-current="page"] {
+                background: rgba(2, 132, 199, 0.08);
+            }
+
+            .theme-btn {
+                background: none;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                color: var(--text2);
+                cursor: pointer;
+                font-size: 1rem;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition:
+                    border-color 0.15s,
+                    color 0.15s;
+                flex-shrink: 0;
+            }
+            .theme-btn:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+            .icon-moon {
+                display: block;
+            }
+            .icon-sun {
+                display: none;
+            }
+            [data-theme="light"] .icon-moon {
+                display: none;
+            }
+            [data-theme="light"] .icon-sun {
+                display: block;
+            }
+
+            #back-to-top {
+                position: fixed;
+                bottom: 1.75rem;
+                right: 1.75rem;
+                z-index: 200;
+                background: var(--accent);
+                color: #0a0e1a;
+                border: none;
+                border-radius: 50%;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 1.1rem;
+                font-weight: 700;
+                box-shadow: 0 4px 16px rgba(0, 212, 255, 0.35);
+                opacity: 0;
+                transform: translateY(12px);
+                transition:
+                    opacity 0.25s,
+                    transform 0.25s;
+                pointer-events: none;
+            }
+            #back-to-top.visible {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+            #back-to-top:hover {
+                opacity: 0.85;
+            }
+
+            footer {
+                margin-top: auto;
+                border-top: 1px solid var(--border);
+                padding: 2rem 1.5rem;
+                text-align: center;
+            }
+            .footer-inner {
+                max-width: 1100px;
+                margin: 0 auto;
+            }
+            .footer-links {
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+                margin-bottom: 1rem;
+            }
+            .footer-links a {
+                color: var(--muted);
+                text-decoration: none;
+                font-size: 0.8rem;
+                transition: color 0.15s;
+            }
+            .footer-links a:hover {
+                color: var(--accent);
+            }
+            .footer-copy {
+                color: var(--muted);
+                font-size: 0.8rem;
+            }
+            main {
+                flex: 1;
+            }
+
+            @media (max-width: 640px) {
+                .nav-links {
+                    display: none;
+                }
+                .nav-links.open {
+                    display: flex;
+                    flex-direction: column;
+                    position: absolute;
+                    top: 60px;
+                    left: 0;
+                    right: 0;
+                    background: var(--bg2);
+                    border-bottom: 1px solid var(--border);
+                    padding: 0.75rem 1rem;
+                    gap: 0.25rem;
+                }
+                .hamburger {
+                    display: flex !important;
+                }
+            }
+            .hamburger {
+                display: none;
+                background: none;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                color: var(--text2);
+                cursor: pointer;
+                padding: 0.35rem 0.5rem;
+                font-size: 1.1rem;
+            }
+
+            ::view-transition-old(root),
+            ::view-transition-new(root),
+            ::view-transition-group(root),
+            ::view-transition-image-pair(root) {
+                animation: none !important;
+                mix-blend-mode: normal !important;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Google Tag Manager (noscript) -->
+        <noscript
+            ><iframe
+                src="https://www.googletagmanager.com/ns.html?id=GTM-NHZMDCG2"
+                height="0"
+                width="0"
+                style="display:none;visibility:hidden"></iframe></noscript
+        >
+        <!-- End Google Tag Manager (noscript) -->
+
+        <!-- Google Tag Manager (noscript) -->
+        <noscript
+            ><iframe
+                src="https://www.googletagmanager.com/ns.html?id=GTM-NHZMDCG2"
+                height="0"
+                width="0"
+                style="display:none;visibility:hidden"></iframe></noscript
+        >
+        <!-- End Google Tag Manager (noscript) -->
+
+        <nav role="navigation" aria-label="Main navigation">
+            <div class="nav-inner">
+                <a href="/" class="nav-logo" aria-label="Laptops Special Home">
+                    <Image
+                        src={logo}
+                        alt="Laptops Special"
+                        width={40}
+                        height={40}
+                        class="logo-light"
+                    />
+                    <Image
+                        src={whiteLogo}
+                        alt="Laptops Special"
+                        width={40}
+                        height={40}
+                        class="logo-dark"
+                    />
+                </a>
+                <div class="nav-right">
+                    <ul class="nav-links" id="nav-links" role="list">
+                        <li><a href="/">Keyboard Tester</a></li>
+                        <li><a href="/mouse-rate-test">Mouse Rate Test</a></li>
+                        <li><a href="/about">About</a></li>
+                        <li><a href="/blog">Blog</a></li>
+                    </ul>
+                    <button
+                        class="theme-btn"
+                        id="theme-btn"
+                        aria-label="Toggle dark and light mode"
+                    >
+                        <span class="icon-moon" aria-hidden="true">🌙</span>
+                        <span class="icon-sun" aria-hidden="true">☀️</span>
+                    </button>
+                    <button
+                        class="hamburger"
+                        id="hamburger"
+                        aria-label="Open navigation menu"
+                        aria-expanded="false">☰</button
+                    >
+                </div>
+            </div>
+
+            <main id="main-content"><slot /></main>
+
+            <footer>
+                <div class="footer-inner">
+                    <div class="footer-links">
+                        <a href="/about">About Us</a>
+                        <a href="/contact">Contact</a>
+                        <a href="/disclaimer">Disclaimer</a>
+                        <a href="/dmca">DMCA</a>
+                        <a href="/privacy">Privacy Policy</a>
+                        <a href="/terms">Terms</a>
+                    </div>
+                    <p class="footer-copy">
+                        © 2026 Laptops Special — All Rights Reserved
+                    </p>
+                </div>
+            </footer>
+
+            <button id="back-to-top" aria-label="Scroll back to top of page"
+                >↑</button
+            >
+
+            <script>
+                // 1. SCROLL LISTENER (Outside page-load)
+                // Ise bahar rakhte hain taaki View Transitions ke baad multiple listeners add na ho
+                window.addEventListener(
+                    "scroll",
+                    () => {
+                        const btt = document.getElementById("back-to-top");
+                        if (btt) {
+                            btt.classList.toggle(
+                                "visible",
+                                window.scrollY > 400,
+                            );
+                        }
+                    },
+                    { passive: true },
+                );
+
+                // 2. PAGE LOAD LOGIC
+                document.addEventListener("astro:page-load", () => {
+                    // THEME TOGGLE
+                    const themeBtn = document.getElementById("theme-btn");
+                    if (themeBtn) {
+                        themeBtn.onclick = () => {
+                            const html = document.documentElement;
+                            const next =
+                                html.dataset.theme === "dark"
+                                    ? "light"
+                                    : "dark";
+                            html.dataset.theme = next;
+                            localStorage.setItem("ls-theme", next);
+                        };
+                    }
+
+                    // BACK TO TOP CLICK
+                    const btt = document.getElementById("back-to-top");
+                    if (btt) {
+                        btt.onclick = () =>
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        btt.classList.remove("visible");
+                    }
+
+                    // MOBILE NAV
+                    const ham = document.getElementById("hamburger");
+                    const navMenu = document.getElementById("nav-links");
+                    if (ham && navMenu) {
+                        ham.onclick = () => {
+                            const open = navMenu.classList.toggle("open");
+                            ham.setAttribute("aria-expanded", String(open));
+                        };
+                    }
+
+                    // PER-PAGE LOGIC
+                    document.documentElement.dataset.theme =
+                        localStorage.getItem("ls-theme") || "dark";
+                    document.querySelectorAll(".nav-links a").forEach((a) => {
+                        const href = a.getAttribute("href") as string;
+                        if (href) {
+                            const active =
+                                href === location.pathname ||
+                                (href !== "/" &&
+                                    location.pathname.startsWith(href));
+                            a.setAttribute(
+                                "aria-current",
+                                active ? "page" : "false",
+                            );
+                        }
+                    });
+
+                    // Top par scroll karna
+                    window.scrollTo({ top: 0, behavior: "instant" });
+                });
+
+                // NAVIGATION CLEANUP
+                document.addEventListener("astro:before-preparation", () => {
+                    const navMenu = document.getElementById("nav-links");
+                    const ham = document.getElementById("hamburger");
+                    if (navMenu) navMenu.classList.remove("open");
+                    if (ham) ham.setAttribute("aria-expanded", "false");
+                });
+            </script>
+        </nav>
+    </body>
+</html>

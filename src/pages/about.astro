@@ -1,0 +1,145 @@
+---
+import Base from '@layouts/Base.astro';
+---
+<Base
+  title="About Us — Laptops Special"
+  description="Learn about Laptops Special — free online tools for keyboard and mouse testing, helping gamers and tech users benchmark their peripherals."
+  canonical="https://laptopsspecial.com/about"
+>
+<style>
+  .page-hero {
+    background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+    border-bottom: 1px solid #1e293b;
+    padding: 3.5rem 1.5rem 2.5rem;
+    text-align: center;
+  }
+  .page-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #00d4ff;
+    margin-bottom: 0.75rem;
+  }
+  .page-hero h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; color: var(--text); margin-bottom: 0.75rem; }
+  .page-hero p { color: var(--text2); max-width: 540px; margin: 0 auto; font-size: 0.95rem; line-height: 1.7; }
+
+  .content-wrap { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem; }
+  .section { margin-bottom: 2.5rem; }
+  .section h2 { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; border-left: 3px solid #00d4ff; padding-left: 0.75rem; }
+  .section p { color: var(--text2); line-height: 1.8; font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+  .values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+  .value-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+  .value-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .value-title { font-size: 0.875rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
+  .value-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+  .tools-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+  .tool-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    transition: border-color 0.2s;
+  }
+  .tool-item:hover { border-color: rgba(0,212,255,0.3); }
+  .tool-item-icon { font-size: 1.5rem; }
+  .tool-item-info {}
+  .tool-item-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+  .tool-item-desc { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+
+  .contact-cta {
+    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+  .contact-cta h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+  .contact-cta p { color: var(--text2); font-size: 0.875rem; margin-bottom: 1.25rem; }
+  .btn-primary {
+    display: inline-block;
+    background: #00d4ff;
+    color: #0a0e1a;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+</style>
+
+<div class="page-hero">
+  <div class="page-eyebrow">About Laptops Special</div>
+  <h1>Free Tools for Keyboard & Mouse Testing</h1>
+  <p>We build fast, accurate, browser-based diagnostic tools for gamers, developers, and everyday tech users — completely free, no downloads, no signups.</p>
+</div>
+
+<div class="content-wrap">
+  <div class="section">
+    <h2>Who We Are</h2>
+    <p>Laptops Special is a free online tools platform focused on PC peripheral diagnostics. We started with a simple mission: give everyone access to accurate hardware testing tools without needing to install software or create accounts.</p>
+    <p>Our tools are used by casual users who want to check if their keyboard is working correctly, competitive gamers benchmarking their equipment, and tech enthusiasts who just love knowing their numbers.</p>
+  </div>
+
+  <div class="section">
+    <h2>Our Values</h2>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-icon">🆓</div>
+        <div class="value-title">Always Free</div>
+        <div class="value-desc">Every tool on this site is free to use, forever. No paywalls, no premium plans.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">⚡</div>
+        <div class="value-title">Fast & Accurate</div>
+        <div class="value-desc">We use real-time browser APIs to give you precise measurements, not estimates.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🔒</div>
+        <div class="value-title">Privacy First</div>
+        <div class="value-desc">No data leaves your device. All testing happens locally in your browser.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">📱</div>
+        <div class="value-title">No Install Needed</div>
+        <div class="value-desc">Open any tool in your browser and start immediately. Works on all modern browsers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Our Tools</h2>
+    <div class="tools-list">
+      <a href="/" class="tool-item">
+        <div class="tool-item-icon">⌨️</div>
+        <div class="tool-item-info">
+          <div class="tool-item-name">Keyboard Tester</div>
+          <div class="tool-item-desc">Test key response time, scan rate, polling rate, and identify stuck or broken keys.</div>
+        </div>
+      </a>
+      <a href="/mouse-rate-test" class="tool-item">
+        <div class="tool-item-icon">🖱</div>
+        <div class="tool-item-info">
+          <div class="tool-item-name">Mouse Rate Test</div>
+          <div class="tool-item-desc">Check mouse polling rate, click latency, movement speed, and generate heatmaps.</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="contact-cta">
+    <h3>Have a suggestion or found a bug?</h3>
+    <p>We'd love to hear from you. Reach out through our contact page.</p>
+    <a href="/contact" class="btn-primary">Contact Us</a>
+  </div>
+</div>
+</Base>

@@ -1,0 +1,1487 @@
+---
+import Base from "@layouts/Base.astro";
+---
+
+<Base
+    title="Mouse Rate Test — Check Mouse Polling Rate up to 8000Hz"
+    description="Test your mouse polling rate up to 8000Hz, click latency, movement speed and heatmap. Supports high-frequency gaming mice. Free, no download needed."
+    canonical="https://laptopsspecial.com/mouse-rate-test"
+>
+    <style>
+        .hero {
+            text-align: center;
+            padding: 3rem 1.5rem 1.5rem;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(124, 58, 237, 0.12);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            color: #a78bfa;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.8rem;
+            border-radius: 100px;
+            margin-bottom: 1.25rem;
+        }
+        [data-theme="light"] .hero-badge {
+            color: #7c3aed;
+            border-color: rgba(124, 58, 237, 0.4);
+        }
+        .hero h1 {
+            font-size: clamp(1.75rem, 4vw, 2.75rem);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        .hero h1 span {
+            color: #a78bfa;
+        }
+        [data-theme="light"] .hero h1 span {
+            color: #7c3aed;
+        }
+        .hero p {
+            color: var(--text2);
+            font-size: 1rem;
+            max-width: 540px;
+            margin: 0 auto;
+        }
+
+        /* STATS */
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 1.5rem;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .stat-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.4rem;
+            text-align: center;
+            min-width: 130px;
+            flex: 1;
+            transition: border-color 0.2s;
+        }
+        .stat-card:hover {
+            border-color: rgba(124, 58, 237, 0.35);
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+        }
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: #a78bfa;
+        }
+        [data-theme="light"] .stat-value {
+            color: #7c3aed;
+        }
+        .stat-unit {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-top: 0.1rem;
+        }
+
+        /* HIGH-FREQ indicator */
+        .hf-badge {
+            display: none;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.25rem 0.65rem;
+            border-radius: 100px;
+            margin: 0.5rem auto 0;
+            width: fit-content;
+        }
+        .hf-badge.show {
+            display: flex;
+        }
+        .hf-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+        .precision-badge {
+            display: none;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin: 0.5rem auto 0;
+            width: fit-content;
+            text-align: center;
+        }
+        .precision-badge.show {
+            display: flex;
+        }
+        .precision-badge.raw {
+            color: #22c55e;
+        }
+        .precision-badge.standard {
+            color: #f59e0b;
+        }
+
+        /* TOOL */
+        .tool-container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 1.5rem 1.5rem;
+        }
+        .tool-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .tool-header {
+            padding: 0.9rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tool-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text2);
+        }
+        .tool-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .btn-sm {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-sm:hover {
+            border-color: var(--muted);
+            color: var(--text);
+        }
+        .btn-sound {
+            border-color: rgba(0, 212, 255, 0.4);
+            color: #00d4ff;
+        }
+        [data-theme="light"] .btn-sound {
+            color: #0284c7;
+            border-color: rgba(2, 132, 199, 0.5);
+        }
+        .btn-sound:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        .btn-export {
+            border-color: rgba(124, 58, 237, 0.4);
+            color: #a78bfa;
+        }
+        [data-theme="light"] .btn-export {
+            color: #7c3aed;
+            border-color: rgba(124, 58, 237, 0.5);
+        }
+        .btn-export:hover {
+            border-color: #a78bfa;
+            background: rgba(124, 58, 237, 0.08);
+            color: #a78bfa;
+        }
+        .btn-csv {
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        .btn-csv:hover {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+            color: #22c55e;
+        }
+
+        /* TRACKING ZONE */
+        .tracking-zone {
+            position: relative;
+            height: 300px;
+            background: #0a1020;
+            cursor: crosshair;
+            overflow: hidden;
+            transform: translateZ(0);
+            will-change: transform;
+        }
+        [data-theme="light"] .tracking-zone {
+            background: #e8edf5;
+        }
+        .tracking-zone canvas {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .tracking-prompt {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        .tracking-prompt-icon {
+            font-size: 2.5rem;
+            opacity: 0.35;
+            filter: grayscale(0);
+        }
+        .tracking-prompt-text {
+            color: var(--text2);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .cursor-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #a78bfa;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+            will-change: transform;
+            transition: none !important;
+        }
+
+        /* CLICK COUNTERS */
+        .click-section {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .click-counter {
+            flex: 1;
+            min-width: 90px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.8rem;
+            text-align: center;
+        }
+        .click-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 0.3rem;
+        }
+        .click-val {
+            font-family: var(--font-mono);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* ADVANCED METRICS */
+        .metrics-section {
+            padding: 0.9rem 1.5rem 1.25rem;
+        }
+        .metrics-toggle {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.75rem;
+            background: none;
+            border: none;
+            font-family: var(--font-display);
+            padding: 0;
+            transition: color 0.15s;
+        }
+        .metrics-toggle:hover {
+            color: var(--text2);
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            overflow: hidden;
+            transition:
+                max-height 0.25s ease,
+                opacity 0.2s ease,
+                margin 0.25s ease;
+        }
+        .metrics-grid.collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+            margin: 0;
+        }
+        .metric-item {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+        }
+        .metric-name {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            margin-bottom: 0.3rem;
+        }
+        .metric-val {
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #a78bfa;
+        }
+        [data-theme="light"] .metric-val {
+            color: #7c3aed;
+        }
+
+        /* POLLING HISTORY CHART */
+        .chart-section {
+            padding: 0 1.5rem 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+        .chart-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin: 0.9rem 0 0.6rem;
+        }
+        #poll-chart {
+            width: 100%;
+            height: 60px;
+            display: block;
+        }
+
+        /* CTA */
+        .cta-banner {
+            max-width: 1080px;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+        }
+        .cta-inner {
+            background: linear-gradient(
+                135deg,
+                rgba(0, 212, 255, 0.08),
+                rgba(124, 58, 237, 0.1)
+            );
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.2rem 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .cta-text {
+            font-size: 0.9rem;
+            color: var(--text2);
+        }
+        .cta-text strong {
+            color: var(--text);
+        }
+        .cta-btn {
+            background: #a78bfa;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        [data-theme="light"] .cta-btn {
+            background: #7c3aed;
+        }
+        .cta-btn:hover {
+            opacity: 0.85;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.65rem 1.1rem;
+            border-radius: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition:
+                opacity 0.2s ease,
+                transform 0.2s ease;
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* CONTENT */
+        .content-section {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .content-section h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.7rem;
+            color: var(--text);
+        }
+        .content-section p {
+            color: var(--text2);
+            line-height: 1.75;
+            font-size: 0.88rem;
+            margin-bottom: 0.75rem;
+        }
+        .rate-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.84rem;
+        }
+        .rate-table th {
+            background: var(--bg3);
+            color: var(--muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.6rem 1rem;
+            text-align: left;
+        }
+        .rate-table td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text2);
+        }
+        .rate-table tr:last-child td {
+            border-bottom: none;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+        .badge-green {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+        .badge-blue {
+            background: rgba(0, 212, 255, 0.12);
+            color: var(--accent);
+        }
+        .badge-purple {
+            background: rgba(124, 58, 237, 0.15);
+            color: #a78bfa;
+        }
+        [data-theme="light"] .badge-purple {
+            color: #7c3aed;
+        }
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .faq-item {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        .faq-q {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.35rem;
+        }
+        .faq-a {
+            font-size: 0.82rem;
+            color: var(--text2);
+            line-height: 1.65;
+        }
+    </style>
+
+    <div class="hero">
+        <div class="hero-badge">🟣 Supports up to 8000Hz</div>
+        <h1>Mouse <span>Rate Test</span></h1>
+        <p>
+            Check polling rate up to 8000Hz, click latency, heatmap, and
+            detailed metrics — optimised for high-frequency gaming mice.
+        </p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row" aria-label="Mouse test statistics">
+        <div class="stat-card">
+            <div class="stat-label">Avg Polling Rate</div><div
+                class="stat-value"
+                id="s-polling"
+                aria-live="polite"
+            >
+                0
+            </div><div class="stat-unit">Hz</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Peak Polling Rate</div><div
+                class="stat-value"
+                id="s-peak"
+                aria-live="polite"
+            >
+                0
+            </div><div class="stat-unit">Hz</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Last Interval</div><div
+                class="stat-value"
+                id="s-response"
+                aria-live="polite"
+            >
+                0.0
+            </div><div class="stat-unit">ms</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">CPS</div><div
+                class="stat-value"
+                id="s-cps"
+                aria-live="polite"
+            >
+                0
+            </div><div class="stat-unit">clicks/sec</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Move Speed</div><div
+                class="stat-value"
+                id="s-speed"
+                aria-live="polite"
+            >
+                0
+            </div><div class="stat-unit">px/s</div>
+        </div>
+    </div>
+
+    <div class="hf-badge" id="hf-badge">
+        <span class="hf-dot" aria-hidden="true"></span>
+        High-Frequency Mouse Detected
+    </div>
+
+    <div class="precision-badge" id="precision-badge" aria-live="polite"></div>
+
+    <!-- TOOL -->
+    <div class="tool-container">
+        <div class="tool-card">
+            <div class="tool-header">
+                <span class="tool-title"
+                    >🖱 Mouse Tracking Zone — Move and Click Inside</span
+                >
+                <div class="tool-actions">
+                    <button
+                        class="btn-sm btn-sound"
+                        id="btn-sound"
+                        aria-label="Toggle click sound">🔊 Sound: ON</button
+                    >
+                    <button
+                        class="btn-sm"
+                        id="btn-reset"
+                        aria-label="Reset all mouse test data">Reset</button
+                    >
+                    <button
+                        class="btn-sm btn-export"
+                        id="btn-export"
+                        aria-label="Export results as JSON file"
+                        >Export JSON</button
+                    >
+                    <button
+                        class="btn-sm btn-csv"
+                        id="btn-csv"
+                        aria-label="Export polling history as CSV file"
+                        >Export CSV</button
+                    >
+                </div>
+            </div>
+
+            <div
+                class="tracking-zone"
+                id="zone"
+                role="img"
+                aria-label="Mouse tracking area — move your mouse here to begin testing"
+            >
+                <canvas id="heatmap" aria-hidden="true"></canvas>
+                <div class="tracking-prompt" id="prompt" aria-hidden="true">
+                    <div class="tracking-prompt-icon">🖱</div>
+                    <div class="tracking-prompt-text">
+                        Move your mouse here to start
+                    </div>
+                </div>
+                <div class="cursor-dot" id="cursor-dot" aria-hidden="true">
+                </div>
+            </div>
+
+            <!-- CLICK COUNTERS -->
+            <div class="click-section" aria-label="Click statistics">
+                <div class="click-counter">
+                    <div class="click-label">Left</div><div
+                        class="click-val"
+                        id="c-left"
+                        aria-live="polite"
+                    >
+                        0
+                    </div>
+                </div>
+                <div class="click-counter">
+                    <div class="click-label">Right</div><div
+                        class="click-val"
+                        id="c-right"
+                        aria-live="polite"
+                    >
+                        0
+                    </div>
+                </div>
+                <div class="click-counter">
+                    <div class="click-label">Middle</div><div
+                        class="click-val"
+                        id="c-middle"
+                        aria-live="polite"
+                    >
+                        0
+                    </div>
+                </div>
+                <div class="click-counter">
+                    <div class="click-label">Total</div><div
+                        class="click-val"
+                        id="c-total"
+                        aria-live="polite"
+                    >
+                        0
+                    </div>
+                </div>
+                <div class="click-counter">
+                    <div class="click-label">Heat pts</div><div
+                        class="click-val"
+                        id="c-heat"
+                        aria-live="polite"
+                    >
+                        0
+                    </div>
+                </div>
+            </div>
+
+            <!-- POLLING HISTORY MINI-CHART -->
+            <div class="chart-section">
+                <div class="chart-label">
+                    Polling Rate History (last 120 events)
+                </div>
+                <canvas
+                    id="poll-chart"
+                    aria-label="Polling rate history chart"
+                    height="60"></canvas>
+            </div>
+
+            <!-- ADVANCED METRICS -->
+            <div class="metrics-section">
+                <button
+                    class="metrics-toggle"
+                    id="metrics-toggle"
+                    aria-expanded="true"
+                    aria-controls="metrics-grid"
+                >
+                    <span aria-hidden="true" id="tog-arrow">▼</span> Advanced Metrics
+                </button>
+                <div class="metrics-grid" id="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-name">Min Poll Interval</div><div
+                            class="metric-val"
+                            id="m-minpoll"
+                        >
+                            — ms
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-name">Max Poll Interval</div><div
+                            class="metric-val"
+                            id="m-maxpoll"
+                        >
+                            — ms
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-name">Jitter (StdDev)</div><div
+                            class="metric-val"
+                            id="m-jitter"
+                        >
+                            — ms
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-name">Max Speed</div><div
+                            class="metric-val"
+                            id="m-maxspeed"
+                        >
+                            0 px/s
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-name">Last Click Duration</div><div
+                            class="metric-val"
+                            id="m-cdur"
+                        >
+                            — ms
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-name">Total Events</div><div
+                            class="metric-val"
+                            id="m-events"
+                        >
+                            0
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-banner">
+        <div class="cta-inner">
+            <p class="cta-text">
+                <strong>Also test your keyboard!</strong> Check key response time,
+                scan rate, and all 104 keys.
+            </p>
+            <a
+                href="/"
+                class="cta-btn"
+                aria-label="Open full keyboard tester tool"
+                >⌨️ Keyboard Tester →</a
+            >
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content-section">
+        <h2>Mouse Polling Rate Guide</h2>
+        <p>
+            Polling rate is how often your mouse reports its position to the
+            computer per second. Higher polling rate means smoother and more
+            responsive cursor movement — essential for competitive gaming.
+        </p>
+        <table class="rate-table">
+            <thead
+                ><tr
+                    ><th>Polling Rate</th><th>Interval</th><th>Best For</th><th
+                        >Rating</th
+                    ></tr
+                ></thead
+            >
+            <tbody>
+                <tr
+                    ><td>125 Hz</td><td>8.0 ms</td><td>Casual / office use</td
+                    ><td><span class="badge badge-green">Fine</span></td></tr
+                >
+                <tr
+                    ><td>500 Hz</td><td>2.0 ms</td><td
+                        >Competitive gaming (minimum)</td
+                    ><td><span class="badge badge-blue">Good</span></td></tr
+                >
+                <tr
+                    ><td>1000 Hz</td><td>1.0 ms</td><td>Standard gaming</td><td
+                        ><span class="badge badge-purple">Great</span></td
+                    ></tr
+                >
+                <tr
+                    ><td>4000 Hz</td><td>0.25 ms</td><td
+                        >High-refresh-rate gaming</td
+                    ><td><span class="badge badge-purple">Elite</span></td></tr
+                >
+                <tr
+                    ><td>8000 Hz</td><td>0.125 ms</td><td
+                        >Esports professionals</td
+                    ><td><span class="badge badge-purple">Pro</span></td></tr
+                >
+            </tbody>
+        </table>
+        <h2 style="margin-top:2rem;">Frequently Asked Questions</h2>
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-q">
+                    What polling rate does this tool support?
+                </div><div class="faq-a">
+                    This tool reads events using the getCoalescedEvents() API,
+                    and pointerrawupdate where the browser supports it, so it
+                    reflects your mouse's true report rate far more accurately
+                    than a plain mousemove counter. In practice, most Chromium
+                    browsers reliably read up to roughly 1500–2000Hz; readings
+                    above that depend on your OS, USB port, and CPU load, and
+                    can under-report a mouse's rated 4000Hz or 8000Hz. For exact
+                    hardware-level verification, pair this tool with a native
+                    utility like MouseTester.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">
+                    What is a good polling rate for gaming?
+                </div><div class="faq-a">
+                    500Hz is the competitive minimum. 1000Hz is the standard for
+                    most gaming mice. Ultra-competitive players on high-refresh
+                    monitors prefer 4000Hz or 8000Hz.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">
+                    Is higher polling rate always better?
+                </div><div class="faq-a">
+                    Not necessarily. Above 4000Hz, CPU usage increases slightly.
+                    The benefit depends on your monitor refresh rate — a 4000Hz
+                    mouse on a 60Hz monitor provides no visible advantage.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">
+                    Can I increase my mouse polling rate?
+                </div><div class="faq-a">
+                    Yes, through manufacturer software — Logitech G HUB, Razer
+                    Synapse, or SteelSeries Engine — if your mouse hardware
+                    supports it. Not all mice can exceed 1000Hz.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        document.addEventListener("astro:page-load", () => {
+            const zone = document.getElementById("zone");
+            if (!zone) return;
+
+            const heatCvs = document.getElementById("heatmap");
+            const hCtx = heatCvs.getContext("2d", { alpha: true });
+            const cursorDot = document.getElementById("cursor-dot");
+            const prompt = document.getElementById("prompt");
+            const pollCvs = document.getElementById("poll-chart");
+            const pCtx = pollCvs.getContext("2d");
+            const toastEl = document.getElementById("toast");
+
+            let toastTimer = null;
+            function showToast(msg) {
+                if (!toastEl) return;
+                toastEl.textContent = msg;
+                toastEl.classList.add("show");
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    toastEl.classList.remove("show");
+                }, 2200);
+            }
+
+            // Sound Logic
+            let soundEnabled = true;
+            let audioCtx = null;
+            function playClickSound() {
+                if (!soundEnabled) return;
+                try {
+                    if (!audioCtx)
+                        audioCtx = new (
+                            window.AudioContext || window.webkitAudioContext
+                        )();
+                    if (audioCtx.state === "suspended") audioCtx.resume();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(
+                        100,
+                        audioCtx.currentTime + 0.04,
+                    );
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.001,
+                        audioCtx.currentTime + 0.04,
+                    );
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.04);
+                } catch (e) {}
+            }
+
+            const btnSound = document.getElementById("btn-sound");
+            btnSound.addEventListener("click", () => {
+                soundEnabled = !soundEnabled;
+                btnSound.textContent = soundEnabled
+                    ? "🔊 Sound: ON"
+                    : "🔇 Sound: OFF";
+            });
+
+            const els = {
+                polling: document.getElementById("s-polling"),
+                peak: document.getElementById("s-peak"),
+                response: document.getElementById("s-response"),
+                cps: document.getElementById("s-cps"),
+                speed: document.getElementById("s-speed"),
+                cLeft: document.getElementById("c-left"),
+                cRight: document.getElementById("c-right"),
+                cMiddle: document.getElementById("c-middle"),
+                cTotal: document.getElementById("c-total"),
+                cHeat: document.getElementById("c-heat"),
+                minpoll: document.getElementById("m-minpoll"),
+                maxpoll: document.getElementById("m-maxpoll"),
+                jitter: document.getElementById("m-jitter"),
+                maxspeed: document.getElementById("m-maxspeed"),
+                cdur: document.getElementById("m-cdur"),
+                events: document.getElementById("m-events"),
+            };
+
+            let st = {
+                lc: 0,
+                rc: 0,
+                mc: 0,
+                heat: 0,
+                lastEventT: null,
+                lastPos: null,
+                maxSpd: 0,
+                minPI: Infinity,
+                maxPI: 0,
+                downT: null,
+                cpsArr: [],
+                hzBuf: [],
+                hzHead: 0,
+                totalActiveMs: 0,
+                pollHistory: [],
+                intervals: [],
+                totalEvents: 0,
+                peakHz: 0,
+                pendingCursor: null,
+                rafId: null,
+                domUpdatesNeeded: false,
+                lastDomUpdate: 0,
+                heatmapTrails: [],
+                lastHeatPos: null,
+            };
+
+            function resetState() {
+                st = {
+                    lc: 0,
+                    rc: 0,
+                    mc: 0,
+                    heat: 0,
+                    lastEventT: null,
+                    lastPos: null,
+                    maxSpd: 0,
+                    minPI: Infinity,
+                    maxPI: 0,
+                    downT: null,
+                    cpsArr: [],
+                    hzBuf: [],
+                    hzHead: 0,
+                    totalActiveMs: 0,
+                    pollHistory: [],
+                    intervals: [],
+                    totalEvents: 0,
+                    peakHz: 0,
+                    pendingCursor: null,
+                    rafId: null,
+                    domUpdatesNeeded: false,
+                    lastDomUpdate: 0,
+                    heatmapTrails: [],
+                    lastHeatPos: null,
+                };
+                document.getElementById("hf-badge").classList.remove("show");
+            }
+
+            function resizeCanvases() {
+                const r = zone.getBoundingClientRect();
+                heatCvs.width = r.width;
+                heatCvs.height = r.height;
+                pollCvs.width = pollCvs.offsetWidth;
+                drawPollChart();
+            }
+            resizeCanvases();
+            window.onresize = resizeCanvases;
+
+            // ---- Precision mode detection ----
+            // pointerrawupdate (Chromium-only, experimental) delivers input
+            // events without waiting on the browser's per-frame event batching,
+            // giving a truer high-frequency reading than pointermove even with
+            // getCoalescedEvents(). Firefox/Safari don't support it, so we
+            // fall back to pointermove + getCoalescedEvents there.
+            const supportsRawUpdate = "onpointerrawupdate" in window;
+            const moveEventName = supportsRawUpdate
+                ? "pointerrawupdate"
+                : "pointermove";
+            const precisionBadge = document.getElementById("precision-badge");
+            if (precisionBadge) {
+                precisionBadge.classList.add(
+                    "show",
+                    supportsRawUpdate ? "raw" : "standard",
+                );
+                precisionBadge.textContent = supportsRawUpdate
+                    ? "⚡ High-precision mode (pointerrawupdate)"
+                    : "ℹ️ Standard-precision mode — readings are reliable up to ~1500–2000Hz in this browser";
+            }
+
+            // ---- Live Hz from a ring buffer (no per-frame array allocation) ----
+            // Advances a head pointer past expired samples instead of calling
+            // .filter() every animation frame — at high polling rates that
+            // filter was itself expensive enough to add main-thread jank and
+            // skew the very numbers it was measuring. Rate is normalized to
+            // the actual elapsed window (count / windowMs * 1000) rather than
+            // requiring a full 1s window to fill before reporting anything,
+            // so short bursts are reflected immediately instead of lagging.
+            function computeLiveHz(now) {
+                while (
+                    st.hzHead < st.hzBuf.length &&
+                    now - st.hzBuf[st.hzHead] > 1000
+                ) {
+                    st.hzHead++;
+                }
+                // Compact occasionally so the backing array doesn't grow
+                // unbounded over a long test session.
+                if (st.hzHead > 4000) {
+                    st.hzBuf = st.hzBuf.slice(st.hzHead);
+                    st.hzHead = 0;
+                }
+                const count = st.hzBuf.length - st.hzHead;
+                if (count < 2) return { hz: 0, trusted: false };
+                const windowMs = now - st.hzBuf[st.hzHead];
+                if (windowMs < 20) return { hz: count, trusted: false };
+                return {
+                    hz: Math.round((count / windowMs) * 1000),
+                    // Require a handful of samples across a real window
+                    // before letting a reading claim the Peak slot — this
+                    // stops a 2-event micro-burst from reporting a fake
+                    // multi-thousand-Hz spike.
+                    trusted: count >= 5,
+                };
+            }
+
+            zone.addEventListener(
+                moveEventName,
+                (e) => {
+                    prompt.style.display = "none";
+                    const events = e.getCoalescedEvents
+                        ? e.getCoalescedEvents()
+                        : [e];
+                    if (events.length === 0) events.push(e);
+
+                    for (let ev of events) {
+                        // Coalesced events carry their OWN real hardware
+                        // timestamp (same clock as performance.now()). Using
+                        // the gap between consecutive real timestamps gives
+                        // the true inter-sample interval — far more accurate
+                        // than assuming samples were evenly spaced across the
+                        // dispatched frame's duration.
+                        const evT = ev.timeStamp;
+                        if (st.lastEventT !== null) {
+                            const dt = evT - st.lastEventT;
+                            if (dt > 0) {
+                                st._lastDt = dt;
+                                st.intervals.push(dt);
+                                if (st.intervals.length > 200)
+                                    st.intervals.shift();
+                                if (dt < st.minPI) st.minPI = dt;
+                                if (dt > st.maxPI) st.maxPI = dt;
+                                // Only count genuinely continuous motion
+                                // toward the active-time average — a pause
+                                // between strokes shouldn't drag the average
+                                // polling rate down, since it isn't measuring
+                                // the mouse's polling rate at all.
+                                if (dt < 300) st.totalActiveMs += dt;
+                            }
+                        }
+                        st.lastEventT = evT;
+                        st.hzBuf.push(evT);
+
+                        const r = zone.getBoundingClientRect();
+                        const x = ev.clientX - r.left;
+                        const y = ev.clientY - r.top;
+                        st.pendingCursor = { x, y };
+                        if (st.lastPos) {
+                            const dx = x - st.lastPos.x,
+                                dy = y - st.lastPos.y;
+                            const spd =
+                                Math.sqrt(dx * dx + dy * dy) /
+                                ((st._lastDt || 1) / 1000);
+                            if (spd > st.maxSpd) st.maxSpd = spd;
+                            st._lastSpd = spd;
+                        }
+                        const dist = st.lastHeatPos
+                            ? Math.hypot(
+                                  x - st.lastHeatPos.x,
+                                  y - st.lastHeatPos.y,
+                              )
+                            : 100;
+                        if (dist > 3) {
+                            st.heatmapTrails.push({
+                                x,
+                                y,
+                                opacity: 0.5,
+                                radius: 22,
+                            });
+                            st.lastHeatPos = { x, y };
+                            st.heat++;
+                        }
+                        st.lastPos = { x, y };
+                        st.totalEvents++;
+                    }
+                    st.domUpdatesNeeded = true;
+                },
+                { passive: true },
+            );
+
+            function rafLoop(ts) {
+                st.rafId = requestAnimationFrame(rafLoop);
+                const now = performance.now();
+
+                // Fading Heatmap
+                hCtx.clearRect(0, 0, heatCvs.width, heatCvs.height);
+                st.heatmapTrails = st.heatmapTrails
+                    .map((p) => ({
+                        x: p.x,
+                        y: p.y,
+                        radius: p.radius,
+                        opacity: p.opacity * 0.98,
+                    }))
+                    .filter((p) => p.opacity > 0.02);
+
+                for (let p of st.heatmapTrails) {
+                    const g = hCtx.createRadialGradient(
+                        p.x,
+                        p.y,
+                        0,
+                        p.x,
+                        p.y,
+                        p.radius,
+                    );
+                    g.addColorStop(0, `rgba(219, 39, 119, ${p.opacity})`);
+                    g.addColorStop(1, `rgba(219, 39, 119, 0)`);
+                    hCtx.beginPath();
+                    hCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    hCtx.fillStyle = g;
+                    hCtx.fill();
+                }
+
+                if (st.pendingCursor) {
+                    const { x, y } = st.pendingCursor;
+                    cursorDot.style.display = "block";
+                    cursorDot.style.transform = `translate(calc(${x}px - 50%), calc(${y}px - 50%))`;
+                    st.pendingCursor = null;
+                }
+
+                if (st.domUpdatesNeeded && ts - st.lastDomUpdate > 33) {
+                    st.lastDomUpdate = ts;
+                    st.domUpdatesNeeded = false;
+
+                    const live = computeLiveHz(now);
+                    if (live.trusted && live.hz > st.peakHz) {
+                        st.peakHz = live.hz;
+                    }
+                    // True session average: total samples over the time the
+                    // mouse was actually in continuous motion — not a
+                    // snapshot of the current instant, so it won't jump
+                    // around and actually reflects the whole test.
+                    const avgHz =
+                        st.totalActiveMs > 0
+                            ? Math.round(
+                                  (st.totalEvents / st.totalActiveMs) * 1000,
+                              )
+                            : 0;
+
+                    st.pollHistory.push(live.hz);
+                    if (st.pollHistory.length > 120) st.pollHistory.shift();
+                    els.polling.textContent = avgHz;
+                    els.peak.textContent = st.peakHz;
+                    els.response.textContent = (st._lastDt || 0).toFixed(2);
+                    els.speed.textContent = (st._lastSpd || 0).toFixed(0);
+                    els.cHeat.textContent = st.heat;
+                    els.events.textContent = st.totalEvents;
+                    if (st.intervals.length > 2) {
+                        const mean =
+                            st.intervals.reduce((a, b) => a + b, 0) /
+                            st.intervals.length;
+                        const variance =
+                            st.intervals.reduce(
+                                (a, b) => a + (b - mean) ** 2,
+                                0,
+                            ) / st.intervals.length;
+                        els.jitter.textContent =
+                            Math.sqrt(variance).toFixed(3) + " ms";
+                    }
+                    if (st.minPI < Infinity)
+                        els.minpoll.textContent = st.minPI.toFixed(3) + " ms";
+                    if (st.maxPI > 0)
+                        els.maxpoll.textContent = st.maxPI.toFixed(2) + " ms";
+                    els.maxspeed.textContent = st.maxSpd.toFixed(0) + " px/s";
+                    if (live.hz > 1500)
+                        document
+                            .getElementById("hf-badge")
+                            .classList.add("show");
+                    drawPollChart();
+                }
+            }
+            st.rafId = requestAnimationFrame(rafLoop);
+
+            function drawPollChart() {
+                const w = pollCvs.width,
+                    h = pollCvs.height;
+                pCtx.clearRect(0, 0, w, h);
+                if (st.pollHistory.length < 2) return;
+                const max = Math.max(...st.pollHistory, 1200);
+                const pts = st.pollHistory;
+                const step = w / (pts.length - 1);
+                pCtx.beginPath();
+                pCtx.moveTo(0, h);
+                pts.forEach((v, i) =>
+                    pCtx.lineTo(i * step, h - (v / max) * (h - 4)),
+                );
+                pCtx.lineTo((pts.length - 1) * step, h);
+                pCtx.closePath();
+                const grad = pCtx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, "rgba(124,58,237,0.35)");
+                grad.addColorStop(1, "rgba(124,58,237,0.02)");
+                pCtx.fillStyle = grad;
+                pCtx.fill();
+                pCtx.beginPath();
+                pts.forEach((v, i) => {
+                    const px = i * step,
+                        py = h - (v / max) * (h - 4);
+                    i === 0 ? pCtx.moveTo(px, py) : pCtx.lineTo(px, py);
+                });
+                pCtx.strokeStyle = "#a78bfa";
+                pCtx.lineWidth = 1.5;
+                pCtx.stroke();
+            }
+
+            zone.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                playClickSound();
+                st.downT = e.timeStamp;
+                const r = zone.getBoundingClientRect();
+                st.heatmapTrails.push({
+                    x: e.clientX - r.left,
+                    y: e.clientY - r.top,
+                    opacity: 1,
+                    radius: 40,
+                });
+                st.heat++;
+                if (e.button === 0) {
+                    st.lc++;
+                    els.cLeft.textContent = st.lc;
+                } else if (e.button === 2) {
+                    st.rc++;
+                    els.cRight.textContent = st.rc;
+                } else if (e.button === 1) {
+                    st.mc++;
+                    els.cMiddle.textContent = st.mc;
+                }
+                els.cTotal.textContent = st.lc + st.rc + st.mc;
+                const now = e.timeStamp;
+                st.cpsArr = st.cpsArr.filter((t) => now - t < 1000);
+                st.cpsArr.push(now);
+                els.cps.textContent = st.cpsArr.length;
+            });
+
+            zone.addEventListener("mouseup", (e) => {
+                if (st.downT) {
+                    els.cdur.textContent =
+                        (e.timeStamp - st.downT).toFixed(1) + " ms";
+                    st.downT = null;
+                }
+            });
+
+            zone.addEventListener("contextmenu", (e) => e.preventDefault());
+
+            document
+                .getElementById("btn-reset")
+                .addEventListener("click", () => {
+                    if (st.rafId) cancelAnimationFrame(st.rafId);
+                    resetState();
+                    hCtx.clearRect(0, 0, heatCvs.width, heatCvs.height);
+                    pCtx.clearRect(0, 0, pollCvs.width, pollCvs.height);
+                    Object.values(els).forEach((el) => {
+                        if (el)
+                            el.textContent = el.id?.startsWith("s-")
+                                ? "0"
+                                : "—";
+                    });
+                    prompt.style.display = "flex";
+                    cursorDot.style.display = "none";
+                    st.rafId = requestAnimationFrame(rafLoop);
+                    showToast("Test data reset");
+                });
+
+            // ---- Helper: trigger a browser download for a Blob ----
+            function downloadBlob(blob, filename) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+
+            function currentJitterMs() {
+                if (st.intervals.length <= 2) return null;
+                const mean =
+                    st.intervals.reduce((a, b) => a + b, 0) /
+                    st.intervals.length;
+                const variance =
+                    st.intervals.reduce((a, b) => a + (b - mean) ** 2, 0) /
+                    st.intervals.length;
+                return Math.sqrt(variance);
+            }
+
+            // ---- Export JSON ----
+            document
+                .getElementById("btn-export")
+                .addEventListener("click", () => {
+                    if (st.totalEvents === 0) {
+                        showToast("Move your mouse in the zone first");
+                        return;
+                    }
+                    const jitter = currentJitterMs();
+                    const avgHz =
+                        st.totalActiveMs > 0
+                            ? Math.round(
+                                  (st.totalEvents / st.totalActiveMs) * 1000,
+                              )
+                            : 0;
+                    const data = {
+                        generatedAt: new Date().toISOString(),
+                        polling: {
+                            averageHz: avgHz,
+                            peakHz: st.peakHz,
+                            minIntervalMs:
+                                st.minPI < Infinity
+                                    ? +st.minPI.toFixed(3)
+                                    : null,
+                            maxIntervalMs:
+                                st.maxPI > 0 ? +st.maxPI.toFixed(3) : null,
+                            jitterMs:
+                                jitter !== null ? +jitter.toFixed(3) : null,
+                            lastIntervalMs: st._lastDt
+                                ? +st._lastDt.toFixed(3)
+                                : null,
+                            history: st.pollHistory,
+                        },
+                        movement: {
+                            maxSpeedPxPerSec: +st.maxSpd.toFixed(1),
+                            lastSpeedPxPerSec: st._lastSpd
+                                ? +st._lastSpd.toFixed(1)
+                                : 0,
+                            heatPoints: st.heat,
+                        },
+                        clicks: {
+                            left: st.lc,
+                            right: st.rc,
+                            middle: st.mc,
+                            total: st.lc + st.rc + st.mc,
+                            clicksPerSecond: st.cpsArr.length,
+                        },
+                        totalEvents: st.totalEvents,
+                    };
+                    const blob = new Blob([JSON.stringify(data, null, 2)], {
+                        type: "application/json",
+                    });
+                    downloadBlob(blob, `mouse-rate-test-${Date.now()}.json`);
+                    showToast("Exported results as JSON");
+                });
+
+            // ---- Export CSV ----
+            document.getElementById("btn-csv").addEventListener("click", () => {
+                if (st.pollHistory.length === 0) {
+                    showToast("Move your mouse in the zone first");
+                    return;
+                }
+                const rows = ["index,polling_rate_hz"];
+                st.pollHistory.forEach((v, i) => {
+                    rows.push(`${i},${v}`);
+                });
+                const blob = new Blob([rows.join("\n")], {
+                    type: "text/csv",
+                });
+                downloadBlob(blob, `mouse-polling-history-${Date.now()}.csv`);
+                showToast("Exported polling history as CSV");
+            });
+
+            // ---- Advanced metrics collapse/expand ----
+            const metricsToggle = document.getElementById("metrics-toggle");
+            const metricsGrid = document.getElementById("metrics-grid");
+            const togArrow = document.getElementById("tog-arrow");
+            metricsToggle.addEventListener("click", () => {
+                const expanded =
+                    metricsToggle.getAttribute("aria-expanded") === "true";
+                metricsToggle.setAttribute("aria-expanded", String(!expanded));
+                metricsGrid.classList.toggle("collapsed", expanded);
+                togArrow.textContent = expanded ? "▶" : "▼";
+            });
+
+            document.addEventListener(
+                "astro:before-swap",
+                () => {
+                    if (st.rafId) cancelAnimationFrame(st.rafId);
+                    window.onresize = null;
+                },
+                { once: true },
+            );
+        });
+    </script>
+</Base>
