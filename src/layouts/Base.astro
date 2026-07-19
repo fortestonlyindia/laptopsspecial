@@ -55,71 +55,8 @@ const webAppSchema = {
 
         <!-- Favicon update -->
         <link rel="icon" type="image/avif" href={favicon.src} />
-        <!-- ... -->
 
         <!-- Pinterest Domain Verification -->
-        <meta
-            name="p:domain_verify"
-            content="984baf798ab42119d28e305bd32b3623"
-        />
-
-        <!-- Google Tag Manager -->
-        <script is:inline>
-            (function (w, d, s, l, i) {
-                w[l] = w[l] || [];
-                w[l].push({
-                    "gtm.start": new Date().getTime(),
-                    event: "gtm.js",
-                });
-                var f = d.getElementsByTagName(s)[0],
-                    j = d.createElement(s),
-                    dl = l != "dataLayer" ? "&l=" + l : "";
-                j.async = true;
-                j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-                f.parentNode.insertBefore(j, f);
-            })(window, document, "script", "dataLayer", "GTM-NHZMDCG2");
-        </script>
-        <!-- End Google Tag Manager -->
-
-        <!-- Google AdSense -->
-        <script
-            async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9519394867922982"
-            crossorigin="anonymous"></script>
-
-        <!-- Microsoft Clarity -->
-        <script is:inline type="text/javascript">
-            (function (c, l, a, r, i, t, y) {
-                c[a] =
-                    c[a] ||
-                    function () {
-                        (c[a].q = c[a].q || []).push(arguments);
-                    };
-                t = l.createElement(r);
-                t.async = 1;
-                t.src = "https://www.clarity.ms/tag/" + i + "?ref=gtm2";
-                y = l.getElementsByTagName(r)[0];
-                y.parentNode.insertBefore(t, y);
-            })(window, document, "clarity", "script", "qnlz3299gs");
-        </script>
-
-        <ViewTransitions />
-
-        <!-- Runs before paint — prevents theme flash on every page load -->
-        <script is:inline>
-            document.documentElement.setAttribute(
-                "data-theme",
-                localStorage.getItem("ls-theme") || "dark",
-            );
-        </script>
-
-        <!-- Google Search Console verification -->
-        <meta
-            name="google-site-verification"
-            content="CIZpwnt9inq2MZS7lEaeEe9J5kUdqVp-2qUWbIYMn30"
-        />
-
-        <!-- Pinterest domain verification -->
         <meta
             name="p:domain_verify"
             content="984baf798ab42119d28e305bd32b3623"
@@ -164,6 +101,16 @@ const webAppSchema = {
                 y = l.getElementsByTagName(r)[0];
                 y.parentNode.insertBefore(t, y);
             })(window, document, "clarity", "script", "qnlz3299gs");
+        </script>
+
+        <ViewTransitions />
+
+        <!-- Runs before paint — prevents theme flash on every page load -->
+        <script is:inline>
+            document.documentElement.setAttribute(
+                "data-theme",
+                localStorage.getItem("ls-theme") || "dark",
+            );
         </script>
 
         <!-- Per-page head additions (OG images, schemas etc.) -->
@@ -489,17 +436,7 @@ const webAppSchema = {
         >
         <!-- End Google Tag Manager (noscript) -->
 
-        <!-- Google Tag Manager (noscript) -->
-        <noscript
-            ><iframe
-                src="https://www.googletagmanager.com/ns.html?id=GTM-NHZMDCG2"
-                height="0"
-                width="0"
-                style="display:none;visibility:hidden"></iframe></noscript
-        >
-        <!-- End Google Tag Manager (noscript) -->
-
-        <nav role="navigation" aria-label="Main navigation">
+        <nav role="navigation" aria-label="Main navigation" transition:persist>
             <div class="nav-inner">
                 <a href="/" class="nav-logo" aria-label="Laptops Special Home">
                     <Image
@@ -540,109 +477,105 @@ const webAppSchema = {
                     >
                 </div>
             </div>
+        </nav>
 
-            <main id="main-content"><slot /></main>
+        <main id="main-content"><slot /></main>
 
-            <footer>
-                <div class="footer-inner">
-                    <div class="footer-links">
-                        <a href="/about">About Us</a>
-                        <a href="/contact">Contact</a>
-                        <a href="/disclaimer">Disclaimer</a>
-                        <a href="/dmca">DMCA</a>
-                        <a href="/privacy">Privacy Policy</a>
-                        <a href="/terms">Terms</a>
-                    </div>
-                    <p class="footer-copy">
-                        © 2026 Laptops Special — All Rights Reserved
-                    </p>
+        <footer>
+            <div class="footer-inner">
+                <div class="footer-links">
+                    <a href="/about">About Us</a>
+                    <a href="/contact">Contact</a>
+                    <a href="/disclaimer">Disclaimer</a>
+                    <a href="/dmca">DMCA</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms</a>
                 </div>
-            </footer>
+                <p class="footer-copy">
+                    © 2026 Laptops Special — All Rights Reserved
+                </p>
+            </div>
+        </footer>
 
-            <button id="back-to-top" aria-label="Scroll back to top of page"
-                >↑</button
-            >
+        <button id="back-to-top" aria-label="Scroll back to top of page"
+            >↑</button
+        >
 
-            <script>
-                // 1. SCROLL LISTENER (Outside page-load)
-                // Ise bahar rakhte hain taaki View Transitions ke baad multiple listeners add na ho
-                window.addEventListener(
-                    "scroll",
-                    () => {
-                        const btt = document.getElementById("back-to-top");
-                        if (btt) {
-                            btt.classList.toggle(
-                                "visible",
-                                window.scrollY > 400,
-                            );
-                        }
-                    },
-                    { passive: true },
-                );
-
-                // 2. PAGE LOAD LOGIC
-                document.addEventListener("astro:page-load", () => {
-                    // THEME TOGGLE
-                    const themeBtn = document.getElementById("theme-btn");
-                    if (themeBtn) {
-                        themeBtn.onclick = () => {
-                            const html = document.documentElement;
-                            const next =
-                                html.dataset.theme === "dark"
-                                    ? "light"
-                                    : "dark";
-                            html.dataset.theme = next;
-                            localStorage.setItem("ls-theme", next);
-                        };
-                    }
-
-                    // BACK TO TOP CLICK
+        <script>
+            // 1. SCROLL LISTENER (Outside page-load)
+            // Ise bahar rakhte hain taaki View Transitions ke baad multiple listeners add na ho
+            window.addEventListener(
+                "scroll",
+                () => {
                     const btt = document.getElementById("back-to-top");
                     if (btt) {
-                        btt.onclick = () =>
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                        btt.classList.remove("visible");
+                        btt.classList.toggle("visible", window.scrollY > 400);
                     }
+                },
+                { passive: true },
+            );
 
-                    // MOBILE NAV
-                    const ham = document.getElementById("hamburger");
-                    const navMenu = document.getElementById("nav-links");
-                    if (ham && navMenu) {
-                        ham.onclick = () => {
-                            const open = navMenu.classList.toggle("open");
-                            ham.setAttribute("aria-expanded", String(open));
-                        };
+            // 2. PAGE LOAD LOGIC
+            document.addEventListener("astro:page-load", () => {
+                // THEME TOGGLE
+                const themeBtn = document.getElementById("theme-btn");
+                if (themeBtn) {
+                    themeBtn.onclick = () => {
+                        const html = document.documentElement;
+                        const next =
+                            html.dataset.theme === "dark" ? "light" : "dark";
+                        html.dataset.theme = next;
+                        localStorage.setItem("ls-theme", next);
+                    };
+                }
+
+                // BACK TO TOP CLICK
+                // BACK TO TOP CLICK
+                const btt = document.getElementById("back-to-top");
+                if (btt) {
+                    btt.onclick = () =>
+                        window.scrollTo({ top: 0, behavior: "instant" });
+                    btt.classList.remove("visible");
+                }
+
+                // MOBILE NAV
+                const ham = document.getElementById("hamburger");
+                const navMenu = document.getElementById("nav-links");
+                if (ham && navMenu) {
+                    ham.onclick = () => {
+                        const open = navMenu.classList.toggle("open");
+                        ham.setAttribute("aria-expanded", String(open));
+                    };
+                }
+
+                // PER-PAGE LOGIC
+                document.documentElement.dataset.theme =
+                    localStorage.getItem("ls-theme") || "dark";
+                document.querySelectorAll(".nav-links a").forEach((a) => {
+                    const href = a.getAttribute("href") as string;
+                    if (href) {
+                        const active =
+                            href === location.pathname ||
+                            (href !== "/" &&
+                                location.pathname.startsWith(href));
+                        a.setAttribute(
+                            "aria-current",
+                            active ? "page" : "false",
+                        );
                     }
-
-                    // PER-PAGE LOGIC
-                    document.documentElement.dataset.theme =
-                        localStorage.getItem("ls-theme") || "dark";
-                    document.querySelectorAll(".nav-links a").forEach((a) => {
-                        const href = a.getAttribute("href") as string;
-                        if (href) {
-                            const active =
-                                href === location.pathname ||
-                                (href !== "/" &&
-                                    location.pathname.startsWith(href));
-                            a.setAttribute(
-                                "aria-current",
-                                active ? "page" : "false",
-                            );
-                        }
-                    });
-
-                    // Top par scroll karna
-                    window.scrollTo({ top: 0, behavior: "instant" });
                 });
 
-                // NAVIGATION CLEANUP
-                document.addEventListener("astro:before-preparation", () => {
-                    const navMenu = document.getElementById("nav-links");
-                    const ham = document.getElementById("hamburger");
-                    if (navMenu) navMenu.classList.remove("open");
-                    if (ham) ham.setAttribute("aria-expanded", "false");
-                });
-            </script>
-        </nav>
+                // Top par scroll karna
+                window.scrollTo({ top: 0, behavior: "instant" });
+            });
+
+            // NAVIGATION CLEANUP
+            document.addEventListener("astro:before-preparation", () => {
+                const navMenu = document.getElementById("nav-links");
+                const ham = document.getElementById("hamburger");
+                if (navMenu) navMenu.classList.remove("open");
+                if (ham) ham.setAttribute("aria-expanded", "false");
+            });
+        </script>
     </body>
 </html>

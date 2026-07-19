@@ -1,97 +1,319 @@
 ---
-import Base from '@layouts/Base.astro';
-import { getAllPosts, urlFor } from '../../lib/sanity';
+import Base from "@layouts/Base.astro";
+import { getAllPosts, urlFor } from "../../lib/sanity";
 
 let posts: any[] = [];
-try { posts = await getAllPosts() || []; } catch(e) { posts = []; }
+try {
+    posts = (await getAllPosts()) || [];
+} catch (e) {
+    posts = [];
+}
 
 function formatDate(d: string) {
-  if (!d) return '';
-  return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+    if (!d) return "";
+    return new Date(d).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
 }
 ---
+
 <Base
-  title="Blog — Keyboards, Mouse &amp; PC Peripheral Guides | Laptops Special"
-  description="Expert guides on keyboard latency, mouse polling rate, gaming peripherals and performance optimisation."
-  canonical="https://laptopsspecial.com/blog"
-  noWebAppSchema={true}
+    title="Blog — Keyboards, Mouse & PC Peripheral Guides | Laptops Special"
+    description="Expert guides on keyboard latency, mouse polling rate, gaming peripherals and performance optimisation."
+    canonical="https://laptopsspecial.com/blog"
+    noWebAppSchema={true}
 >
-<style>
-  .page-hero { background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(124,58,237,.06)); border-bottom:1px solid var(--border); padding:3.5rem 1.5rem 2rem; text-align:center; }
-  .page-eyebrow { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); margin-bottom:.75rem; }
-  .page-hero h1 { font-size:clamp(1.75rem,4vw,2.5rem); font-weight:700; color:var(--text); margin-bottom:.75rem; }
-  .page-hero p  { color:var(--text2); max-width:500px; margin:0 auto; font-size:.95rem; }
-  .blog-wrap { max-width:1100px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
-  .cat-bar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:2rem; }
-  .cat-btn { background:var(--bg2); border:1px solid var(--border); color:var(--muted); font-family:var(--font-display); font-size:.8rem; font-weight:600; padding:.4rem .9rem; border-radius:100px; cursor:pointer; transition:all .15s; }
-  .cat-btn:hover,.cat-btn[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,.07); }
-  .posts-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.25rem; }
-  .post-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; overflow:hidden; text-decoration:none; display:flex; flex-direction:column; transition:border-color .2s,transform .2s; }
-  .post-card:hover { border-color:rgba(0,212,255,.35); transform:translateY(-2px); }
-  .post-card[hidden] { display:none; }
-  .post-img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:var(--bg3); }
-  .post-img-placeholder { width:100%; aspect-ratio:16/9; background:linear-gradient(135deg,var(--bg3),var(--bg2)); display:flex; align-items:center; justify-content:center; font-size:2.5rem; }
-  .post-body { padding:1.25rem; flex:1; display:flex; flex-direction:column; }
-  .post-cats { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.6rem; }
-  .post-cat-badge { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); background:rgba(0,212,255,.1); border:1px solid rgba(0,212,255,.2); padding:.18rem .48rem; border-radius:4px; }
-  .post-title { font-size:.95rem; font-weight:700; color:var(--text); line-height:1.4; margin-bottom:.55rem; }
-  .post-excerpt { font-size:.8rem; color:var(--text2); line-height:1.6; flex:1; margin-bottom:1rem; }
-  .post-meta { display:flex; align-items:center; gap:.65rem; font-size:.72rem; color:var(--muted); }
-  .meta-dot { width:3px; height:3px; background:var(--border); border-radius:50%; }
-  .read-more { font-size:.75rem; font-weight:600; color:var(--accent); margin-top:.75rem; display:inline-block; }
-  .empty-state { text-align:center; padding:4rem 1rem; color:var(--muted); grid-column:1/-1; }
-  .empty-state h3 { font-size:1.1rem; color:var(--text2); margin-bottom:.5rem; }
-</style>
-<div class="page-hero">
-  <div class="page-eyebrow">Guides &amp; Tips</div>
-  <h1>Keyboard &amp; Mouse Blog</h1>
-  <p>In-depth guides on latency, polling rates, gaming peripherals, and performance optimisation.</p>
-</div>
-<div class="blog-wrap">
-  <div class="cat-bar" role="group" id="cat-bar">
-    <button class="cat-btn" aria-pressed="true" data-cat="All">All Posts</button>
-    {Array.from(new Set(posts.flatMap((p: any) => p.categories || []))).map((cat: any) => (
-      <button class="cat-btn" aria-pressed="false" data-cat={cat}>{cat}</button>
-    ))}
-  </div>
-  <div class="posts-grid" id="posts-grid">
-    {posts.length === 0
-      ? <div class="empty-state"><h3>No posts yet</h3><p>Posts will appear here once published in Sanity Studio.</p></div>
-      : posts.map((post: any) => (
-        <a href={`/${post.slug}`} class="post-card" data-cats={JSON.stringify(post.categories||[])} aria-label={`Read: ${post.title}`}>
-          {post.mainImage?.asset
-            ? <img src={urlFor(post.mainImage.asset).width(600).height(337).auto('format').url()} alt={post.mainImage.altText||post.title} class="post-img" loading="lazy" width="600" height="337"/>
-            : <div class="post-img-placeholder">{post.icon||'📝'}</div>
-          }
-          <div class="post-body">
-            {post.categories?.length > 0 && <div class="post-cats">{post.categories.map((c:string) => <span class="post-cat-badge">{c}</span>)}</div>}
-            <div class="post-title">{post.title}</div>
-            {post.excerpt && <div class="post-excerpt">{post.excerpt}</div>}
-            <div class="post-meta">
-              {post.publishedAt && <span>{formatDate(post.publishedAt)}</span>}
-              {post.publishedAt && post.readTime && <span class="meta-dot"/>}
-              {post.readTime && <span>{post.readTime}</span>}
-            </div>
-            <span class="read-more">Read article →</span>
-          </div>
-        </a>
-      ))
-    }
-  </div>
-</div>
-<script>
-  const btns=document.querySelectorAll('#cat-bar .cat-btn');
-  const cards=document.querySelectorAll('#posts-grid .post-card');
-  btns.forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      btns.forEach(b=>b.setAttribute('aria-pressed','false'));
-      btn.setAttribute('aria-pressed','true');
-      const sel=(btn as HTMLElement).dataset.cat;
-      cards.forEach(card=>{
-        const cats:string[]=JSON.parse((card as HTMLElement).dataset.cats||'[]');
-        sel==='All'||cats.includes(sel!) ? card.removeAttribute('hidden') : card.setAttribute('hidden','');
-      });
-    });
-  });
-</script>
+    <style>
+        .page-hero {
+            background: linear-gradient(
+                135deg,
+                rgba(0, 212, 255, 0.06),
+                rgba(124, 58, 237, 0.06)
+            );
+            border-bottom: 1px solid var(--border);
+            padding: 3.5rem 1.5rem 2rem;
+            text-align: center;
+        }
+        .page-eyebrow {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+        .page-hero h1 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        .page-hero p {
+            color: var(--text2);
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+        }
+        .blog-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+        .cat-bar {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .cat-btn {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.4rem 0.9rem;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cat-btn:hover,
+        .cat-btn[aria-pressed="true"] {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.07);
+        }
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+        .post-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            transition:
+                border-color 0.2s,
+                transform 0.2s;
+        }
+        .post-card:hover {
+            border-color: rgba(0, 212, 255, 0.35);
+            transform: translateY(-2px);
+        }
+        .post-card[hidden] {
+            display: none;
+        }
+        .post-img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            display: block;
+            background: var(--bg3);
+        }
+        .post-img-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, var(--bg3), var(--bg2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+        .post-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .post-cats {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.6rem;
+        }
+        .post-cat-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 0.18rem 0.48rem;
+            border-radius: 4px;
+        }
+        .post-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.4;
+            margin-bottom: 0.55rem;
+        }
+        .post-excerpt {
+            font-size: 0.8rem;
+            color: var(--text2);
+            line-height: 1.6;
+            flex: 1;
+            margin-bottom: 1rem;
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+        .meta-dot {
+            width: 3px;
+            height: 3px;
+            background: var(--border);
+            border-radius: 50%;
+        }
+        .read-more {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 0.75rem;
+            display: inline-block;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: var(--muted);
+            grid-column: 1/-1;
+        }
+        .empty-state h3 {
+            font-size: 1.1rem;
+            color: var(--text2);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+    <div class="page-hero">
+        <div class="page-eyebrow">Guides &amp; Tips</div>
+        <h1>Keyboard &amp; Mouse Blog</h1>
+        <p>
+            In-depth guides on latency, polling rates, gaming peripherals, and
+            performance optimisation.
+        </p>
+    </div>
+    <div class="blog-wrap">
+        <div class="cat-bar" role="group" id="cat-bar">
+            <button class="cat-btn" aria-pressed="true" data-cat="All"
+                >All Posts</button
+            >
+            {
+                Array.from(
+                    new Set(posts.flatMap((p: any) => p.categories || [])),
+                ).map((cat: any) => (
+                    <button class="cat-btn" aria-pressed="false" data-cat={cat}>
+                        {cat}
+                    </button>
+                ))
+            }
+        </div>
+        <div class="posts-grid" id="posts-grid">
+            {
+                posts.length === 0 ? (
+                    <div class="empty-state">
+                        <>
+                            <h3>No posts yet</h3>
+                            <p>
+                                Posts will appear here once published in Sanity
+                                Studio.
+                            </p>
+                        </>
+                    </div>
+                ) : (
+                    posts.map((post: any) => (
+                        <a
+                            href={`/${post.slug}`}
+                            class="post-card"
+                            data-cats={JSON.stringify(post.categories || [])}
+                            aria-label={`Read: ${post.title}`}
+                        >
+                            {post.mainImage?.asset ? (
+                                <img
+                                    src={urlFor(post.mainImage.asset)
+                                        .width(600)
+                                        .height(337)
+                                        .auto("format")
+                                        .url()}
+                                    alt={post.mainImage.altText || post.title}
+                                    class="post-img"
+                                    loading="lazy"
+                                    width="600"
+                                    height="337"
+                                />
+                            ) : (
+                                <div class="post-img-placeholder">
+                                    {post.icon || "📝"}
+                                </div>
+                            )}
+                            <div class="post-body">
+                                {post.categories?.length > 0 && (
+                                    <div class="post-cats">
+                                        {post.categories.map((c: string) => (
+                                            <span class="post-cat-badge">
+                                                {c}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                                <div class="post-title">{post.title}</div>
+                                {post.excerpt && (
+                                    <div class="post-excerpt">
+                                        {post.excerpt}
+                                    </div>
+                                )}
+                                <div class="post-meta">
+                                    {post.publishedAt && (
+                                        <span>
+                                            {formatDate(post.publishedAt)}
+                                        </span>
+                                    )}
+                                    {post.publishedAt && post.readTime && (
+                                        <span class="meta-dot" />
+                                    )}
+                                    {post.readTime && (
+                                        <span>{post.readTime}</span>
+                                    )}
+                                </div>
+                                <span class="read-more">Read article →</span>
+                            </div>
+                        </a>
+                    ))
+                )
+            }
+        </div>
+    </div>
+    <script>
+        function initBlogFilters() {
+            const btns = document.querySelectorAll("#cat-bar .cat-btn");
+            const cards = document.querySelectorAll("#posts-grid .post-card");
+            btns.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    btns.forEach((b) =>
+                        b.setAttribute("aria-pressed", "false"),
+                    );
+                    btn.setAttribute("aria-pressed", "true");
+                    const sel = (btn as HTMLElement).dataset.cat;
+                    cards.forEach((card) => {
+                        const cats: string[] = JSON.parse(
+                            (card as HTMLElement).dataset.cats || "[]",
+                        );
+                        sel === "All" || cats.includes(sel!)
+                            ? card.removeAttribute("hidden")
+                            : card.setAttribute("hidden", "");
+                    });
+                });
+            });
+        }
+        document.addEventListener("astro:page-load", initBlogFilters);
+    </script>
 </Base>

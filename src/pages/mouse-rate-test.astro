@@ -907,39 +907,103 @@ import Base from "@layouts/Base.astro";
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
+        interface HeatTrail {
+            x: number;
+            y: number;
+            opacity: number;
+            radius: number;
+        }
+
+        interface TestState {
+            lc: number;
+            rc: number;
+            mc: number;
+            heat: number;
+            lastEventT: number | null;
+            lastPos: { x: number; y: number } | null;
+            maxSpd: number;
+            minPI: number;
+            maxPI: number;
+            downT: number | null;
+            cpsArr: number[];
+            hzBuf: number[];
+            hzHead: number;
+            totalActiveMs: number;
+            pollHistory: number[];
+            intervals: number[];
+            totalEvents: number;
+            peakHz: number;
+            pendingCursor: { x: number; y: number } | null;
+            rafId: number | null;
+            domUpdatesNeeded: boolean;
+            lastDomUpdate: number;
+            heatmapTrails: HeatTrail[];
+            lastHeatPos: { x: number; y: number } | null;
+            _lastDt?: number;
+            _lastSpd?: number;
+        }
+
         document.addEventListener("astro:page-load", () => {
             const zone = document.getElementById("zone");
-            if (!zone) return;
+            const heatCvs = document.getElementById(
+                "heatmap",
+            ) as HTMLCanvasElement | null;
+            const pollCvs = document.getElementById(
+                "poll-chart",
+            ) as HTMLCanvasElement | null;
 
-            const heatCvs = document.getElementById("heatmap");
+            if (!zone || !heatCvs || !pollCvs) return;
+
             const hCtx = heatCvs.getContext("2d", { alpha: true });
-            const cursorDot = document.getElementById("cursor-dot");
-            const prompt = document.getElementById("prompt");
-            const pollCvs = document.getElementById("poll-chart");
             const pCtx = pollCvs.getContext("2d");
-            const toastEl = document.getElementById("toast");
+            if (!hCtx || !pCtx) return;
 
-            let toastTimer = null;
-            function showToast(msg) {
+            const cursorDot = document.getElementById(
+                "cursor-dot",
+            ) as HTMLElement | null;
+            const promptEl = document.getElementById(
+                "prompt",
+            ) as HTMLElement | null;
+            const toastEl = document.getElementById(
+                "toast",
+            ) as HTMLElement | null;
+            const hfBadge = document.getElementById(
+                "hf-badge",
+            ) as HTMLElement | null;
+            const precisionBadge = document.getElementById(
+                "precision-badge",
+            ) as HTMLElement | null;
+
+            let toastTimer: number | null = null;
+
+            function showToast(msg: string) {
                 if (!toastEl) return;
                 toastEl.textContent = msg;
                 toastEl.classList.add("show");
-                clearTimeout(toastTimer);
-                toastTimer = setTimeout(() => {
+
+                if (toastTimer !== null) clearTimeout(toastTimer);
+
+                toastTimer = window.setTimeout(() => {
                     toastEl.classList.remove("show");
                 }, 2200);
             }
 
             // Sound Logic
             let soundEnabled = true;
-            let audioCtx = null;
+            let audioCtx: AudioContext | null = null;
             function playClickSound() {
                 if (!soundEnabled) return;
                 try {
-                    if (!audioCtx)
-                        audioCtx = new (
-                            window.AudioContext || window.webkitAudioContext
-                        )();
+                    if (!audioCtx) {
+                        const AudioCtor =
+                            window.AudioContext ||
+                            (
+                                window as unknown as {
+                                    webkitAudioContext: typeof AudioContext;
+                                }
+                            ).webkitAudioContext;
+                        audioCtx = new AudioCtor();
+                    }
                     if (audioCtx.state === "suspended") audioCtx.resume();
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -958,65 +1022,63 @@ import Base from "@layouts/Base.astro";
                     );
                     osc.start(audioCtx.currentTime);
                     osc.stop(audioCtx.currentTime + 0.04);
-                } catch (e) {}
+                } catch (e) {
+                    // ignore audio errors
+                }
             }
 
-            const btnSound = document.getElementById("btn-sound");
-            btnSound.addEventListener("click", () => {
+            const btnSound = document.getElementById(
+                "btn-sound",
+            ) as HTMLElement | null;
+            btnSound?.addEventListener("click", () => {
                 soundEnabled = !soundEnabled;
-                btnSound.textContent = soundEnabled
-                    ? "🔊 Sound: ON"
-                    : "🔇 Sound: OFF";
+                if (btnSound)
+                    btnSound.textContent = soundEnabled
+                        ? "🔊 Sound: ON"
+                        : "🔇 Sound: OFF";
             });
 
             const els = {
-                polling: document.getElementById("s-polling"),
-                peak: document.getElementById("s-peak"),
-                response: document.getElementById("s-response"),
-                cps: document.getElementById("s-cps"),
-                speed: document.getElementById("s-speed"),
-                cLeft: document.getElementById("c-left"),
-                cRight: document.getElementById("c-right"),
-                cMiddle: document.getElementById("c-middle"),
-                cTotal: document.getElementById("c-total"),
-                cHeat: document.getElementById("c-heat"),
-                minpoll: document.getElementById("m-minpoll"),
-                maxpoll: document.getElementById("m-maxpoll"),
-                jitter: document.getElementById("m-jitter"),
-                maxspeed: document.getElementById("m-maxspeed"),
-                cdur: document.getElementById("m-cdur"),
-                events: document.getElementById("m-events"),
+                polling: document.getElementById(
+                    "s-polling",
+                ) as HTMLElement | null,
+                peak: document.getElementById("s-peak") as HTMLElement | null,
+                response: document.getElementById(
+                    "s-response",
+                ) as HTMLElement | null,
+                cps: document.getElementById("s-cps") as HTMLElement | null,
+                speed: document.getElementById("s-speed") as HTMLElement | null,
+                cLeft: document.getElementById("c-left") as HTMLElement | null,
+                cRight: document.getElementById(
+                    "c-right",
+                ) as HTMLElement | null,
+                cMiddle: document.getElementById(
+                    "c-middle",
+                ) as HTMLElement | null,
+                cTotal: document.getElementById(
+                    "c-total",
+                ) as HTMLElement | null,
+                cHeat: document.getElementById("c-heat") as HTMLElement | null,
+                minpoll: document.getElementById(
+                    "m-minpoll",
+                ) as HTMLElement | null,
+                maxpoll: document.getElementById(
+                    "m-maxpoll",
+                ) as HTMLElement | null,
+                jitter: document.getElementById(
+                    "m-jitter",
+                ) as HTMLElement | null,
+                maxspeed: document.getElementById(
+                    "m-maxspeed",
+                ) as HTMLElement | null,
+                cdur: document.getElementById("m-cdur") as HTMLElement | null,
+                events: document.getElementById(
+                    "m-events",
+                ) as HTMLElement | null,
             };
 
-            let st = {
-                lc: 0,
-                rc: 0,
-                mc: 0,
-                heat: 0,
-                lastEventT: null,
-                lastPos: null,
-                maxSpd: 0,
-                minPI: Infinity,
-                maxPI: 0,
-                downT: null,
-                cpsArr: [],
-                hzBuf: [],
-                hzHead: 0,
-                totalActiveMs: 0,
-                pollHistory: [],
-                intervals: [],
-                totalEvents: 0,
-                peakHz: 0,
-                pendingCursor: null,
-                rafId: null,
-                domUpdatesNeeded: false,
-                lastDomUpdate: 0,
-                heatmapTrails: [],
-                lastHeatPos: null,
-            };
-
-            function resetState() {
-                st = {
+            function freshState(): TestState {
+                return {
                     lc: 0,
                     rc: 0,
                     mc: 0,
@@ -1042,30 +1104,30 @@ import Base from "@layouts/Base.astro";
                     heatmapTrails: [],
                     lastHeatPos: null,
                 };
-                document.getElementById("hf-badge").classList.remove("show");
+            }
+
+            let st: TestState = freshState();
+
+            function resetState() {
+                st = freshState();
+                hfBadge?.classList.remove("show");
             }
 
             function resizeCanvases() {
-                const r = zone.getBoundingClientRect();
-                heatCvs.width = r.width;
-                heatCvs.height = r.height;
-                pollCvs.width = pollCvs.offsetWidth;
+                const r = zone!.getBoundingClientRect();
+                heatCvs!.width = r.width;
+                heatCvs!.height = r.height;
+                pollCvs!.width = pollCvs!.offsetWidth;
                 drawPollChart();
             }
             resizeCanvases();
             window.onresize = resizeCanvases;
 
             // ---- Precision mode detection ----
-            // pointerrawupdate (Chromium-only, experimental) delivers input
-            // events without waiting on the browser's per-frame event batching,
-            // giving a truer high-frequency reading than pointermove even with
-            // getCoalescedEvents(). Firefox/Safari don't support it, so we
-            // fall back to pointermove + getCoalescedEvents there.
             const supportsRawUpdate = "onpointerrawupdate" in window;
-            const moveEventName = supportsRawUpdate
-                ? "pointerrawupdate"
-                : "pointermove";
-            const precisionBadge = document.getElementById("precision-badge");
+            const moveEventName: "pointerrawupdate" | "pointermove" =
+                supportsRawUpdate ? "pointerrawupdate" : "pointermove";
+
             if (precisionBadge) {
                 precisionBadge.classList.add(
                     "show",
@@ -1076,23 +1138,17 @@ import Base from "@layouts/Base.astro";
                     : "ℹ️ Standard-precision mode — readings are reliable up to ~1500–2000Hz in this browser";
             }
 
-            // ---- Live Hz from a ring buffer (no per-frame array allocation) ----
-            // Advances a head pointer past expired samples instead of calling
-            // .filter() every animation frame — at high polling rates that
-            // filter was itself expensive enough to add main-thread jank and
-            // skew the very numbers it was measuring. Rate is normalized to
-            // the actual elapsed window (count / windowMs * 1000) rather than
-            // requiring a full 1s window to fill before reporting anything,
-            // so short bursts are reflected immediately instead of lagging.
-            function computeLiveHz(now) {
+            // ---- Live Hz from a ring buffer ----
+            function computeLiveHz(now: number): {
+                hz: number;
+                trusted: boolean;
+            } {
                 while (
                     st.hzHead < st.hzBuf.length &&
                     now - st.hzBuf[st.hzHead] > 1000
                 ) {
                     st.hzHead++;
                 }
-                // Compact occasionally so the backing array doesn't grow
-                // unbounded over a long test session.
                 if (st.hzHead > 4000) {
                     st.hzBuf = st.hzBuf.slice(st.hzHead);
                     st.hzHead = 0;
@@ -1103,30 +1159,21 @@ import Base from "@layouts/Base.astro";
                 if (windowMs < 20) return { hz: count, trusted: false };
                 return {
                     hz: Math.round((count / windowMs) * 1000),
-                    // Require a handful of samples across a real window
-                    // before letting a reading claim the Peak slot — this
-                    // stops a 2-event micro-burst from reporting a fake
-                    // multi-thousand-Hz spike.
                     trusted: count >= 5,
                 };
             }
 
             zone.addEventListener(
                 moveEventName,
-                (e) => {
-                    prompt.style.display = "none";
-                    const events = e.getCoalescedEvents
-                        ? e.getCoalescedEvents()
-                        : [e];
-                    if (events.length === 0) events.push(e);
+                (e: Event) => {
+                    const pe = e as PointerEvent;
+                    if (promptEl) promptEl.style.display = "none";
+                    const events: PointerEvent[] = pe.getCoalescedEvents
+                        ? pe.getCoalescedEvents()
+                        : [pe];
+                    if (events.length === 0) events.push(pe);
 
-                    for (let ev of events) {
-                        // Coalesced events carry their OWN real hardware
-                        // timestamp (same clock as performance.now()). Using
-                        // the gap between consecutive real timestamps gives
-                        // the true inter-sample interval — far more accurate
-                        // than assuming samples were evenly spaced across the
-                        // dispatched frame's duration.
+                    for (const ev of events) {
                         const evT = ev.timeStamp;
                         if (st.lastEventT !== null) {
                             const dt = evT - st.lastEventT;
@@ -1137,11 +1184,6 @@ import Base from "@layouts/Base.astro";
                                     st.intervals.shift();
                                 if (dt < st.minPI) st.minPI = dt;
                                 if (dt > st.maxPI) st.maxPI = dt;
-                                // Only count genuinely continuous motion
-                                // toward the active-time average — a pause
-                                // between strokes shouldn't drag the average
-                                // polling rate down, since it isn't measuring
-                                // the mouse's polling rate at all.
                                 if (dt < 300) st.totalActiveMs += dt;
                             }
                         }
@@ -1185,12 +1227,12 @@ import Base from "@layouts/Base.astro";
                 { passive: true },
             );
 
-            function rafLoop(ts) {
+            function rafLoop(ts: number) {
                 st.rafId = requestAnimationFrame(rafLoop);
                 const now = performance.now();
 
                 // Fading Heatmap
-                hCtx.clearRect(0, 0, heatCvs.width, heatCvs.height);
+                hCtx!.clearRect(0, 0, heatCvs!.width, heatCvs!.height);
                 st.heatmapTrails = st.heatmapTrails
                     .map((p) => ({
                         x: p.x,
@@ -1200,8 +1242,8 @@ import Base from "@layouts/Base.astro";
                     }))
                     .filter((p) => p.opacity > 0.02);
 
-                for (let p of st.heatmapTrails) {
-                    const g = hCtx.createRadialGradient(
+                for (const p of st.heatmapTrails) {
+                    const g = hCtx!.createRadialGradient(
                         p.x,
                         p.y,
                         0,
@@ -1211,13 +1253,13 @@ import Base from "@layouts/Base.astro";
                     );
                     g.addColorStop(0, `rgba(219, 39, 119, ${p.opacity})`);
                     g.addColorStop(1, `rgba(219, 39, 119, 0)`);
-                    hCtx.beginPath();
-                    hCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    hCtx.fillStyle = g;
-                    hCtx.fill();
+                    hCtx!.beginPath();
+                    hCtx!.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    hCtx!.fillStyle = g;
+                    hCtx!.fill();
                 }
 
-                if (st.pendingCursor) {
+                if (st.pendingCursor && cursorDot) {
                     const { x, y } = st.pendingCursor;
                     cursorDot.style.display = "block";
                     cursorDot.style.transform = `translate(calc(${x}px - 50%), calc(${y}px - 50%))`;
@@ -1232,10 +1274,6 @@ import Base from "@layouts/Base.astro";
                     if (live.trusted && live.hz > st.peakHz) {
                         st.peakHz = live.hz;
                     }
-                    // True session average: total samples over the time the
-                    // mouse was actually in continuous motion — not a
-                    // snapshot of the current instant, so it won't jump
-                    // around and actually reflects the whole test.
                     const avgHz =
                         st.totalActiveMs > 0
                             ? Math.round(
@@ -1245,12 +1283,15 @@ import Base from "@layouts/Base.astro";
 
                     st.pollHistory.push(live.hz);
                     if (st.pollHistory.length > 120) st.pollHistory.shift();
-                    els.polling.textContent = avgHz;
-                    els.peak.textContent = st.peakHz;
-                    els.response.textContent = (st._lastDt || 0).toFixed(2);
-                    els.speed.textContent = (st._lastSpd || 0).toFixed(0);
-                    els.cHeat.textContent = st.heat;
-                    els.events.textContent = st.totalEvents;
+                    if (els.polling) els.polling.textContent = String(avgHz);
+                    if (els.peak) els.peak.textContent = String(st.peakHz);
+                    if (els.response)
+                        els.response.textContent = (st._lastDt || 0).toFixed(2);
+                    if (els.speed)
+                        els.speed.textContent = (st._lastSpd || 0).toFixed(0);
+                    if (els.cHeat) els.cHeat.textContent = String(st.heat);
+                    if (els.events)
+                        els.events.textContent = String(st.totalEvents);
                     if (st.intervals.length > 2) {
                         const mean =
                             st.intervals.reduce((a, b) => a + b, 0) /
@@ -1260,55 +1301,55 @@ import Base from "@layouts/Base.astro";
                                 (a, b) => a + (b - mean) ** 2,
                                 0,
                             ) / st.intervals.length;
-                        els.jitter.textContent =
-                            Math.sqrt(variance).toFixed(3) + " ms";
+                        if (els.jitter)
+                            els.jitter.textContent =
+                                Math.sqrt(variance).toFixed(3) + " ms";
                     }
-                    if (st.minPI < Infinity)
+                    if (st.minPI < Infinity && els.minpoll)
                         els.minpoll.textContent = st.minPI.toFixed(3) + " ms";
-                    if (st.maxPI > 0)
+                    if (st.maxPI > 0 && els.maxpoll)
                         els.maxpoll.textContent = st.maxPI.toFixed(2) + " ms";
-                    els.maxspeed.textContent = st.maxSpd.toFixed(0) + " px/s";
-                    if (live.hz > 1500)
-                        document
-                            .getElementById("hf-badge")
-                            .classList.add("show");
+                    if (els.maxspeed)
+                        els.maxspeed.textContent =
+                            st.maxSpd.toFixed(0) + " px/s";
+                    if (live.hz > 1500) hfBadge?.classList.add("show");
                     drawPollChart();
                 }
             }
             st.rafId = requestAnimationFrame(rafLoop);
 
             function drawPollChart() {
-                const w = pollCvs.width,
-                    h = pollCvs.height;
-                pCtx.clearRect(0, 0, w, h);
+                const w = pollCvs!.width,
+                    h = pollCvs!.height;
+                pCtx!.clearRect(0, 0, w, h);
                 if (st.pollHistory.length < 2) return;
                 const max = Math.max(...st.pollHistory, 1200);
                 const pts = st.pollHistory;
                 const step = w / (pts.length - 1);
-                pCtx.beginPath();
-                pCtx.moveTo(0, h);
+                pCtx!.beginPath();
+                pCtx!.moveTo(0, h);
                 pts.forEach((v, i) =>
-                    pCtx.lineTo(i * step, h - (v / max) * (h - 4)),
+                    pCtx!.lineTo(i * step, h - (v / max) * (h - 4)),
                 );
-                pCtx.lineTo((pts.length - 1) * step, h);
-                pCtx.closePath();
-                const grad = pCtx.createLinearGradient(0, 0, 0, h);
+                pCtx!.lineTo((pts.length - 1) * step, h);
+                pCtx!.closePath();
+                const grad = pCtx!.createLinearGradient(0, 0, 0, h);
                 grad.addColorStop(0, "rgba(124,58,237,0.35)");
                 grad.addColorStop(1, "rgba(124,58,237,0.02)");
-                pCtx.fillStyle = grad;
-                pCtx.fill();
-                pCtx.beginPath();
+                pCtx!.fillStyle = grad;
+                pCtx!.fill();
+                pCtx!.beginPath();
                 pts.forEach((v, i) => {
                     const px = i * step,
                         py = h - (v / max) * (h - 4);
-                    i === 0 ? pCtx.moveTo(px, py) : pCtx.lineTo(px, py);
+                    i === 0 ? pCtx!.moveTo(px, py) : pCtx!.lineTo(px, py);
                 });
-                pCtx.strokeStyle = "#a78bfa";
-                pCtx.lineWidth = 1.5;
-                pCtx.stroke();
+                pCtx!.strokeStyle = "#a78bfa";
+                pCtx!.lineWidth = 1.5;
+                pCtx!.stroke();
             }
 
-            zone.addEventListener("mousedown", (e) => {
+            zone.addEventListener("mousedown", (e: MouseEvent) => {
                 e.preventDefault();
                 playClickSound();
                 st.downT = e.timeStamp;
@@ -1322,52 +1363,57 @@ import Base from "@layouts/Base.astro";
                 st.heat++;
                 if (e.button === 0) {
                     st.lc++;
-                    els.cLeft.textContent = st.lc;
+                    if (els.cLeft) els.cLeft.textContent = String(st.lc);
                 } else if (e.button === 2) {
                     st.rc++;
-                    els.cRight.textContent = st.rc;
+                    if (els.cRight) els.cRight.textContent = String(st.rc);
                 } else if (e.button === 1) {
                     st.mc++;
-                    els.cMiddle.textContent = st.mc;
+                    if (els.cMiddle) els.cMiddle.textContent = String(st.mc);
                 }
-                els.cTotal.textContent = st.lc + st.rc + st.mc;
+                if (els.cTotal)
+                    els.cTotal.textContent = String(st.lc + st.rc + st.mc);
                 const now = e.timeStamp;
                 st.cpsArr = st.cpsArr.filter((t) => now - t < 1000);
                 st.cpsArr.push(now);
-                els.cps.textContent = st.cpsArr.length;
+                if (els.cps) els.cps.textContent = String(st.cpsArr.length);
             });
 
-            zone.addEventListener("mouseup", (e) => {
-                if (st.downT) {
-                    els.cdur.textContent =
-                        (e.timeStamp - st.downT).toFixed(1) + " ms";
+            zone.addEventListener("mouseup", (e: MouseEvent) => {
+                if (st.downT !== null) {
+                    if (els.cdur)
+                        els.cdur.textContent =
+                            (e.timeStamp - st.downT).toFixed(1) + " ms";
                     st.downT = null;
                 }
             });
 
-            zone.addEventListener("contextmenu", (e) => e.preventDefault());
+            zone.addEventListener("contextmenu", (e: Event) =>
+                e.preventDefault(),
+            );
 
             document
                 .getElementById("btn-reset")
-                .addEventListener("click", () => {
+                ?.addEventListener("click", () => {
                     if (st.rafId) cancelAnimationFrame(st.rafId);
                     resetState();
-                    hCtx.clearRect(0, 0, heatCvs.width, heatCvs.height);
-                    pCtx.clearRect(0, 0, pollCvs.width, pollCvs.height);
-                    Object.values(els).forEach((el) => {
+                    hCtx!.clearRect(0, 0, heatCvs!.width, heatCvs!.height);
+                    pCtx!.clearRect(0, 0, pollCvs!.width, pollCvs!.height);
+                    Object.entries(els).forEach(([key, el]) => {
                         if (el)
-                            el.textContent = el.id?.startsWith("s-")
-                                ? "0"
-                                : "—";
+                            el.textContent =
+                                key === "polling" || el.id?.startsWith("s-")
+                                    ? "0"
+                                    : "—";
                     });
-                    prompt.style.display = "flex";
-                    cursorDot.style.display = "none";
+                    if (promptEl) promptEl.style.display = "flex";
+                    if (cursorDot) cursorDot.style.display = "none";
                     st.rafId = requestAnimationFrame(rafLoop);
                     showToast("Test data reset");
                 });
 
             // ---- Helper: trigger a browser download for a Blob ----
-            function downloadBlob(blob, filename) {
+            function downloadBlob(blob: Blob, filename: string) {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
@@ -1378,7 +1424,7 @@ import Base from "@layouts/Base.astro";
                 URL.revokeObjectURL(url);
             }
 
-            function currentJitterMs() {
+            function currentJitterMs(): number | null {
                 if (st.intervals.length <= 2) return null;
                 const mean =
                     st.intervals.reduce((a, b) => a + b, 0) /
@@ -1392,7 +1438,7 @@ import Base from "@layouts/Base.astro";
             // ---- Export JSON ----
             document
                 .getElementById("btn-export")
-                .addEventListener("click", () => {
+                ?.addEventListener("click", () => {
                     if (st.totalEvents === 0) {
                         showToast("Move your mouse in the zone first");
                         return;
@@ -1446,32 +1492,43 @@ import Base from "@layouts/Base.astro";
                 });
 
             // ---- Export CSV ----
-            document.getElementById("btn-csv").addEventListener("click", () => {
-                if (st.pollHistory.length === 0) {
-                    showToast("Move your mouse in the zone first");
-                    return;
-                }
-                const rows = ["index,polling_rate_hz"];
-                st.pollHistory.forEach((v, i) => {
-                    rows.push(`${i},${v}`);
+            document
+                .getElementById("btn-csv")
+                ?.addEventListener("click", () => {
+                    if (st.pollHistory.length === 0) {
+                        showToast("Move your mouse in the zone first");
+                        return;
+                    }
+                    const rows = ["index,polling_rate_hz"];
+                    st.pollHistory.forEach((v, i) => {
+                        rows.push(`${i},${v}`);
+                    });
+                    const blob = new Blob([rows.join("\n")], {
+                        type: "text/csv",
+                    });
+                    downloadBlob(
+                        blob,
+                        `mouse-polling-history-${Date.now()}.csv`,
+                    );
+                    showToast("Exported polling history as CSV");
                 });
-                const blob = new Blob([rows.join("\n")], {
-                    type: "text/csv",
-                });
-                downloadBlob(blob, `mouse-polling-history-${Date.now()}.csv`);
-                showToast("Exported polling history as CSV");
-            });
 
             // ---- Advanced metrics collapse/expand ----
-            const metricsToggle = document.getElementById("metrics-toggle");
-            const metricsGrid = document.getElementById("metrics-grid");
-            const togArrow = document.getElementById("tog-arrow");
-            metricsToggle.addEventListener("click", () => {
+            const metricsToggle = document.getElementById(
+                "metrics-toggle",
+            ) as HTMLElement | null;
+            const metricsGrid = document.getElementById(
+                "metrics-grid",
+            ) as HTMLElement | null;
+            const togArrow = document.getElementById(
+                "tog-arrow",
+            ) as HTMLElement | null;
+            metricsToggle?.addEventListener("click", () => {
                 const expanded =
                     metricsToggle.getAttribute("aria-expanded") === "true";
                 metricsToggle.setAttribute("aria-expanded", String(!expanded));
-                metricsGrid.classList.toggle("collapsed", expanded);
-                togArrow.textContent = expanded ? "▶" : "▼";
+                metricsGrid?.classList.toggle("collapsed", expanded);
+                if (togArrow) togArrow.textContent = expanded ? "▶" : "▼";
             });
 
             document.addEventListener(

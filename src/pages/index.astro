@@ -309,9 +309,6 @@ import Base from "@layouts/Base.astro";
             min-width: 257px;
         }
 
-        /* Small keys for numpad/nav that are standard 1u */
-        /* already covered by .k default */
-
         /* ═══════════════════════════════════
      ROW LAYOUT
   ═══════════════════════════════════ */
@@ -1158,117 +1155,158 @@ import Base from "@layouts/Base.astro";
      JAVASCRIPT
 ════════════════════════ -->
     <script>
-        const sShort = document.getElementById("s-short");
-        const sScan = document.getElementById("s-scan");
-        const sCount = document.getElementById("s-count");
-        const sUnique = document.getElementById("s-unique");
-        const feed = document.getElementById("history-feed");
-        const prompt = document.getElementById("kb-prompt");
-        const btnReset = document.getElementById("btn-reset");
+        // A module-scoped controller keeps track of the currently active
+        // keydown/keyup listeners. Since this script tag is part of the
+        // page content that gets swapped by View Transitions, "astro:page-load"
+        // fires every time this page becomes active again (including when
+        // navigating away and back) — that's what makes the tool work again
+        // without a manual reload. The controller lets us cleanly remove the
+        // previous run's listeners first, so they don't stack up.
+        let controller: AbortController | null = null;
 
-        let shortestPress = Infinity;
-        let totalKeys = 0;
-        let historyCleared = false;
-        const keyDownTimes = new Map();
-        const pressedCodes = new Set();
-
-        function getKeyEl(code) {
+        function getKeyEl(code: string): HTMLElement | null {
             return document.querySelector(`.k[data-code="${code}"]`);
         }
 
-        document.addEventListener("keydown", (e) => {
-            // Agar user Ctrl, Alt, ya Meta (Windows/Mac) key use kar raha hai, ya F1-F12 daba raha hai
-            // toh usko block mat karo, browser apna kaam karega.
-            if (
-                !e.ctrlKey &&
-                !e.metaKey &&
-                !e.altKey &&
-                !e.key.startsWith("F")
-            ) {
-                // Sirf in keys par scroll roko taaki test karte waqt page upar-niche jump na kare
-                if (
-                    [
-                        "Space",
-                        "ArrowUp",
-                        "ArrowDown",
-                        "ArrowLeft",
-                        "ArrowRight",
-                    ].includes(e.code)
-                ) {
-                    e.preventDefault();
-                }
-            }
+        document.addEventListener("astro:page-load", () => {
+            const sShort = document.getElementById("s-short");
+            const sScan = document.getElementById("s-scan");
+            const sCount = document.getElementById("s-count");
+            const sUnique = document.getElementById("s-unique");
+            const feed = document.getElementById("history-feed");
+            const kbPrompt = document.getElementById("kb-prompt");
+            const btnReset = document.getElementById("btn-reset");
 
-            // Yahan se purana code shuru hota hai jo keys ko screen par highlight karta hai
-            const el = getKeyEl(e.code);
-            if (el) el.classList.add("pressed");
+            if (!feed) return;
 
-            if (!keyDownTimes.has(e.code)) {
-                keyDownTimes.set(e.code, performance.now());
-            }
-            if (prompt) prompt.style.display = "none";
+            // Remove any listeners left over from a previous page-load
+            // (e.g. the user navigated away and came back to this page).
+            controller?.abort();
+            controller = new AbortController();
+            const { signal } = controller;
+
+            let shortestPress = Infinity;
+            let totalKeys = 0;
+            let historyCleared = false;
+            const keyDownTimes = new Map<string, number>();
+            const pressedCodes = new Set<string>();
+
+            document.addEventListener(
+                "keydown",
+                (e: KeyboardEvent) => {
+                    // Agar user Ctrl, Alt, ya Meta (Windows/Mac) key use kar raha hai, ya F1-F12 daba raha hai
+                    // toh usko block mat karo, browser apna kaam karega.
+                    if (
+                        !e.ctrlKey &&
+                        !e.metaKey &&
+                        !e.altKey &&
+                        !e.key.startsWith("F")
+                    ) {
+                        // Sirf in keys par scroll roko taaki test karte waqt page upar-niche jump na kare
+                        if (
+                            [
+                                "Space",
+                                "ArrowUp",
+                                "ArrowDown",
+                                "ArrowLeft",
+                                "ArrowRight",
+                            ].includes(e.code)
+                        ) {
+                            e.preventDefault();
+                        }
+                    }
+
+                    // Yahan se purana code shuru hota hai jo keys ko screen par highlight karta hai
+                    const el = getKeyEl(e.code);
+                    if (el) el.classList.add("pressed");
+
+                    if (!keyDownTimes.has(e.code)) {
+                        keyDownTimes.set(e.code, performance.now());
+                    }
+                    if (kbPrompt) kbPrompt.style.display = "none";
+                },
+                { signal },
+            );
+
+            document.addEventListener(
+                "keyup",
+                (e: KeyboardEvent) => {
+                    const el = getKeyEl(e.code);
+                    if (el) el.classList.remove("pressed");
+
+                    const t = keyDownTimes.get(e.code);
+                    if (t === undefined) return;
+                    keyDownTimes.delete(e.code);
+
+                    const dur = performance.now() - t;
+
+                    if (!historyCleared) {
+                        feed.innerHTML = "";
+                        historyCleared = true;
+                    }
+
+                    // History tag
+                    const tag = document.createElement("span");
+                    tag.className = "hkey";
+                    tag.textContent =
+                        e.key === " "
+                            ? "Space"
+                            : e.key.length > 8
+                              ? e.code
+                                    .replace("Key", "")
+                                    .replace("Digit", "")
+                                    .replace("Numpad", "Num")
+                              : e.key;
+                    tag.title = `${dur.toFixed(1)} ms`;
+                    feed.prepend(tag);
+                    while (feed.children.length > 36 && feed.lastChild) {
+                        feed.removeChild(feed.lastChild);
+                    }
+
+                    // Stats
+                    totalKeys++;
+                    if (sCount) sCount.textContent = String(totalKeys);
+
+                    pressedCodes.add(e.code);
+                    if (sUnique)
+                        sUnique.textContent = String(pressedCodes.size);
+
+                    if (dur < shortestPress) {
+                        shortestPress = dur;
+                        if (sShort) sShort.textContent = dur.toFixed(1);
+                        if (sScan) sScan.textContent = (1000 / dur).toFixed(0);
+                    }
+                },
+                { signal },
+            );
+
+            btnReset?.addEventListener(
+                "click",
+                () => {
+                    shortestPress = Infinity;
+                    totalKeys = 0;
+                    historyCleared = false;
+                    pressedCodes.clear();
+                    keyDownTimes.clear();
+                    if (sShort) sShort.textContent = "—";
+                    if (sScan) sScan.textContent = "—";
+                    if (sCount) sCount.textContent = "0";
+                    if (sUnique) sUnique.textContent = "0";
+                    feed.innerHTML =
+                        '<span style="color:var(--muted);font-size:.78rem;">Keys will appear here…</span>';
+                    document
+                        .querySelectorAll(".k.pressed")
+                        .forEach((k) => k.classList.remove("pressed"));
+                    if (kbPrompt) kbPrompt.style.display = "";
+                },
+                { signal },
+            );
         });
 
-        document.addEventListener("keyup", (e) => {
-            const el = getKeyEl(e.code);
-            if (el) el.classList.remove("pressed");
-
-            const t = keyDownTimes.get(e.code);
-            if (t === undefined) return;
-            keyDownTimes.delete(e.code);
-
-            const dur = performance.now() - t;
-
-            if (!historyCleared) {
-                feed.innerHTML = "";
-                historyCleared = true;
-            }
-
-            // History tag
-            const tag = document.createElement("span");
-            tag.className = "hkey";
-            tag.textContent =
-                e.key === " "
-                    ? "Space"
-                    : e.key.length > 8
-                      ? e.code
-                            .replace("Key", "")
-                            .replace("Digit", "")
-                            .replace("Numpad", "Num")
-                      : e.key;
-            tag.title = `${dur.toFixed(1)} ms`;
-            feed.prepend(tag);
-            while (feed.children.length > 36) feed.removeChild(feed.lastChild);
-
-            // Stats
-            totalKeys++;
-            sCount.textContent = totalKeys;
-
-            pressedCodes.add(e.code);
-            sUnique.textContent = pressedCodes.size;
-
-            if (dur < shortestPress) {
-                shortestPress = dur;
-                sShort.textContent = dur.toFixed(1);
-                sScan.textContent = (1000 / dur).toFixed(0);
-            }
-        });
-
-        btnReset.addEventListener("click", () => {
-            shortestPress = Infinity;
-            totalKeys = 0;
-            historyCleared = false;
-            pressedCodes.clear();
-            sShort.textContent = "—";
-            sScan.textContent = "—";
-            sCount.textContent = "0";
-            sUnique.textContent = "0";
-            feed.innerHTML =
-                '<span style="color:var(--muted);font-size:.78rem;">Keys will appear here…</span>';
-            document
-                .querySelectorAll(".k.pressed")
-                .forEach((k) => k.classList.remove("pressed"));
-            if (prompt) prompt.style.display = "";
+        // Belt-and-braces: also clean up right before a page swap happens,
+        // so listeners never survive across a navigation even in edge cases.
+        document.addEventListener("astro:before-swap", () => {
+            controller?.abort();
         });
     </script>
 </Base>
