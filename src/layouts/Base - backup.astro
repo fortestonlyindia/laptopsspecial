@@ -1,0 +1,307 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+export interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+}
+const { title, description, canonical } = Astro.props;
+const canonicalURL = canonical || Astro.url.href;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonicalURL} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalURL} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <ViewTransitions />
+
+  <!-- Runs before paint — prevents theme flash on every page load -->
+  <script is:inline>
+    document.documentElement.setAttribute(
+      'data-theme', localStorage.getItem('ls-theme') || 'dark'
+    );
+  </script>
+
+  <!-- Non-blocking Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" /></noscript>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0e1a;
+      --bg2:     #111827;
+      --bg3:     #1a2235;
+      --border:  #1e293b;
+      --accent:  #00d4ff;
+      --accent2: #7c3aed;
+      --text:    #e2e8f0;
+      --text2:   #b8c5d6;
+      --muted:   #8899aa;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+      color-scheme: dark;
+    }
+    [data-theme="light"] {
+      --bg:      #f8fafc;
+      --bg2:     #ffffff;
+      --bg3:     #f1f5f9;
+      --border:  #cbd5e1;
+      --accent:  #0284c7;
+      --accent2: #7c3aed;
+      --text:    #0f172a;
+      --text2:   #334155;
+      --muted:   #475569;
+      --success: #16a34a;
+      --warning: #d97706;
+      color-scheme: light;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-display);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: rgba(10,14,26,0.96);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+      padding: 0 1.5rem;
+      will-change: transform;
+    }
+    [data-theme="light"] nav { background: rgba(248,250,252,0.96); }
+
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      height: 60px; gap: 1rem;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text); text-decoration: none;
+      display: flex; align-items: center;
+      gap: 0.4rem; white-space: nowrap;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 0.25rem; }
+    .nav-links { display: flex; gap: 0.1rem; list-style: none; }
+    .nav-links a {
+      color: var(--text2); text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+      padding: 0.4rem 0.7rem; border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-links a:hover,
+    .nav-links a[aria-current="page"] {
+      color: var(--accent);
+      background: rgba(0,212,255,0.08);
+    }
+    [data-theme="light"] .nav-links a:hover,
+    [data-theme="light"] .nav-links a[aria-current="page"] {
+      background: rgba(2,132,199,0.08);
+    }
+
+    .theme-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text2);
+      cursor: pointer; font-size: 1rem;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .icon-moon { display: block; }
+    .icon-sun  { display: none; }
+    [data-theme="light"] .icon-moon { display: none; }
+    [data-theme="light"] .icon-sun  { display: block; }
+
+    #back-to-top {
+      position: fixed; bottom: 1.75rem; right: 1.75rem;
+      z-index: 200; background: var(--accent); color: #0a0e1a;
+      border: none; border-radius: 50%;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.1rem; font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0,212,255,0.35);
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+    }
+    #back-to-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    #back-to-top:hover { opacity: 0.85; }
+
+    footer { margin-top: auto; border-top: 1px solid var(--border); padding: 2rem 1.5rem; text-align: center; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; }
+    .footer-links { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-copy { color: var(--muted); font-size: 0.8rem; }
+    main { flex: 1; }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .nav-links.open {
+        display: flex; flex-direction: column;
+        position: absolute; top: 60px; left: 0; right: 0;
+        background: var(--bg2);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1rem; gap: 0.25rem;
+      }
+      .hamburger { display: flex !important; }
+    }
+    .hamburger {
+      display: none; background: none;
+      border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text2); cursor: pointer;
+      padding: 0.35rem 0.5rem; font-size: 1.1rem;
+    }
+
+    ::view-transition-old(root) { animation: vt-out 0.1s ease-out forwards; }
+    ::view-transition-new(root) { animation: vt-in 0.12s ease-out forwards; }
+    @keyframes vt-out { to { opacity: 0; } }
+    @keyframes vt-in  { from { opacity: 0; } }
+  </style>
+</head>
+<body>
+  <nav role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo" aria-label="Laptops Special Home">⌨️ Laptops<span>Special</span></a>
+      <div class="nav-right">
+        <ul class="nav-links" id="nav-links" role="list">
+          <li><a href="/">Keyboard Tester</a></li>
+          <li><a href="/mouse-rate-test">Mouse Rate Test</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/blog">Blog</a></li>
+        </ul>
+        <button class="theme-btn" id="theme-btn" aria-label="Toggle dark and light mode">
+          <span class="icon-moon" aria-hidden="true">🌙</span>
+          <span class="icon-sun"  aria-hidden="true">☀️</span>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main-content"><slot /></main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="/about">About Us</a>
+        <a href="/contact">Contact</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/dmca">DMCA</a>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms</a>
+      </div>
+      <p class="footer-copy">© 2026 Laptops Special — All Rights Reserved</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Scroll back to top of page">↑</button>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────
+    // THEME — attached ONCE on first load, never re-attached.
+    // View Transitions keep <html> and <head> alive, so this
+    // listener survives every navigation automatically.
+    // The is:inline script in <head> re-applies data-theme
+    // before every paint so there is never a flash.
+    // ─────────────────────────────────────────────────────────────
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      const html = document.documentElement;
+      const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+      html.dataset.theme = next;
+      localStorage.setItem('ls-theme', next);
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // BACK TO TOP — also attached once; btt element never changes
+    // ─────────────────────────────────────────────────────────────
+    const btt = document.getElementById('back-to-top');
+    window.addEventListener('scroll',
+      () => btt.classList.toggle('visible', window.scrollY > 400),
+      { passive: true }
+    );
+    btt.addEventListener('click',
+      () => window.scrollTo({ top: 0, behavior: 'smooth' })
+    );
+
+    // ─────────────────────────────────────────────────────────────
+    // PER-PAGE LOGIC — runs after every View Transition swap.
+    // Only things that depend on current URL go here.
+    // ─────────────────────────────────────────────────────────────
+    function onPageLoad() {
+      // Re-apply theme (View Transitions can reset data-theme on <html>)
+      document.documentElement.dataset.theme =
+        localStorage.getItem('ls-theme') || 'dark';
+
+      // Active nav
+      document.querySelectorAll('.nav-links a').forEach(a => {
+        const href = a.getAttribute('href');
+        const active = href === location.pathname ||
+          (href !== '/' && location.pathname.startsWith(href));
+        a.setAttribute('aria-current', active ? 'page' : 'false');
+      });
+
+      // Scroll to top (Ctrl+Home/End native browser behaviour is preserved;
+      // this just ensures page starts at top after navigation)
+      window.scrollTo({ top: 0, behavior: 'instant' });
+
+      // Reset back-to-top visibility
+      btt.classList.remove('visible');
+    }
+
+    // Run immediately on first load
+    onPageLoad();
+
+    // Run after every subsequent navigation
+    document.addEventListener('astro:page-load', onPageLoad);
+
+    // ─────────────────────────────────────────────────────────────
+    // MOBILE NAV — attached once, hamburger element persists
+    // ─────────────────────────────────────────────────────────────
+    const ham     = document.getElementById('hamburger');
+    const navMenu = document.getElementById('nav-links');
+    ham.addEventListener('click', () => {
+      const open = navMenu.classList.toggle('open');
+      ham.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('astro:before-preparation', () => {
+      navMenu.classList.remove('open');
+      ham.setAttribute('aria-expanded', 'false');
+    });
+  </script>
+</body>
+</html>
