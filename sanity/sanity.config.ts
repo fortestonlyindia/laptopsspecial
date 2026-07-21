@@ -10,7 +10,7 @@ export default defineConfig({
 
   // After creating new Sanity project, replace this with your project ID
   // Go to sanity.io/manage → Create Project → copy projectId
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID || "e3fe766g",
+  projectId: "e3fe766g",
   dataset: "production",
 
   plugins: [

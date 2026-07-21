@@ -1,7 +1,12 @@
 import { defineType, defineField } from "sanity";
 
 function sanitize(s?: string) {
-  return !s ? "" : s.replace(/\s+/g, " ").replace(/[\r\n]+/g, " ").trim();
+  return !s
+    ? ""
+    : s
+        .replace(/\s+/g, " ")
+        .replace(/[\r\n]+/g, " ")
+        .trim();
 }
 function truncate(s: string, max = 155) {
   if (!s || s.length <= max) return s || "";
@@ -35,14 +40,16 @@ export default defineType({
       title: "Old Slugs (redirects ke liye)",
       type: "array",
       of: [{ type: "string" }],
-      description: "Agar pehle koi aur URL tha to yahan daalo — redirect auto hoga.",
+      description:
+        "Agar pehle koi aur URL tha to yahan daalo — redirect auto hoga.",
     }),
     defineField({
       name: "excerpt",
-      title: "Excerpt (Short Description)",
+      title: "Excerpt / Meta Description",
       type: "text",
       rows: 3,
-      description: "Blog listing aur SEO mein use hoga.",
+      description:
+        "150-160 characters. Blank chhodo — publish karte waqt body ke pehle paragraph se auto-fill ho jaayega.",
     }),
 
     // ── FEATURE IMAGE ──────────────────────────────────────
@@ -76,11 +83,15 @@ export default defineType({
       type: "datetime",
       initialValue: () => new Date().toISOString(),
     }),
+    // readTime — auto-calculated from body on frontend, no manual entry needed
+    // Keeping field for backward compatibility but hidden from required
     defineField({
       name: "readTime",
-      title: "Read Time",
+      title: "Read Time (auto-calculated — leave blank)",
       type: "string",
-      description: 'e.g. "5 min read"',
+      description:
+        "Blank chhodo — body content se automatically calculate hoga (200 words/min).",
+      // hidden: true  // uncomment agar completely hide karna ho
     }),
 
     // ── TAXONOMY ───────────────────────────────────────────
@@ -112,25 +123,27 @@ export default defineType({
       title: "FAQs",
       description: "Yahan add karo — FAQ schema (JSON-LD) auto generate hoga.",
       type: "array",
-      of: [{
-        type: "object",
-        fields: [
-          {
-            name: "question",
-            title: "Question",
-            type: "string",
-            validation: (Rule: any) => Rule.required(),
-          },
-          {
-            name: "answer",
-            title: "Answer",
-            type: "text",
-            rows: 4,
-            validation: (Rule: any) => Rule.required(),
-          },
-        ],
-        preview: { select: { title: "question" } },
-      }],
+      of: [
+        {
+          type: "object",
+          fields: [
+            {
+              name: "question",
+              title: "Question",
+              type: "string",
+              validation: (Rule: any) => Rule.required(),
+            },
+            {
+              name: "answer",
+              title: "Answer",
+              type: "text",
+              rows: 4,
+              validation: (Rule: any) => Rule.required(),
+            },
+          ],
+          preview: { select: { title: "question" } },
+        },
+      ],
     }),
 
     // ── SEO ────────────────────────────────────────────────
@@ -169,11 +182,29 @@ export default defineType({
       subtitle: "excerpt",
       seoTitle: "seoTitle",
       seoDescription: "seoDescription",
+      body: "body",
     },
     prepare(sel) {
-      const { title, author, media, subtitle, seoTitle, seoDescription } = sel || {};
-      const finalTitle = truncate(sanitize(seoTitle || title || ""), 60) || "Untitled";
-      const rawDesc = sanitize(seoDescription || subtitle || title || "");
+      const { title, author, media, subtitle, seoTitle, seoDescription, body } =
+        sel || {};
+      const finalTitle =
+        truncate(sanitize(seoTitle || title || ""), 60) || "Untitled";
+
+      // Auto-extract text from body blocks if excerpt is empty
+      let autoExcerpt = "";
+      if (!subtitle && Array.isArray(body)) {
+        autoExcerpt = body
+          .filter((b: any) => b._type === "block" && b.style === "normal")
+          .slice(0, 2)
+          .map((b: any) =>
+            (b.children || []).map((c: any) => c.text || "").join(""),
+          )
+          .join(" ");
+      }
+
+      const rawDesc = sanitize(
+        seoDescription || subtitle || autoExcerpt || title || "",
+      );
       const finalDesc = rawDesc ? truncate(rawDesc, 155) : "No description";
       return {
         title: finalTitle,
