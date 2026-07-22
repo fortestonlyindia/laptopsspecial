@@ -136,8 +136,7 @@ export default defineType({
             {
               name: "answer",
               title: "Answer",
-              type: "text",
-              rows: 4,
+              type: "blockContent",
               validation: (Rule: any) => Rule.required(),
             },
           ],

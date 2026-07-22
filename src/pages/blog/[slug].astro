@@ -61,6 +61,15 @@ function extractExcerpt(body: any[], maxLen = 160): string {
         .slice(0, maxLen);
 }
 
+function extractPlainText(blocks: any[]): string {
+    if (!blocks?.length) return "";
+    return blocks
+        .filter((b: any) => b._type === "block")
+        .map((b: any) => (b.children || []).map((c: any) => c.text || "").join(""))
+        .join(" ")
+        .trim();
+}
+
 // ── AUTO READ TIME ────────────────────────────────────────
 function calcReadTime(body: any[]): string {
   if (!body?.length) return '1 min read';
@@ -181,49 +190,48 @@ function renderBlock(block: any): string {
     }
 
     if (block._type === "tabbedCode") {
-        const tabs = block.tabs || [];
-        if (tabs.length === 0) return "";
-        const blockId = "tc-" + Math.random().toString(36).slice(2, 8);
+            const blockId = "tc-" + Math.random().toString(36).slice(2, 8);
 
-        const tabButtons = tabs
-            .map((tab: any, i: number) => {
-                const label = escapeHtml(tab.label || tab.language || "Code");
-                const lang = escapeHtml(tab.language || "text");
-                const active =
-                    i === 0
-                        ? ' class="tab-btn active" aria-selected="true"'
-                        : ' class="tab-btn" aria-selected="false"';
-                return `<button${active} data-tab="${blockId}-${i}" role="tab" aria-controls="${blockId}-panel-${i}">${label}</button>`;
-            })
-            .join("");
+            const parts = [
+                { label: "HTML", lang: "html", code: block.htmlCode },
+                { label: "CSS", lang: "css", code: block.cssCode },
+                { label: "JavaScript", lang: "javascript", code: block.jsCode },
+            ].filter((p) => p.code && p.code.trim());
 
-        const tabPanels = tabs
-            .map((tab: any, i: number) => {
-                const lang = escapeHtml(tab.language || "text");
-                const filename = tab.filename ? escapeHtml(tab.filename) : "";
-                const code = escapeHtml(tab.code || "");
-                const hidden = i === 0 ? "" : " hidden";
-                const fileEl = filename
-                    ? `<span class="tab-filename">${filename}</span>`
-                    : "";
-                const copyData = (tab.code || "").replace(/"/g, "&quot;");
-                return `<div id="${blockId}-panel-${i}" class="tab-panel"${hidden} role="tabpanel">
-        <div class="tab-panel-header"><span class="code-lang">${lang}</span>${fileEl}<button class="copy-btn" aria-label="Copy code" data-code="${copyData}">Copy</button></div>
-        <pre><code class="language-${lang}">${code}</code></pre>
-      </div>`;
-            })
-            .join("");
+            if (parts.length === 0) return "";
 
-        const title = block.title
-            ? `<div class="tabbed-code-title">${escapeHtml(block.title)}</div>`
-            : "";
+            const tabButtons = parts
+                .map((p, i) => {
+                    const active =
+                        i === 0
+                            ? ' class="tab-btn active" aria-selected="true"'
+                            : ' class="tab-btn" aria-selected="false"';
+                    return `<button${active} data-tab="${blockId}-${i}" role="tab" aria-controls="${blockId}-panel-${i}">${p.label}</button>`;
+                })
+                .join("");
 
-        return `<div class="tabbed-code-block" id="${blockId}">
-      ${title}
-      <div class="tab-bar" role="tablist">${tabButtons}</div>
-      <div class="tab-panels">${tabPanels}</div>
-    </div>`;
-    }
+            const tabPanels = parts
+                .map((p, i) => {
+                    const code = escapeHtml(p.code || "");
+                    const hidden = i === 0 ? "" : " hidden";
+                    const copyData = (p.code || "").replace(/"/g, "&quot;");
+                    return `<div id="${blockId}-panel-${i}" class="tab-panel"${hidden} role="tabpanel">
+            <div class="tab-panel-header"><span class="code-lang">${p.lang}</span><button class="copy-btn" aria-label="Copy code" data-code="${copyData}">Copy</button></div>
+            <pre><code class="language-${p.lang}">${code}</code></pre>
+          </div>`;
+                })
+                .join("");
+
+            const title = block.title
+                ? `<div class="tabbed-code-title">${escapeHtml(block.title)}</div>`
+                : "";
+
+            return `<div class="tabbed-code-block" id="${blockId}">
+          ${title}
+          <div class="tab-bar" role="tablist">${tabButtons}</div>
+          <div class="tab-panels">${tabPanels}</div>
+        </div>`;
+        }
 
     if (block._type === "callout") {
         const emoji = escapeHtml(block.emoji || "💡");
@@ -239,29 +247,42 @@ function renderBlock(block: any): string {
     }
 
     if (block._type === "table") {
-        const cap = block.caption
-            ? `<caption>${escapeHtml(block.caption)}</caption>`
-            : "";
-        const headers: string[] = block.columnHeaders || [];
-        const colKeys = ["c1","c2","c3","c4","c5","c6"].slice(0, headers.length || 3);
+            const cap = block.caption
+                ? `<caption>${escapeHtml(block.caption)}</caption>`
+                : "";
 
-        // Header row from columnHeaders array
-        const headerRow = headers.length > 0
-            ? `<thead><tr>${headers.map((h: string) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`
-            : "";
+            // Parse tableData: tab-separated (Sheets/Excel paste) ya pipe-separated
+            const lines = (block.tableData || "")
+                .split("\n")
+                .map((l: string) => l.trim())
+                .filter((l: string) => l.length > 0);
 
-        // Data rows using c1-c6 fields
-        const dataRows = (block.rows || [])
-            .map((row: any) => {
-                const tds = colKeys
-                    .map((k: string) => `<td>${escapeHtml(row[k] || "")}</td>`)
-                    .join("");
-                return `<tr>${tds}</tr>`;
-            })
-            .join("");
+            const parsedRows = lines.map((line: string) => {
+                const cells = line.includes("\t")
+                    ? line.split("\t")
+                    : line.split("|");
+                return cells.map((c: string) => c.trim());
+            });
 
-        return `<div class="table-wrap"><table>${cap}${headerRow}<tbody>${dataRows}</tbody></table></div>`;
-    }
+            if (parsedRows.length === 0) return "";
+
+            const hasHeader = block.hasHeaderRow !== false;
+            const headerRow = hasHeader ? parsedRows[0] : null;
+            const bodyRows = hasHeader ? parsedRows.slice(1) : parsedRows;
+
+            const theadHtml = headerRow
+                ? `<thead><tr>${headerRow.map((h: string) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`
+                : "";
+
+            const tbodyHtml = bodyRows
+                .map(
+                    (row: string[]) =>
+                        `<tr>${row.map((cell: string) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`,
+                )
+                .join("");
+
+            return `<div class="table-wrap"><table>${cap}${theadHtml}<tbody>${tbodyHtml}</tbody></table></div>`;
+        }
 
     return "";
 }
@@ -337,7 +358,7 @@ const faqSchema = post.faqs?.length
           mainEntity: post.faqs.map((f: any) => ({
               "@type": "Question",
               name: f.question,
-              acceptedAnswer: { "@type": "Answer", text: f.answer },
+              acceptedAnswer: { "@type": "Answer", text: extractPlainText(f.answer || []) },
           })),
       }
     : null;
@@ -1224,20 +1245,20 @@ const breadcrumbSchema = {
         }
 
         {
-            post.faqs?.length > 0 && (
-                <div class="faq-section">
-                    <h2>Frequently Asked Questions</h2>
-                    <div class="faq-list">
-                        {post.faqs.map((f: any) => (
-                            <div class="faq-item">
-                                <div class="faq-q">{f.question}</div>
-                                <div class="faq-a">{f.answer}</div>
+                    post.faqs?.length > 0 && (
+                        <div class="faq-section">
+                            <h2>Frequently Asked Questions</h2>
+                            <div class="faq-list">
+                                {post.faqs.map((f: any) => (
+                                    <div class="faq-item">
+                                        <h3 class="faq-q">{f.question}</h3>
+                                        <div class="faq-a prose" set:html={renderBody(f.answer || [])} />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                </div>
-            )
-        }
+                        </div>
+                    )
+                }
 
         {
             relatedPosts.length > 0 && (

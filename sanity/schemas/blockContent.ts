@@ -246,13 +246,16 @@ export default defineType({
       },
     }),
 
-    // ── TABBED CODE BLOCK ─────────────────────────────────────────────────────
+    // ── TABBED CODE BLOCK (Fixed HTML/CSS/JS — no nested array issues) ──────
     defineArrayMember({
       name: "tabbedCode",
       type: "object",
       title: "Tabbed Code Block (HTML / CSS / JS)",
       description:
-        "Multiple language tabs — HTML, CSS, JavaScript alag-alag daalo",
+        "HTML, CSS, JavaScript alag-alag boxes mein daalo — jo blank chhodoge uska tab nahi banega.",
+      options: {
+        modal: { type: "dialog", width: 2 },
+      },
       fields: [
         defineField({
           name: "title",
@@ -260,75 +263,38 @@ export default defineType({
           title: "Block Title (optional)",
         }),
         defineField({
-          name: "tabs",
-          type: "array",
-          title: "Code Tabs",
-          of: [
-            {
-              type: "object",
-              name: "codeTab",
-              title: "Code Tab",
-              fields: [
-                defineField({
-                  name: "label",
-                  type: "string",
-                  title: "Tab Label",
-                  description: "e.g. HTML, CSS, JavaScript",
-                }),
-                defineField({
-                  name: "language",
-                  type: "string",
-                  title: "Language",
-                  options: {
-                    list: [
-                      { title: "HTML", value: "html" },
-                      { title: "CSS", value: "css" },
-                      { title: "JavaScript", value: "javascript" },
-                      { title: "TypeScript", value: "typescript" },
-                      { title: "Bash / Shell", value: "bash" },
-                      { title: "JSON", value: "json" },
-                      { title: "Python", value: "python" },
-                      { title: "Plain Text", value: "text" },
-                    ],
-                  },
-                }),
-                defineField({
-                  name: "filename",
-                  type: "string",
-                  title: "Filename (optional)",
-                }),
-                defineField({
-                  name: "code",
-                  type: "text",
-                  title: "Code",
-                  rows: 12,
-                }),
-              ],
-              preview: {
-                select: { label: "label", filename: "filename", code: "code" },
-                prepare({ label, filename, code }: any) {
-                  return {
-                    title: filename
-                      ? `${label || "?"}: ${filename}`
-                      : label || "Tab",
-                    subtitle: code?.slice(0, 60) || "",
-                  };
-                },
-              },
-            },
-          ],
-          validation: (Rule: any) => Rule.min(1).max(5),
+          name: "htmlCode",
+          type: "text",
+          title: "HTML",
+          rows: 10,
+        }),
+        defineField({
+          name: "cssCode",
+          type: "text",
+          title: "CSS",
+          rows: 10,
+        }),
+        defineField({
+          name: "jsCode",
+          type: "text",
+          title: "JavaScript",
+          rows: 10,
         }),
       ],
       preview: {
-        select: { title: "title", tabs: "tabs" },
-        prepare({ title, tabs }: any) {
-          const labels = (tabs || [])
-            .map((t: any) => t.label || t.language || "?")
+        select: {
+          title: "title",
+          html: "htmlCode",
+          css: "cssCode",
+          js: "jsCode",
+        },
+        prepare({ title, html, css, js }: any) {
+          const present = [html ? "HTML" : "", css ? "CSS" : "", js ? "JS" : ""]
+            .filter(Boolean)
             .join(" | ");
           return {
             title: title ? `🗂 ${title}` : "🗂 Tabbed Code Block",
-            subtitle: labels,
+            subtitle: present || "Empty",
           };
         },
       },
@@ -403,12 +369,16 @@ export default defineType({
     // ── TABLE (Easy-to-use grid) ──────────────────────────────────────────────
     // Problem: purani table mein rows ke andar cells add karna confusing tha
     // Solution: Fixed named columns (c1-c6), simple row entry
+    // ── TABLE (Easy Paste — Excel/Sheets se copy-paste bhi chalega) ─────────
     defineArrayMember({
       name: "table",
       type: "object",
       title: "Table",
       description:
-        "Pehle columns set karo, phir rows add karo. Har row mein wahi columns fill karo.",
+        "Excel/Google Sheets se seedha copy-paste karo, ya khud type karo. Har row = ek naya line. Columns ko | (pipe) se separate karo.",
+      options: {
+        modal: { type: "dialog", width: 2 },
+      },
       fields: [
         defineField({
           name: "caption",
@@ -422,54 +392,27 @@ export default defineType({
           initialValue: true,
         }),
         defineField({
-          name: "columnHeaders",
-          type: "array",
-          title: "Column Headers (max 6)",
+          name: "tableData",
+          type: "text",
+          title: "Table Data",
+          rows: 10,
           description:
-            "Kitne headers, utne hi columns honge. e.g. ['Product', 'Price', 'Rating']",
-          of: [{ type: "string" }],
-          validation: (Rule: any) => Rule.max(6),
-        }),
-        defineField({
-          name: "rows",
-          type: "array",
-          title: "Rows (Data)",
-          description: "Har row mein upar wale columns ke according data daalo",
-          of: [
-            {
-              type: "object",
-              name: "tableRow",
-              title: "Row",
-              fields: [
-                defineField({ name: "c1", type: "string", title: "Column 1" }),
-                defineField({ name: "c2", type: "string", title: "Column 2" }),
-                defineField({ name: "c3", type: "string", title: "Column 3" }),
-                defineField({ name: "c4", type: "string", title: "Column 4" }),
-                defineField({ name: "c5", type: "string", title: "Column 5" }),
-                defineField({ name: "c6", type: "string", title: "Column 6" }),
-              ],
-              preview: {
-                select: { c1: "c1", c2: "c2", c3: "c3", c4: "c4", c5: "c5" },
-                prepare({ c1, c2, c3, c4, c5 }: any) {
-                  return {
-                    title:
-                      [c1, c2, c3, c4, c5].filter(Boolean).join(" | ") ||
-                      "Empty row",
-                  };
-                },
-              },
-            },
-          ],
+            "Example:\nProduct | Price | Rating\nThinkPad X1 | ₹85,000 | 4.5\nMacBook Air M2 | ₹95,000 | 4.8\n\nGoogle Sheets se copy karke paste karoge to tabs auto-detect ho jaayenge, pipe bhi chalega.",
+          validation: (Rule: any) => Rule.required(),
         }),
       ],
       preview: {
-        select: { caption: "caption", rows: "rows", headers: "columnHeaders" },
-        prepare({ caption, rows, headers }: any) {
-          const cols = (headers || []).length;
-          const rowCount = (rows || []).length;
+        select: { caption: "caption", tableData: "tableData" },
+        prepare({ caption, tableData }: any) {
+          const lines = (tableData || "")
+            .split("\n")
+            .filter((l: string) => l.trim());
+          const cols = lines[0]
+            ? lines[0].split(/\t|\|/).filter((c: string) => c.trim()).length
+            : 0;
           return {
             title: caption ? `📊 ${caption}` : "📊 Table",
-            subtitle: `${rowCount} rows × ${cols} columns`,
+            subtitle: `${lines.length} rows × ${cols} columns`,
           };
         },
       },
