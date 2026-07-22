@@ -109,12 +109,15 @@ function formatDate(d: string) {
         .post-card[hidden] {
             display: none;
         }
+        .post-img-wrap {
+            aspect-ratio: 16/9;
+            overflow: hidden;
+        }
+
         .post-img {
             width: 100%;
-            aspect-ratio: 16/9;
+            height: 100%;
             object-fit: cover;
-            display: block;
-            background: var(--bg3);
         }
         .post-img-placeholder {
             width: 100%;
@@ -149,18 +152,16 @@ function formatDate(d: string) {
             border-radius: 4px;
         }
         .post-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text);
-            line-height: 1.4;
-            margin-bottom: 0.55rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         .post-excerpt {
-            font-size: 0.8rem;
-            color: var(--text2);
-            line-height: 1.6;
-            flex: 1;
-            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         .post-meta {
             display: flex;
@@ -238,7 +239,8 @@ function formatDate(d: string) {
                             aria-label={`Read: ${post.title}`}
                         >
                             {post.mainImage?.asset ? (
-                                <img
+                                <div class="post-img-wrap">
+                                    <img
                                     src={urlFor(post.mainImage.asset)
                                         .width(600)
                                         .height(337)
@@ -250,6 +252,7 @@ function formatDate(d: string) {
                                     width="600"
                                     height="337"
                                 />
+                                </div>
                             ) : (
                                 <div class="post-img-placeholder">
                                     {post.icon || "📝"}

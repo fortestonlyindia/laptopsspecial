@@ -5,7 +5,7 @@ import {
     getPostBySlug,
     getRelatedPosts,
     urlFor,
-} from "../../lib/sanity";
+} from "../lib/sanity";
 
 export async function getStaticPaths() {
     try {
@@ -140,8 +140,17 @@ function renderBlock(block: any): string {
         const text = (block.children || [])
             .map((c: any) => applyMarks(c, block.markDefs || []))
             .join("");
-        if (style === "h2") return `<h2>${text}</h2>`;
-        if (style === "h3") return `<h3>${text}</h3>`;
+            const headingId = text
+              .replace(/<[^>]*>/g, "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/(^-|-$)/g, "");
+
+            if (style === "h2")
+              return `<h2 id="${headingId}">${text}</h2>`;
+
+            if (style === "h3")
+              return `<h3 id="${headingId}">${text}</h3>`;
         if (style === "h4") return `<h4>${text}</h4>`;
         if (style === "blockquote") return `<blockquote>${text}</blockquote>`;
         if (!text.trim()) return "<br>";
@@ -190,48 +199,62 @@ function renderBlock(block: any): string {
     }
 
     if (block._type === "tabbedCode") {
-            const blockId = "tc-" + Math.random().toString(36).slice(2, 8);
+    console.log("TAB BLOCK:", block);
+        const blockId = "tc-" + Math.random().toString(36).slice(2, 8);
 
-            const parts = [
-                { label: "HTML", lang: "html", code: block.htmlCode },
-                { label: "CSS", lang: "css", code: block.cssCode },
-                { label: "JavaScript", lang: "javascript", code: block.jsCode },
-            ].filter((p) => p.code && p.code.trim());
+        const parts = [
+            { label: "HTML", lang: "html", code: block.htmlCode },
+            { label: "CSS", lang: "css", code: block.cssCode },
+            { label: "JavaScript", lang: "javascript", code: block.jsCode },
+        ].filter((p) => p.code && p.code.trim());
 
-            if (parts.length === 0) return "";
+        console.log("TAB DATA:", {
+          html: block.htmlCode,
+          css: block.cssCode,
+          js: block.jsCode
+        });
 
-            const tabButtons = parts
-                .map((p, i) => {
-                    const active =
-                        i === 0
-                            ? ' class="tab-btn active" aria-selected="true"'
-                            : ' class="tab-btn" aria-selected="false"';
-                    return `<button${active} data-tab="${blockId}-${i}" role="tab" aria-controls="${blockId}-panel-${i}">${p.label}</button>`;
-                })
-                .join("");
+        if (parts.length === 0) return "";
 
-            const tabPanels = parts
-                .map((p, i) => {
-                    const code = escapeHtml(p.code || "");
-                    const hidden = i === 0 ? "" : " hidden";
-                    const copyData = (p.code || "").replace(/"/g, "&quot;");
-                    return `<div id="${blockId}-panel-${i}" class="tab-panel"${hidden} role="tabpanel">
-            <div class="tab-panel-header"><span class="code-lang">${p.lang}</span><button class="copy-btn" aria-label="Copy code" data-code="${copyData}">Copy</button></div>
-            <pre><code class="language-${p.lang}">${code}</code></pre>
-          </div>`;
-                })
-                .join("");
+        const tabButtons = parts
+            .map((p, i) => {
+                const active =
+                    i === 0
+                        ? ' class="tab-btn active" aria-selected="true"'
+                        : ' class="tab-btn" aria-selected="false"';
 
-            const title = block.title
-                ? `<div class="tabbed-code-title">${escapeHtml(block.title)}</div>`
-                : "";
+                return `<button${active} data-tab="${blockId}-${i}" role="tab" aria-controls="${blockId}-panel-${i}">${p.label}</button>`;
+            })
+            .join("");
 
-            return `<div class="tabbed-code-block" id="${blockId}">
-          ${title}
-          <div class="tab-bar" role="tablist">${tabButtons}</div>
-          <div class="tab-panels">${tabPanels}</div>
+        const tabPanels = parts
+            .map((p, i) => {
+                const code = escapeHtml(p.code || "");
+                const hidden = i === 0 ? "" : " hidden";
+                const copyData = (p.code || "").replace(/"/g, "&quot;");
+
+                return `<div id="${blockId}-panel-${i}" class="tab-panel"${hidden} role="tabpanel">
+                    <div class="tab-panel-header">
+                        <span class="code-lang">${p.lang}</span>
+                        <button class="copy-btn" aria-label="Copy code" data-code="${copyData}">
+                            Copy
+                        </button>
+                    </div>
+                    <pre><code class="language-${p.lang}">${code}</code></pre>
+                </div>`;
+            })
+            .join("");
+
+        const title = block.title
+            ? `<div class="tabbed-code-title">${escapeHtml(block.title)}</div>`
+            : "";
+
+        return `<div class="tabbed-code-block" id="${blockId}">
+            ${title}
+            <div class="tab-bar" role="tablist">${tabButtons}</div>
+            <div class="tab-panels">${tabPanels}</div>
         </div>`;
-        }
+    }
 
     if (block._type === "callout") {
         const emoji = escapeHtml(block.emoji || "💡");
@@ -629,6 +652,13 @@ const breadcrumbSchema = {
             color: var(--text2);
             font-style: italic;
         }
+        .code-preview-frame {
+            width: 100%;
+            height: 400px;
+            border: 0;
+            background: #fff;
+            border-radius: 8px;
+        }
         .prose ul,
         .prose ol {
             color: var(--text2);
@@ -644,9 +674,11 @@ const breadcrumbSchema = {
             margin: 1.5rem 0;
         }
         .prose figure img {
-            width: 100%;
-            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
             display: block;
+            margin: 0 auto;
+            border-radius: 8px;
         }
         .prose figure figcaption {
             font-size: 0.78rem;
