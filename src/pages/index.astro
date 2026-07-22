@@ -1070,6 +1070,31 @@ import Base from "@layouts/Base.astro";
             imperceptible, but in competitive gaming even a few milliseconds can
             affect your performance.
         </p>
+        <h2 style="margin-top:2rem;">How is Keyboard Latency Calculated?</h2>
+                <p>
+                    Keyboard latency is the sum of three delays that happen between
+                    your finger pressing a key and the character appearing on screen.
+                    Here's a real-world example:
+                </p>
+                <div class="callout" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; margin: 1.25rem 0; font-size: 0.875rem; color: var(--text2); line-height: 1.75;">
+                    <strong>Example calculation:</strong><br />
+                    5ms (key debounce time) + 1ms (polling rate) + 5ms (system latency)
+                    = <strong style="color: var(--accent);">11ms total latency</strong>
+                </div>
+                <p>
+                    <strong>Scan Rate Formula:</strong> Scan Rate (Hz) = 1000 ÷ shortest key press time (ms).
+                    So if your shortest press in the test above was 2ms, your estimated
+                    scan rate is 1000 ÷ 2 = <strong>500Hz</strong>.
+                </p>
+
+                <h2 style="margin-top:2rem;">How to Test Your Keyboard Latency</h2>
+                <ol style="color: var(--text2); font-size: 0.88rem; line-height: 1.85; padding-left: 1.6rem; margin-bottom: 1rem;">
+                    <li>Scroll up to the keyboard tester above.</li>
+                    <li>Press any key on your physical keyboard — it will highlight instantly on screen.</li>
+                    <li>Each press logs its response time in the Key Press History section.</li>
+                    <li>Your shortest press time and estimated scan rate update live at the top.</li>
+                    <li>Test multiple keys to get a reliable average — then compare against the table below.</li>
+                </ol>
         <div class="info-grid">
             <div class="info-card">
                 <div class="info-card-icon">⚡</div><div
@@ -1148,6 +1173,26 @@ import Base from "@layouts/Base.astro";
                     latency.
                 </div>
             </div>
+            <div class="faq-item">
+                            <div class="faq-q">How is keyboard scan rate calculated?</div>
+                            <div class="faq-a">
+                                Scan rate (Hz) = 1000 ÷ shortest key press time (in ms).
+                                For example, a 2ms press time gives an estimated scan
+                                rate of 500Hz — this tool calculates it automatically
+                                from your fastest recorded press.
+                            </div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-q">
+                                Is 1ms keyboard latency actually noticeable?
+                            </div>
+                            <div class="faq-a">
+                                Not for everyday typing — but in competitive FPS games
+                                running at 240fps, a single frame is only 4.17ms, so
+                                even 1-2ms of extra latency can shift your reaction
+                                window in close encounters.
+                            </div>
+                        </div>
         </div>
     </div>
 

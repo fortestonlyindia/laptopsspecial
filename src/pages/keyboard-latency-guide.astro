@@ -63,6 +63,14 @@ const faqSchema = {
             },
         },
         {
+                    "@type": "Question",
+                    name: "How is keyboard scan rate calculated?",
+                    acceptedAnswer: {
+                        "@type": "Answer",
+                        text: "Scan rate in Hz equals 1000 divided by the shortest key press time in milliseconds. A 2ms press time gives an estimated scan rate of 500Hz.",
+                    },
+                },
+        {
             "@type": "Question",
             name: "Which keyboard has the lowest latency?",
             acceptedAnswer: {
@@ -447,6 +455,22 @@ const breadcrumbSchema = {
             application need to process it. This adds another 3–10ms depending
             on your system load, drivers, and software.
         </p>
+
+        <div class="callout">
+                    <strong>Real example:</strong> 5ms (key debounce) + 1ms (polling
+                    rate) + 5ms (system latency) = 11ms total keyboard latency. This
+                    is how most latency calculators, including our own tool, break
+                    down the number you see on screen.
+                </div>
+
+                <h3>Scan Rate Formula</h3>
+                <p>
+                    Scan rate is calculated as: <strong>Scan Rate (Hz) = 1000 ÷ shortest
+                    key press time (ms)</strong>. If your fastest recorded press is
+                    2ms, your keyboard's estimated scan rate is 500Hz. The lower your
+                    press time, the higher your effective scan rate — and the lower
+                    your overall latency.
+                </p>
 
         <table class="metric-table">
             <thead>
