@@ -113,6 +113,82 @@ const webAppSchema = {
             );
         </script>
 
+        <script>
+            // ── AD CLICK PROTECTION (basic bot/rapid-click guard) ──────────────
+            (function () {
+                const STORAGE_KEY = "_ad_click_log";
+                const MAX_CLICKS = 3; // itne clicks allowed
+                const WINDOW_MS = 60000; // is time window mein (60 sec)
+                const BLOCK_MS = 30 * 60 * 1000; // block duration agar limit cross ho (30 min)
+
+                function getLog() {
+                    try {
+                        return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "[]");
+                    } catch {
+                        return [];
+                    }
+                }
+
+                function setLog(log: number[]) {
+                    try {
+                        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(log));
+                    } catch {
+                        // ignore storage errors
+                    }
+                }
+
+                function isBlocked(): boolean {
+                    const blockedUntil = Number(
+                        sessionStorage.getItem("_ad_click_blocked_until") || "0",
+                    );
+                    return Date.now() < blockedUntil;
+                }
+
+                function registerClick() {
+                    if (isBlocked()) return false;
+                    const now = Date.now();
+                    let log = getLog().filter((t: number) => now - t < WINDOW_MS);
+                    log.push(now);
+                    setLog(log);
+                    if (log.length > MAX_CLICKS) {
+                        sessionStorage.setItem(
+                            "_ad_click_blocked_until",
+                            String(now + BLOCK_MS),
+                        );
+                        return false;
+                    }
+                    return true;
+                }
+
+                document.addEventListener(
+                    "astro:page-load",
+                    () => {
+                        document.addEventListener(
+                            "click",
+                            (e: MouseEvent) => {
+                                const target = e.target as HTMLElement | null;
+                                if (!target) return;
+                                // AdSense iframes ko directly click-intercept nahi kiya ja sakta
+                                // (cross-origin), isliye ye un containers ko target karta hai
+                                // jinke andar ad units render hote hain.
+                                const adContainer = target.closest<HTMLElement>(
+                                    "ins.adsbygoogle, .adsbygoogle, [data-ad-slot]",
+                                );
+                                if (!adContainer) return;
+
+                                if (isBlocked()) {
+                                    e.stopPropagation();
+                                }
+                                registerClick();
+                            },
+                            { capture: true },
+                        );
+                    },
+                    { once: true },
+                );
+            })();
+        </script>
+
         <!-- Per-page head additions (OG images, schemas etc.) -->
         <slot name="head" />
 

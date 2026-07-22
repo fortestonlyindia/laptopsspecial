@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://laptopsspecial.com/sitemap.xml
+Sitemap: https://laptopsspecial.com/sitemap-index.xml

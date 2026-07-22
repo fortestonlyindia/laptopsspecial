@@ -390,22 +390,40 @@ import Base from "@layouts/Base.astro";
             margin-bottom: 0.6rem;
         }
         .history-feed {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            min-height: 40px;
-        }
-        .hkey {
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            font-weight: 600;
-            background: rgba(0, 212, 255, 0.1);
-            border: 1px solid rgba(0, 212, 255, 0.22);
-            color: #00d4ff;
-            padding: 0.2rem 0.5rem;
-            border-radius: 5px;
-            animation: fadeIn 0.12s ease;
-        }
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    max-height: 320px;
+                    overflow-y: auto;
+                    padding-right: 4px;
+                }
+                .history-feed::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .history-feed::-webkit-scrollbar-thumb {
+                    background: var(--border);
+                    border-radius: 3px;
+                }
+                .hkey {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 0.6rem;
+                            font-family: var(--font-mono);
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            background: rgba(0, 212, 255, 0.1);
+                            border: 1px solid rgba(0, 212, 255, 0.22);
+                            color: #00d4ff;
+                            padding: 0.35rem 0.65rem;
+                            border-radius: 6px;
+                            animation: fadeIn 0.12s ease;
+                        }
+                        .hkey .hkey-time {
+                            font-size: 0.68rem;
+                            font-weight: 600;
+                            color: var(--muted);
+                        }
         [data-theme="light"] .hkey {
             background: rgba(2, 132, 199, 0.1);
             border-color: rgba(2, 132, 199, 0.25);
@@ -1087,6 +1105,15 @@ import Base from "@layouts/Base.astro";
                     scan rate is 1000 ÷ 2 = <strong>500Hz</strong>.
                 </p>
 
+                <h2 style="margin-top:2rem;">Why This Tool Goes Beyond a Basic Polling Rate Checker</h2>
+                        <p>
+                            Most online polling rate checkers only show average and peak Hz.
+                            This tool also measures jitter (consistency of your mouse's report
+                            timing), tracks click latency and CPS, visualizes movement with a
+                            live heatmap, and lets you export your full test session as JSON
+                            or CSV for deeper analysis.
+                        </p>
+
                 <h2 style="margin-top:2rem;">How to Test Your Keyboard Latency</h2>
                 <ol style="color: var(--text2); font-size: 0.88rem; line-height: 1.85; padding-left: 1.6rem; margin-bottom: 1rem;">
                     <li>Scroll up to the keyboard tester above.</li>
@@ -1164,6 +1191,16 @@ import Base from "@layouts/Base.astro";
                     close unnecessary background applications.
                 </div>
             </div>
+            <div class="faq-item">
+                            <div class="faq-q">What is polling rate jitter?</div>
+                            <div class="faq-a">
+                                Jitter measures how consistently your mouse reports data
+                                — calculated as the standard deviation between consecutive
+                                poll intervals. Low jitter means stable, predictable
+                                tracking; high jitter can cause micro-stutters even if
+                                your average polling rate looks high.
+                            </div>
+                        </div>
             <div class="faq-item">
                 <div class="faq-q">
                     Does polling rate affect keyboard latency?
@@ -1291,22 +1328,35 @@ import Base from "@layouts/Base.astro";
                     }
 
                     // History tag
-                    const tag = document.createElement("span");
-                    tag.className = "hkey";
-                    tag.textContent =
-                        e.key === " "
-                            ? "Space"
-                            : e.key.length > 8
-                              ? e.code
-                                    .replace("Key", "")
-                                    .replace("Digit", "")
-                                    .replace("Numpad", "Num")
-                              : e.key;
-                    tag.title = `${dur.toFixed(1)} ms`;
-                    feed.prepend(tag);
-                    while (feed.children.length > 36 && feed.lastChild) {
-                        feed.removeChild(feed.lastChild);
-                    }
+                                        const keyLabel =
+                                            e.key === " "
+                                                ? "Space"
+                                                : e.key.length > 8
+                                                  ? e.code
+                                                        .replace("Key", "")
+                                                        .replace("Digit", "")
+                                                        .replace("Numpad", "Num")
+                                                  : e.key;
+
+                                        const now = new Date();
+                                        const timeLabel = now.toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            second: "2-digit",
+                                        });
+
+                                        const tag = document.createElement("span");
+                                        tag.className = "hkey";
+                                        tag.title = `${dur.toFixed(1)} ms — ${timeLabel}`;
+                                        const keySpan = document.createElement("span");
+                                        keySpan.textContent = keyLabel;
+                                        const timeSpan = document.createElement("span");
+                                        timeSpan.className = "hkey-time";
+                                        timeSpan.textContent = `${dur.toFixed(1)}ms · ${timeLabel}`;
+                                        tag.appendChild(keySpan);
+                                        tag.appendChild(timeSpan);
+                                        feed.prepend(tag);
+                                        // No cap — poori session ki history rakhi jaayegi, scroll se dekho
 
                     // Stats
                     totalKeys++;
