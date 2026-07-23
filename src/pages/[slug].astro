@@ -212,23 +212,32 @@ function renderBlock(block: any): string {
 
             if (parts.length === 0) return "";
 
-            const scriptOpen = "<" + "script>";
-            const scriptClose = "<" + "/script>";
-            const srcdoc = `<!DOCTYPE html><html><head><style>html,body{margin:0;padding:14px;font-family:-apple-system,sans-serif;color:#1a1a1a;background:#fff;box-sizing:border-box;}*{box-sizing:inherit;}${css}</style></head><body>${html}${scriptOpen}${js}${scriptClose}</body></html>`;
+            const openTag = "<" + "script>";
+            const closeTag = "<" + "/script>";
+            const srcdoc =
+                "<!DOCTYPE html><html><head><style>html,body{margin:0;padding:14px;font-family:-apple-system,sans-serif;color:#1a1a1a;background:#fff;box-sizing:border-box;}*{box-sizing:inherit;}" +
+                css +
+                "</style></head><body>" +
+                html +
+                openTag +
+                js +
+                closeTag +
+                "</body></html>";
 
-            const tabsHtml = [
-                `<button type="button" class="tc-tab active" data-tc-show="result">Result</button>`,
-                ...parts.map(
-                    (p) =>
-                        `<button type="button" class="tc-tab" data-tc-show="${p.lang}">${p.label}</button>`,
-                ),
-            ].join("");
+            const tabsHtml =
+                `<button type="button" class="tc-tab active" data-tc-show="result">Result</button>` +
+                parts
+                    .map(
+                        (p) =>
+                            `<button type="button" class="tc-tab" data-tc-show="${p.lang}">${p.label}</button>`,
+                    )
+                    .join("");
 
             const codePanelsHtml = parts
                 .map((p) => {
                     const codeEsc = escapeHtml(p.code);
                     const copyData = p.code.replace(/"/g, "&quot;");
-                    return `<div class="tc-panel" data-tc-panel="${p.lang}" hidden>
+                    return `<div class="tc-panel" data-tc-panel="${p.lang}" hidden style="display:none;">
                 <div class="tc-panel-bar"><span class="tc-lang-badge">${p.lang}</span><button type="button" class="copy-btn" aria-label="Copy code" data-code="${copyData}">Copy</button></div>
                 <pre><code class="language-${p.lang}">${codeEsc}</code></pre>
               </div>`;
@@ -1037,12 +1046,14 @@ const breadcrumbSchema = {
                     border-bottom-color: var(--accent);
                     background: rgba(0, 212, 255, 0.06);
                 }
-                .prose .tc-panel[hidden] {
-                    display: none !important;
-                }
-                .prose .tc-panel:not([hidden]) {
-                    display: block;
-                }
+                .prose div.tc-panel[hidden],
+                                .prose div.tabbed-code-block div.tc-panel[hidden] {
+                                    display: none !important;
+                                    visibility: hidden !important;
+                                }
+                                .prose div.tc-panel:not([hidden]) {
+                                    display: block !important;
+                                }
                 .prose .tc-frame {
                     width: 100%;
                     height: 260px;
@@ -1435,12 +1446,14 @@ const breadcrumbSchema = {
                                     t.classList.toggle("active", t === tab);
                                 });
                                 block.querySelectorAll<HTMLElement>(".tc-panel").forEach((p) => {
-                                    if (p.dataset.tcPanel === show) {
-                                        p.removeAttribute("hidden");
-                                    } else {
-                                        p.setAttribute("hidden", "");
-                                    }
-                                });
+                                                            if (p.dataset.tcPanel === show) {
+                                                                p.removeAttribute("hidden");
+                                                                p.style.display = "block";
+                                                            } else {
+                                                                p.setAttribute("hidden", "");
+                                                                p.style.display = "none";
+                                                            }
+                                                        });
                             },
                             { signal },
                         );
