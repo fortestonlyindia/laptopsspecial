@@ -205,12 +205,7 @@ function renderBlock(block: any): string {
             const css = (block.cssCode || "").trim();
             const js = (block.jsCode || "").trim();
 
-            const parts: { label: string; lang: string; code: string }[] = [];
-            if (html) parts.push({ label: "HTML", lang: "html", code: html });
-            if (css) parts.push({ label: "CSS", lang: "css", code: css });
-            if (js) parts.push({ label: "JS", lang: "javascript", code: js });
-
-            if (parts.length === 0) return "";
+            if (!html && !css && !js) return "";
 
             const openTag = "<" + "script>";
             const closeTag = "<" + "/script>";
@@ -224,37 +219,13 @@ function renderBlock(block: any): string {
                 closeTag +
                 "</body></html>";
 
-            const tabsHtml =
-                `<button type="button" class="tc-tab active" data-tc-show="result">Result</button>` +
-                parts
-                    .map(
-                        (p) =>
-                            `<button type="button" class="tc-tab" data-tc-show="${p.lang}">${p.label}</button>`,
-                    )
-                    .join("");
-
-            const codePanelsHtml = parts
-                .map((p) => {
-                    const codeEsc = escapeHtml(p.code);
-                    const copyData = p.code.replace(/"/g, "&quot;");
-                    return `<div class="tc-panel" data-tc-panel="${p.lang}" hidden style="display:none;">
-                <div class="tc-panel-bar"><span class="tc-lang-badge">${p.lang}</span><button type="button" class="copy-btn" aria-label="Copy code" data-code="${copyData}">Copy</button></div>
-                <pre><code class="language-${p.lang}">${codeEsc}</code></pre>
-              </div>`;
-                })
-                .join("");
-
             const titleHtml = block.title
                 ? `<div class="tc-title">${escapeHtml(block.title)}</div>`
                 : "";
 
             return `<div class="tabbed-code-block" id="${blockId}">
           ${titleHtml}
-          <div class="tc-tabbar" role="tablist">${tabsHtml}</div>
-          <div class="tc-panel" data-tc-panel="result">
-            <iframe class="tc-frame" data-frame-for="${blockId}" sandbox="allow-scripts allow-same-origin" srcdoc="${escapeHtml(srcdoc)}" loading="lazy" title="Live preview"></iframe>
-          </div>
-          ${codePanelsHtml}
+          <iframe class="tc-frame" data-frame-for="${blockId}" sandbox="allow-scripts allow-same-origin" srcdoc="${escapeHtml(srcdoc)}" loading="lazy" title="Live preview"></iframe>
         </div>`;
         }
 
@@ -996,107 +967,31 @@ const breadcrumbSchema = {
         }
 
         /* ── TABBED CODE BLOCK (Preview + Code) ─────────────────── */
-                .prose .tabbed-code-block {
-                    margin: 1.75rem 0;
-                    border: 1px solid var(--border);
-                    border-radius: 12px;
-                    overflow: hidden;
-                    background: var(--bg2);
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-                }
-                .prose .tc-title {
-                    background: var(--bg3);
-                    color: var(--text2);
-                    font-size: 0.78rem;
-                    font-weight: 600;
-                    padding: 0.6rem 1rem;
-                    border-bottom: 1px solid var(--border);
-                }
-                .prose .tc-tabbar {
-                    display: flex;
-                    gap: 0;
-                    background: var(--bg3);
-                    border-bottom: 1px solid var(--border);
-                    overflow-x: auto;
-                    scrollbar-width: none;
-                }
-                .prose .tc-tabbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .prose .tc-tab {
-                    background: none;
-                    border: none;
-                    border-bottom: 2px solid transparent;
-                    color: var(--muted);
-                    font-family: var(--font-mono);
-                    font-size: 0.72rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.06em;
-                    padding: 0.6rem 1.1rem;
-                    cursor: pointer;
-                    white-space: nowrap;
-                    transition: color 0.15s, border-color 0.15s, background 0.15s;
-                }
-                .prose .tc-tab:hover {
-                    color: var(--text2);
-                }
-                .prose .tc-tab.active {
-                    color: var(--accent);
-                    border-bottom-color: var(--accent);
-                    background: rgba(0, 212, 255, 0.06);
-                }
-                .prose div.tc-panel[hidden],
-                                .prose div.tabbed-code-block div.tc-panel[hidden] {
-                                    display: none !important;
-                                    visibility: hidden !important;
-                                }
-                                .prose div.tc-panel:not([hidden]) {
-                                    display: block !important;
-                                }
-                .prose .tc-frame {
-                    width: 100%;
-                    height: 260px;
-                    border: none;
-                    display: block;
-                    background: #fff;
-                }
-                .prose .tc-panel-bar {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    background: var(--bg3);
-                    padding: 0.45rem 1rem;
-                    border-bottom: 1px solid var(--border);
-                }
-                .prose .tc-lang-badge {
-                    font-size: 0.68rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.08em;
-                    color: var(--accent);
-                    background: rgba(0, 212, 255, 0.1);
-                    border: 1px solid rgba(0, 212, 255, 0.2);
-                    padding: 0.15rem 0.5rem;
-                    border-radius: 4px;
-                }
-                .prose .tc-panel pre {
-                    margin: 0;
-                    background: #0d1117;
-                    padding: 1.1rem;
-                    overflow-x: auto;
-                    max-height: 420px;
-                }
-                [data-theme="light"] .prose .tc-panel pre {
-                    background: #1e2432;
-                }
-                .prose .tc-panel pre code {
-                    font-family: var(--font-mono);
-                    font-size: 0.82rem;
-                    color: #e2e8f0;
-                    background: none;
-                    padding: 0;
-                }
+        .prose .tabbed-code-block {
+                            margin: 1.75rem 0;
+                            border: 1px solid var(--border);
+                            border-radius: 12px;
+                            overflow: hidden;
+                            background: var(--bg2);
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+                        }
+                        .prose .tc-title {
+                            background: var(--bg3);
+                            color: var(--text2);
+                            font-size: 0.78rem;
+                            font-weight: 600;
+                            padding: 0.6rem 1rem;
+                            border-bottom: 1px solid var(--border);
+                        }
+                        .prose .tc-frame {
+                            width: 100%;
+                            height: 60px;
+                            border: none;
+                            display: block;
+                            background: #fff;
+                            overflow: hidden;
+                        }
+
         /* ── CALLOUT VARIANTS ─────────────────────────────── */
          .prose .callout-box {
            display:flex; gap:.75rem; align-items:flex-start;
@@ -1420,45 +1315,27 @@ const breadcrumbSchema = {
 
                 // ── Live preview iframe: resize to fit content, retry until stable ──
                 function resizeFrame(frame: HTMLIFrameElement, tries = 0) {
-                    try {
-                        const doc = frame.contentDocument;
-                        if (!doc || !doc.body) {
-                            if (tries < 6) setTimeout(() => resizeFrame(frame, tries + 1), 120);
-                            return;
-                        }
-                        const h = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight, 120);
-                        frame.style.height = Math.min(h, 600) + "px";
-                        if (tries < 6) setTimeout(() => resizeFrame(frame, tries + 1), 150);
-                    } catch (e) {}
-                }
-                document.querySelectorAll<HTMLIFrameElement>(".tc-frame").forEach((frame) => {
-                    frame.addEventListener("load", () => resizeFrame(frame), { signal });
-                });
-
-                // ── Tabbed code block: tab switching ──
-                document.querySelectorAll<HTMLElement>(".tabbed-code-block").forEach((block) => {
-                    block.querySelectorAll<HTMLElement>(".tc-tab").forEach((tab) => {
-                        tab.addEventListener(
-                            "click",
-                            () => {
-                                const show = tab.dataset.tcShow;
-                                block.querySelectorAll<HTMLElement>(".tc-tab").forEach((t) => {
-                                    t.classList.toggle("active", t === tab);
-                                });
-                                block.querySelectorAll<HTMLElement>(".tc-panel").forEach((p) => {
-                                                            if (p.dataset.tcPanel === show) {
-                                                                p.removeAttribute("hidden");
-                                                                p.style.display = "block";
-                                                            } else {
-                                                                p.setAttribute("hidden", "");
-                                                                p.style.display = "none";
-                                                            }
-                                                        });
-                            },
-                            { signal },
-                        );
-                    });
-                });
+                                try {
+                                    const doc = frame.contentDocument;
+                                    if (!doc || !doc.body) {
+                                        if (tries < 15) setTimeout(() => resizeFrame(frame, tries + 1), 100);
+                                        return;
+                                    }
+                                    const h = Math.max(
+                                        doc.documentElement.scrollHeight,
+                                        doc.body.scrollHeight,
+                                        doc.documentElement.offsetHeight,
+                                        doc.body.offsetHeight,
+                                        60,
+                                    );
+                                    frame.style.height = h + "px";
+                                    if (tries < 15) setTimeout(() => resizeFrame(frame, tries + 1), 150);
+                                } catch (e) {}
+                            }
+                            document.querySelectorAll<HTMLIFrameElement>(".tc-frame").forEach((frame) => {
+                                            resizeFrame(frame); // turant try karo, agar already loaded hai
+                                            frame.addEventListener("load", () => resizeFrame(frame), { signal });
+                                        });
 
                 document.addEventListener(
                     "click",

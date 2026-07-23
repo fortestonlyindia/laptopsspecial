@@ -17,6 +17,7 @@ export default defineConfig({
       // Allow images from these domains (for blog post images etc)
       { protocol: "https", hostname: "**.unsplash.com" },
       { protocol: "https", hostname: "**.pexels.com" },
+      { protocol: "https", hostname: "**.pixabay.com" },
       { protocol: "https", hostname: "**.githubusercontent.com" },
     ],
   },
