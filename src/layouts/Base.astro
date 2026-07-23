@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets"; // Import Image component
+import AdUnit from "@/components/AdUnit.astro";
 import logo from "@assets/logo.svg"; // Import logo - light mode
 import whiteLogo from "@assets/white-logo.svg"; // Dark mode
 import favicon from "@assets/favicon.avif"; // Import favicon
@@ -111,82 +112,6 @@ const webAppSchema = {
                 "data-theme",
                 localStorage.getItem("ls-theme") || "dark",
             );
-        </script>
-
-        <script>
-            // ── AD CLICK PROTECTION (basic bot/rapid-click guard) ──────────────
-            (function () {
-                const STORAGE_KEY = "_ad_click_log";
-                const MAX_CLICKS = 3; // itne clicks allowed
-                const WINDOW_MS = 60000; // is time window mein (60 sec)
-                const BLOCK_MS = 30 * 60 * 1000; // block duration agar limit cross ho (30 min)
-
-                function getLog() {
-                    try {
-                        return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "[]");
-                    } catch {
-                        return [];
-                    }
-                }
-
-                function setLog(log: number[]) {
-                    try {
-                        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(log));
-                    } catch {
-                        // ignore storage errors
-                    }
-                }
-
-                function isBlocked(): boolean {
-                    const blockedUntil = Number(
-                        sessionStorage.getItem("_ad_click_blocked_until") || "0",
-                    );
-                    return Date.now() < blockedUntil;
-                }
-
-                function registerClick() {
-                    if (isBlocked()) return false;
-                    const now = Date.now();
-                    let log = getLog().filter((t: number) => now - t < WINDOW_MS);
-                    log.push(now);
-                    setLog(log);
-                    if (log.length > MAX_CLICKS) {
-                        sessionStorage.setItem(
-                            "_ad_click_blocked_until",
-                            String(now + BLOCK_MS),
-                        );
-                        return false;
-                    }
-                    return true;
-                }
-
-                document.addEventListener(
-                    "astro:page-load",
-                    () => {
-                        document.addEventListener(
-                            "click",
-                            (e: MouseEvent) => {
-                                const target = e.target as HTMLElement | null;
-                                if (!target) return;
-                                // AdSense iframes ko directly click-intercept nahi kiya ja sakta
-                                // (cross-origin), isliye ye un containers ko target karta hai
-                                // jinke andar ad units render hote hain.
-                                const adContainer = target.closest<HTMLElement>(
-                                    "ins.adsbygoogle, .adsbygoogle, [data-ad-slot]",
-                                );
-                                if (!adContainer) return;
-
-                                if (isBlocked()) {
-                                    e.stopPropagation();
-                                }
-                                registerClick();
-                            },
-                            { capture: true },
-                        );
-                    },
-                    { once: true },
-                );
-            })();
         </script>
 
         <!-- Per-page head additions (OG images, schemas etc.) -->
@@ -454,12 +379,12 @@ const webAppSchema = {
                 color: var(--accent);
             }
             .footer-copy {
-                color: var(--muted);
-                font-size: 0.8rem;
-            }
-            main {
-                flex: 1;
-            }
+                            color: var(--muted);
+                            font-size: 0.8rem;
+                        }
+                        main {
+                            flex: 1;
+                        }
 
             @media (max-width: 640px) {
                 .nav-links {
@@ -558,20 +483,21 @@ const webAppSchema = {
         <main id="main-content"><slot /></main>
 
         <footer>
-            <div class="footer-inner">
-                <div class="footer-links">
-                    <a href="/about">About Us</a>
-                    <a href="/contact">Contact</a>
-                    <a href="/disclaimer">Disclaimer</a>
-                    <a href="/dmca">DMCA</a>
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/terms">Terms</a>
-                </div>
-                <p class="footer-copy">
-                    © 2026 Laptops Special — All Rights Reserved
-                </p>
-            </div>
-        </footer>
+                    <div class="footer-inner">
+                        <AdUnit slot="5640788616" format="autorelaxed" label="Advertisement" />
+                        <div class="footer-links">
+                            <a href="/about">About Us</a>
+                            <a href="/contact">Contact</a>
+                            <a href="/disclaimer">Disclaimer</a>
+                            <a href="/dmca">DMCA</a>
+                            <a href="/privacy">Privacy Policy</a>
+                            <a href="/terms">Terms</a>
+                        </div>
+                        <p class="footer-copy">
+                            © 2026 Laptops Special — All Rights Reserved
+                        </p>
+                    </div>
+                </footer>
 
         <button id="back-to-top" aria-label="Scroll back to top of page"
             >↑</button

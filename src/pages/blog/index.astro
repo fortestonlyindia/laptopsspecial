@@ -1,5 +1,6 @@
 ---
 import Base from "@layouts/Base.astro";
+import AdUnit from "../../components/AdUnit.astro";
 import { getAllPosts, urlFor } from "../../lib/sanity";
 
 let posts: any[] = [];
@@ -231,12 +232,14 @@ function formatDate(d: string) {
                         </>
                     </div>
                 ) : (
-                    posts.map((post: any) => (
-                        <a
-                            href={`/${post.slug}`}
-                            class="post-card"
-                            data-cats={JSON.stringify(post.categories || [])}
-                            aria-label={`Read: ${post.title}`}
+                posts.map((post: any, index: number) => (
+                                        <>
+                                        <a
+                                            href={`/${post.slug}`}
+                                            class="post-card"
+                                            data-cats={JSON.stringify(post.categories || [])}
+                                            aria-label={`Read: ${post.title}`}
+                                        >
                         >
                             {post.mainImage?.asset ? (
                                 <div class="post-img-wrap">
@@ -270,11 +273,11 @@ function formatDate(d: string) {
                                 )}
                                 <div class="post-title">{post.title}</div>
                                 {post.excerpt && (
-                                    <div class="post-excerpt">
-                                        {post.excerpt}
-                                    </div>
-                                )}
-                                <div class="post-meta">
+                                                                    <div class="post-excerpt">
+                                                                        {post.excerpt}
+                                                                    </div>
+                                                                )}
+                                                                <div class="post-meta">
                                     {post.publishedAt && (
                                         <span>
                                             {formatDate(post.publishedAt)}
@@ -288,11 +291,17 @@ function formatDate(d: string) {
                                     )}
                                 </div>
                                 <span class="read-more">Read article →</span>
-                            </div>
-                        </a>
-                    ))
-                )
-            }
+                                                            </div>
+                                                        </a>
+                                                        {(index + 1) % 6 === 0 && (
+                                                            <div style="grid-column: 1/-1;">
+                                                                <AdUnit slot="6150713055" label="Advertisement" />
+                                                            </div>
+                                                        )}
+                                                        </>
+                                                    ))
+                                                )
+                                            }
         </div>
     </div>
     <script>
