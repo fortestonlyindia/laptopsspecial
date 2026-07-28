@@ -3,7 +3,6 @@ import { Image } from "astro:assets"; // Import Image component
 import logo from "@assets/logo.svg"; // Import logo - light mode
 import whiteLogo from "@assets/white-logo.svg"; // Dark mode
 import favicon from "@assets/favicon.avif"; // Import favicon
-import { ViewTransitions } from "astro:transitions";
 export interface Props {
     title: string;
     description: string;
@@ -102,8 +101,6 @@ const webAppSchema = {
                 y.parentNode.insertBefore(t, y);
             })(window, document, "clarity", "script", "qnlz3299gs");
         </script>
-
-        <ViewTransitions />
 
         <!-- Runs before paint — prevents theme flash on every page load -->
         <script is:inline>
@@ -416,13 +413,6 @@ const webAppSchema = {
                 font-size: 1.1rem;
             }
 
-            ::view-transition-old(root),
-            ::view-transition-new(root),
-            ::view-transition-group(root),
-            ::view-transition-image-pair(root) {
-                animation: none !important;
-                mix-blend-mode: normal !important;
-            }
         </style>
     </head>
     <body>
@@ -436,7 +426,7 @@ const webAppSchema = {
         >
         <!-- End Google Tag Manager (noscript) -->
 
-        <nav role="navigation" aria-label="Main navigation" transition:persist>
+        <nav role="navigation" aria-label="Main navigation">
             <div class="nav-inner">
                 <a href="/" class="nav-logo" aria-label="Laptops Special Home">
                     <Image
@@ -516,23 +506,22 @@ const webAppSchema = {
             );
 
             // 2. PAGE LOAD LOGIC
-            document.addEventListener("astro:page-load", () => {
+            document.addEventListener("DOMContentLoaded", () => {
                 // THEME TOGGLE
                 const themeBtn = document.getElementById("theme-btn");
                 if (themeBtn) {
-                    themeBtn.onclick = () => {
+                  themeBtn.addEventListener("click", () => {
                         const html = document.documentElement;
                         const next =
                             html.dataset.theme === "dark" ? "light" : "dark";
                         html.dataset.theme = next;
                         localStorage.setItem("ls-theme", next);
-                    };
+                    });
                 }
                 // BACK TO TOP CLICK
                 const btt = document.getElementById("back-to-top");
                 if (btt) {
-                    btt.onclick = () =>
-                        window.scrollTo({ top: 0, behavior: "instant" });
+                  window.scrollTo(0, 0);
                     btt.classList.remove("visible");
                 }
 
@@ -540,10 +529,10 @@ const webAppSchema = {
                 const ham = document.getElementById("hamburger");
                 const navMenu = document.getElementById("nav-links");
                 if (ham && navMenu) {
-                    ham.onclick = () => {
+                  ham.addEventListener("click", () => {
                         const open = navMenu.classList.toggle("open");
                         ham.setAttribute("aria-expanded", String(open));
-                    };
+                    });
                 }
 
                 // PER-PAGE LOGIC
@@ -564,23 +553,8 @@ const webAppSchema = {
                 });
 
                 // Top par scroll karna
-                window.scrollTo({ top: 0, behavior: "instant" });
-            });
+             });
 
-            // NAVIGATION CLEANUP
-            document.addEventListener("astro:before-preparation", () => {
-                const navMenu = document.getElementById("nav-links");
-                const ham = document.getElementById("hamburger");
-                if (navMenu) navMenu.classList.remove("open");
-                if (ham) ham.setAttribute("aria-expanded", "false");
-            });
-        </script>
-        <script is:inline>
-            document.addEventListener("astro:page-load", () => {
-                try {
-                    (window.adsbygoogle = window.adsbygoogle || []).push({});
-                } catch (e) {}
-            });
         </script>
     </body>
 </html>
