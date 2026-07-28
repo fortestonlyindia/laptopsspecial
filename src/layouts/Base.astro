@@ -494,66 +494,43 @@ const webAppSchema = {
         <script>
             // 1. SCROLL LISTENER (Outside page-load)
             // Ise bahar rakhte hain taaki View Transitions ke baad multiple listeners add na ho
-            window.addEventListener(
-                "scroll",
-                () => {
-                    const btt = document.getElementById("back-to-top");
-                    if (btt) {
-                        btt.classList.toggle("visible", window.scrollY > 400);
-                    }
-                },
-                { passive: true },
-            );
 
             // 2. PAGE LOAD LOGIC
-            document.addEventListener("DOMContentLoaded", () => {
-                // THEME TOGGLE
-                const themeBtn = document.getElementById("theme-btn");
-                if (themeBtn) {
-                  themeBtn.addEventListener("click", () => {
-                        const html = document.documentElement;
-                        const next =
-                            html.dataset.theme === "dark" ? "light" : "dark";
-                        html.dataset.theme = next;
-                        localStorage.setItem("ls-theme", next);
-                    });
-                }
-                // BACK TO TOP CLICK
+            let scrollHandler: (() => void) | undefined;
+
+            function initBackToTop() {
                 const btt = document.getElementById("back-to-top");
-                if (btt) {
-                  window.scrollTo(0, 0);
-                    btt.classList.remove("visible");
-                }
 
-                // MOBILE NAV
-                const ham = document.getElementById("hamburger");
-                const navMenu = document.getElementById("nav-links");
-                if (ham && navMenu) {
-                  ham.addEventListener("click", () => {
-                        const open = navMenu.classList.toggle("open");
-                        ham.setAttribute("aria-expanded", String(open));
+                if (!btt) return;
+
+                btt.onclick = () => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth",
                     });
-                }
+                };
 
-                // PER-PAGE LOGIC
-                document.documentElement.dataset.theme =
-                    localStorage.getItem("ls-theme") || "dark";
-                document.querySelectorAll(".nav-links a").forEach((a) => {
-                    const href = a.getAttribute("href") as string;
-                    if (href) {
-                        const active =
-                            href === location.pathname ||
-                            (href !== "/" &&
-                                location.pathname.startsWith(href));
-                        a.setAttribute(
-                            "aria-current",
-                            active ? "page" : "false",
-                        );
-                    }
-                });
+                scrollHandler = () => {
+                    btt.classList.toggle(
+                        "visible",
+                        window.scrollY > 200
+                    );
+                };
 
-                // Top par scroll karna
-             });
+                window.addEventListener(
+                    "scroll",
+                    scrollHandler,
+                    { passive: true }
+                );
+
+                // agar page already scroll position par load hua hai
+                scrollHandler();
+            }
+
+
+            document.addEventListener("astro:page-load", initBackToTop);
+
+            initBackToTop();
 
         </script>
     </body>
