@@ -5,7 +5,7 @@ import Base from "@layouts/Base.astro";
 <Base
     title="Contact Us — Laptops Special"
     description="Get in touch with the Laptops Special team. Report bugs, suggest new tools, or ask any question."
-    canonical="https://laptopsspecial.com/contact"
+    canonical="https://laptopsspecial.com/contact/"
 >
     <style>
         .page-hero {
@@ -282,13 +282,13 @@ import Base from "@layouts/Base.astro";
     <script>
         // NOTE: Replace this with a real form backend — Formspree, Web3Forms, or EmailJS
         // Example with Formspree: set action="https://formspree.io/f/YOUR_ID" on the form
-        document
-            .getElementById("contact-form")
-            .addEventListener("submit", (e) => {
-                e.preventDefault();
-                // Simulate submission — replace with real fetch() to your form handler
-                document.getElementById("contact-form").style.display = "none";
-                document.getElementById("success-msg").style.display = "block";
-            });
+        const form = document.getElementById("contact-form");
+        const successMsg = document.getElementById("success-msg");
+
+        form?.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (form) form.style.display = "none";
+            if (successMsg) successMsg.style.display = "block";
+        });
     </script>
 </Base>

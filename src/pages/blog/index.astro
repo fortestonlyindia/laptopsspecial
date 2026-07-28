@@ -1,12 +1,11 @@
 ---
 import Base from "@layouts/Base.astro";
-import AdUnit from "../../components/AdUnit.astro";
 import { getAllPosts, urlFor } from "../../lib/sanity";
 
 let posts: any[] = [];
 try {
     posts = (await getAllPosts()) || [];
-} catch (e) {
+    } catch (e) {
     posts = [];
 }
 
@@ -23,7 +22,7 @@ function formatDate(d: string) {
 <Base
     title="Blog — Keyboards, Mouse & PC Peripheral Guides | Laptops Special"
     description="Expert guides on keyboard latency, mouse polling rate, gaming peripherals and performance optimisation."
-    canonical="https://laptopsspecial.com/blog"
+    canonical="https://laptopsspecial.com/blog/"
     noWebAppSchema={true}
 >
     <style>
@@ -235,7 +234,7 @@ function formatDate(d: string) {
                 posts.map((post: any, index: number) => (
                                         <>
                                         <a
-                                            href={`/${post.slug}`}
+                                            href={`/${post.slug}/`}
                                             class="post-card"
                                             data-cats={JSON.stringify(post.categories || [])}
                                             aria-label={`Read: ${post.title}`}
@@ -295,8 +294,7 @@ function formatDate(d: string) {
                                                         </a>
                                                         {(index + 1) % 6 === 0 && (
                                                             <div style="grid-column: 1/-1;">
-                                                                <AdUnit slot="6150713055" label="Advertisement" />
-                                                            </div>
+                                                                </div>
                                                         )}
                                                         </>
                                                     ))

@@ -1,6 +1,5 @@
 ---
 import { Image } from "astro:assets"; // Import Image component
-import AdUnit from "@/components/AdUnit.astro";
 import logo from "@assets/logo.svg"; // Import logo - light mode
 import whiteLogo from "@assets/white-logo.svg"; // Dark mode
 import favicon from "@assets/favicon.avif"; // Import favicon
@@ -27,7 +26,7 @@ const webAppSchema = {
     publisher: {
         "@type": "Organization",
         name: "Laptops Special",
-        url: "https://laptopsspecial.com",
+        url: "https://laptopsspecial.com/",
     },
 };
 ---
@@ -458,9 +457,9 @@ const webAppSchema = {
                 <div class="nav-right">
                     <ul class="nav-links" id="nav-links" role="list">
                         <li><a href="/">Keyboard Tester</a></li>
-                        <li><a href="/mouse-rate-test">Mouse Rate Test</a></li>
-                        <li><a href="/about">About</a></li>
-                        <li><a href="/blog">Blog</a></li>
+                        <li><a href="/mouse-rate-test/">Mouse Rate Test</a></li>
+                        <li><a href="/about/">About</a></li>
+                        <li><a href="/blog/">Blog</a></li>
                     </ul>
                     <button
                         class="theme-btn"
@@ -484,14 +483,13 @@ const webAppSchema = {
 
         <footer>
                     <div class="footer-inner">
-                        <AdUnit slot="5640788616" format="autorelaxed" label="Advertisement" />
                         <div class="footer-links">
-                            <a href="/about">About Us</a>
-                            <a href="/contact">Contact</a>
-                            <a href="/disclaimer">Disclaimer</a>
-                            <a href="/dmca">DMCA</a>
-                            <a href="/privacy">Privacy Policy</a>
-                            <a href="/terms">Terms</a>
+                            <a href="/about/">About Us</a>
+                            <a href="/contact/">Contact</a>
+                            <a href="/disclaimer/">Disclaimer</a>
+                            <a href="/dmca/">DMCA</a>
+                            <a href="/privacy/">Privacy Policy</a>
+                            <a href="/terms/">Terms</a>
                         </div>
                         <p class="footer-copy">
                             © 2026 Laptops Special — All Rights Reserved
@@ -530,8 +528,6 @@ const webAppSchema = {
                         localStorage.setItem("ls-theme", next);
                     };
                 }
-
-                // BACK TO TOP CLICK
                 // BACK TO TOP CLICK
                 const btt = document.getElementById("back-to-top");
                 if (btt) {
@@ -577,6 +573,13 @@ const webAppSchema = {
                 const ham = document.getElementById("hamburger");
                 if (navMenu) navMenu.classList.remove("open");
                 if (ham) ham.setAttribute("aria-expanded", "false");
+            });
+        </script>
+        <script is:inline>
+            document.addEventListener("astro:page-load", () => {
+                try {
+                    (window.adsbygoogle = window.adsbygoogle || []).push({});
+                } catch (e) {}
             });
         </script>
     </body>

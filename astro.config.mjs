@@ -4,6 +4,7 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   site: "https://laptopsspecial.com",
+  trailingSlash: "always", // ← YEH ADD KARO
   output: "static",
   compressHTML: true,
   // Image optimization — WebP + AVIF support built-in
@@ -19,6 +20,7 @@ export default defineConfig({
       { protocol: "https", hostname: "**.pexels.com" },
       { protocol: "https", hostname: "**.pixabay.com" },
       { protocol: "https", hostname: "**.githubusercontent.com" },
+      { protocol: "https", hostname: "cdn.sanity.io" }, // ← YEH ADD KARO
     ],
   },
   // Prefetch ALL links as soon as they enter viewport

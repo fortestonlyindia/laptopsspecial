@@ -1,6 +1,5 @@
 ---
 import Base from "@layouts/Base.astro";
-import AdUnit from "../components/AdUnit.astro";
 import {
     getAllPostSlugs,
     getPostBySlug,
@@ -22,7 +21,7 @@ let post: any = null;
 try {
     post = await getPostBySlug(slug as string);
 } catch (e) {}
-if (!post) return Astro.redirect("/blog");
+if (!post) return Astro.redirect("/blog/");
 
 let relatedPosts: any[] = [];
 try {
@@ -34,7 +33,7 @@ const seoTitle = post.seoTitle || post.title;
 // Auto-generate excerpt from body if not set in Sanity
 const autoExcerpt = post.excerpt || extractExcerpt(post.body || []);
 const seoDescription = post.seoDescription || post.excerpt || "";
-const canonicalUrl = `https://laptopsspecial.com/${slug}`;
+const canonicalUrl = `https://laptopsspecial.com/${slug}/`;  // slash add kiya
 const ogImage =
     post.seoImage?.asset || post.mainImage?.asset
         ? urlFor(post.seoImage?.asset || post.mainImage.asset)
@@ -1180,8 +1179,6 @@ const breadcrumbSchema = {
     <div class="post-layout">
         <a href="/blog" class="back-link">← Back to Blog</a>
 
-        <AdUnit slot="1370116559" label="Advertisement" />
-
         {tocItems.length >= 3 && (
             <nav class="toc-box" aria-label="Table of Contents">
                 <div class="toc-title">📋 Table of Contents</div>
@@ -1195,9 +1192,7 @@ const breadcrumbSchema = {
             </nav>
         )}
 
-    <div class="prose" set:html={bodyHtmlFirstHalf} />
-        <AdUnit slot="1486468956" format="fluid" layout="in-article" label="Advertisement" />
-        <div class="prose" set:html={bodyHtmlSecondHalf} />
+        <div class="prose" set:html={bodyHtml} />
 
         {
             post.tags?.length > 0 && (
@@ -1209,9 +1204,7 @@ const breadcrumbSchema = {
             )
         }
 
-        <AdUnit slot="4250711554" label="Advertisement" />
-
-                {
+        {
                     post.faqs?.length > 0 && (
                                 <div class="faq-section">
                             <h2>Frequently Asked Questions</h2>
@@ -1227,9 +1220,7 @@ const breadcrumbSchema = {
                     )
                 }
 
-                <AdUnit slot="1231318084" label="You Might Also Like" />
-
-                        {
+                {
                             relatedPosts.length > 0 && (
                                 <div class="related-section">
                     <div class="related-title">Related Articles</div>
