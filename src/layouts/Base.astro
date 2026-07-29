@@ -209,6 +209,10 @@ const webAppSchema = {
                 z-index: 100;
                 padding: 0 1.5rem;
                 will-change: transform;
+                transition: transform 0.3s ease;
+            }
+            nav.nav-hidden {
+                transform: translateY(-100%);
             }
             [data-theme="light"] nav {
                 background: rgba(248, 250, 252, 0.96);
@@ -430,7 +434,7 @@ const webAppSchema = {
 
         <nav role="navigation" aria-label="Main navigation" transition:persist>
             <div class="nav-inner">
-                <a href="/" class="nav-logo" aria-label="Laptops Special Home">
+                <a href="/" class="nav-logo" aria-label="Laptops Special Home" data-astro-reload>
                     <Image
                         src={logo}
                         alt="Laptops Special"
@@ -571,9 +575,37 @@ const webAppSchema = {
                 initMobileNav();
                 initNavActiveState();
                 initAdsRefresh();
+                initNavScrollHide();
             }
 
             document.addEventListener("astro:page-load", initAll);
+
+            let lastScrollY = 0;
+
+            function initNavScrollHide() {
+                const nav = document.querySelector("nav");
+                if (!nav) return;
+
+                lastScrollY = window.scrollY;
+
+                window.addEventListener(
+                    "scroll",
+                    () => {
+                        const currentScrollY = window.scrollY;
+
+                        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                            // Scrolling down — hide
+                            nav.classList.add("nav-hidden");
+                        } else {
+                            // Scrolling up — show
+                            nav.classList.remove("nav-hidden");
+                        }
+
+                        lastScrollY = currentScrollY;
+                    },
+                    { passive: true },
+                );
+            }
 
             document.addEventListener("astro:before-preparation", () => {
                 const navMenu = document.getElementById("nav-links");
