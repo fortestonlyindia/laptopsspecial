@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets"; // Import Image component
+import { ViewTransitions } from "astro:transitions";
 import logo from "@assets/logo.svg"; // Import logo - light mode
 import whiteLogo from "@assets/white-logo.svg"; // Dark mode
 import favicon from "@assets/favicon.avif"; // Import favicon
@@ -111,6 +112,7 @@ const webAppSchema = {
         </script>
 
         <!-- Per-page head additions (OG images, schemas etc.) -->
+<ViewTransitions />
         <slot name="head" />
 
         <!-- WebApp Schema for tool pages (keyboard tester, mouse tester) -->
@@ -426,7 +428,7 @@ const webAppSchema = {
         >
         <!-- End Google Tag Manager (noscript) -->
 
-        <nav role="navigation" aria-label="Main navigation">
+        <nav role="navigation" aria-label="Main navigation" transition:persist>
             <div class="nav-inner">
                 <a href="/" class="nav-logo" aria-label="Laptops Special Home">
                     <Image
@@ -498,40 +500,87 @@ const webAppSchema = {
             // 2. PAGE LOAD LOGIC
             let scrollHandler: (() => void) | undefined;
 
+            function initThemeSync() {
+                document.documentElement.setAttribute(
+                    "data-theme",
+                    localStorage.getItem("ls-theme") || "dark",
+                );
+            }
+
             function initBackToTop() {
                 const btt = document.getElementById("back-to-top");
-
                 if (!btt) return;
 
                 btt.onclick = () => {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: "smooth",
-                    });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                 };
 
                 scrollHandler = () => {
-                    btt.classList.toggle(
-                        "visible",
-                        window.scrollY > 200
-                    );
+                    btt.classList.toggle("visible", window.scrollY > 200);
                 };
 
-                window.addEventListener(
-                    "scroll",
-                    scrollHandler,
-                    { passive: true }
-                );
-
-                // agar page already scroll position par load hua hai
+                window.addEventListener("scroll", scrollHandler, { passive: true });
                 scrollHandler();
             }
 
+            function initThemeToggle() {
+                const themeBtn = document.getElementById("theme-btn");
+                if (!themeBtn) return;
 
-            document.addEventListener("astro:page-load", initBackToTop);
+                themeBtn.onclick = () => {
+                    const html = document.documentElement;
+                    const next = html.dataset.theme === "dark" ? "light" : "dark";
+                    html.dataset.theme = next;
+                    localStorage.setItem("ls-theme", next);
+                };
+            }
 
-            initBackToTop();
+            function initMobileNav() {
+                const ham = document.getElementById("hamburger");
+                const navMenu = document.getElementById("nav-links");
+                if (!ham || !navMenu) return;
 
-        </script>
+                ham.onclick = () => {
+                    const open = navMenu.classList.toggle("open");
+                    ham.setAttribute("aria-expanded", String(open));
+                };
+            }
+
+            function initNavActiveState() {
+                document.querySelectorAll(".nav-links a").forEach((a) => {
+                    const href = a.getAttribute("href") as string;
+                    if (href) {
+                        const active =
+                            href === location.pathname ||
+                            (href !== "/" && location.pathname.startsWith(href));
+                        a.setAttribute("aria-current", active ? "page" : "false");
+                    }
+                });
+            }
+
+            function initAdsRefresh() {
+                try {
+                    ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+                } catch (e) {}
+            }
+
+            function initAll() {
+                initThemeSync();
+                initBackToTop();
+                initThemeToggle();
+                initMobileNav();
+                initNavActiveState();
+                initAdsRefresh();
+            }
+
+            document.addEventListener("astro:page-load", initAll);
+
+            document.addEventListener("astro:before-preparation", () => {
+                const navMenu = document.getElementById("nav-links");
+                const ham = document.getElementById("hamburger");
+                if (navMenu) navMenu.classList.remove("open");
+                if (ham) ham.setAttribute("aria-expanded", "false");
+            });
+            </script>
     </body>
 </html>
