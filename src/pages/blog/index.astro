@@ -238,9 +238,9 @@ function formatDate(d: string) {
                                             class="post-card"
                                             data-cats={JSON.stringify(post.categories || [])}
                                             aria-label={`Read: ${post.title}`}
+                                            data-astro-reload
                                         >
-                        >
-                            {post.mainImage?.asset ? (
+                        {post.mainImage?.asset ? (
                                 <div class="post-img-wrap">
                                     <img
                                     src={urlFor(post.mainImage.asset)
