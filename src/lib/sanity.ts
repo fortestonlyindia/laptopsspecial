@@ -1,8 +1,8 @@
-import { createClient } from '@sanity/client';
-import imageUrlBuilder from '@sanity/image-url';
+import { createClient } from "@sanity/client";
+import imageUrlBuilder from "@sanity/image-url";
 
 const projectId = import.meta.env.PUBLIC_SANITY_PROJECT_ID;
-const dataset   = import.meta.env.PUBLIC_SANITY_DATASET || 'production';
+const dataset = import.meta.env.PUBLIC_SANITY_DATASET || "production";
 const hasConfig = projectId && /^[a-z0-9-]+$/.test(projectId);
 
 let sanityClient: any = null;
@@ -12,7 +12,7 @@ if (hasConfig) {
   sanityClient = createClient({
     projectId,
     dataset,
-    apiVersion: '2024-01-01',
+    apiVersion: "2024-01-01",
     useCdn: true,
   });
   builder = imageUrlBuilder(sanityClient);
@@ -21,19 +21,37 @@ if (hasConfig) {
 export { sanityClient };
 
 export function urlFor(source: any) {
-  if (!builder) return { url: () => '', width: () => ({ url: () => '' }), height: () => ({ url: () => '' }), auto: () => ({ url: () => '' }) } as any;
+  if (!builder)
+    return {
+      url: () => "",
+      width: () => ({ url: () => "" }),
+      height: () => ({ url: () => "" }),
+      auto: () => ({ url: () => "" }),
+    } as any;
   return builder.image(source);
 }
 
-async function safeFetch<T>(query: string, params: Record<string, any> = {}): Promise<T[]> {
+async function safeFetch<T>(
+  query: string,
+  params: Record<string, any> = {},
+): Promise<T[]> {
   if (!sanityClient) return [];
   try {
     const result = await sanityClient.fetch(query, params);
     return result || [];
   } catch (e: any) {
-    console.warn('[Sanity] fetch failed:', e?.message || e);
+    console.warn("[Sanity] fetch failed:", e?.message || e);
     return [];
   }
+}
+
+export async function getProductsByPage(page: string) {
+  return safeFetch(
+    `*[_type == "product" && (page == $page || page == "both")] | order(order asc) {
+      _id, title, affiliateLink, description, image, page, order
+    }`,
+    { page },
+  );
 }
 
 export async function getAllPosts() {
@@ -44,7 +62,7 @@ export async function getAllPosts() {
       excerpt, publishedAt,
       "categories": categories[]->title,
       tags, mainImage { asset, altText }, readTime
-    }`
+    }`,
   );
 }
 
@@ -65,21 +83,24 @@ export async function getPostBySlug(slug: string) {
         seoImage { asset, altText },
         readTime
       }`,
-      { slug }
+      { slug },
     );
   } catch (e: any) {
-    console.warn('[Sanity] getPostBySlug failed:', e?.message);
+    console.warn("[Sanity] getPostBySlug failed:", e?.message);
     return null;
   }
 }
 
 export async function getAllPostSlugs() {
   return safeFetch<{ slug: string }>(
-    `*[_type == "post"] { "slug": slug.current }`
+    `*[_type == "post"] { "slug": slug.current }`,
   );
 }
 
-export async function getRelatedPosts(currentSlug: string, categories: string[]) {
+export async function getRelatedPosts(
+  currentSlug: string,
+  categories: string[],
+) {
   return safeFetch(
     `*[_type == "post" && slug.current != $currentSlug
        && count((categories[]->title)[@ in $categories]) > 0
@@ -88,6 +109,6 @@ export async function getRelatedPosts(currentSlug: string, categories: string[])
       mainImage { asset, altText },
       "categories": categories[]->title
     }`,
-    { currentSlug, categories }
+    { currentSlug, categories },
   );
 }
