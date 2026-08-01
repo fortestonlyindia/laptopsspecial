@@ -482,7 +482,12 @@ const breadcrumbSchema = {
         />
     </Fragment>
 
-    <style>
+    <style is:global>
+        .back-link-wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1.5rem 1.5rem 0;
+        }
         .post-hero {
             background: linear-gradient(
                 135deg,
@@ -490,7 +495,7 @@ const breadcrumbSchema = {
                 rgba(124, 58, 237, 0.05)
             );
             border-bottom: 1px solid var(--border);
-            padding: 3rem 1.5rem 2.5rem;
+            padding: 1.5rem 1.5rem 2.5rem;
             text-align: center;
         }
         .post-cats {
@@ -591,16 +596,17 @@ const breadcrumbSchema = {
             content: "";
         }
         .prose a {
-            color: var(--accent);
+            color: #e07a7a !important;
             text-decoration: none;
-            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            transition: color 0.15s, border-bottom-color 0.15s;
         }
         .prose a:hover {
-            border-bottom-color: var(--accent);
+            color: var(--accent) !important;
+            border-bottom-color: var(--accent) !important;
         }
-        .prose strong {
-            color: var(--text);
-            font-weight: 600;
+        .prose a strong,
+        .prose strong a {
+            color: inherit !important;
         }
         .prose em {
             font-style: italic;
@@ -958,11 +964,16 @@ const breadcrumbSchema = {
             text-decoration: none;
             font-size: 0.82rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
-            transition: color 0.15s;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
         }
         .back-link:hover {
             color: var(--accent);
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.06);
         }
 
         /* ── TABBED CODE BLOCK (Preview + Code) ─────────────────── */
@@ -1112,6 +1123,11 @@ const breadcrumbSchema = {
          .prose tbody tr:last-child td { border-bottom: none; }
     </style>
 
+    <!-- Back to Blog -->
+    <div class="back-link-wrap">
+        <a href="/blog/" class="back-link">← Back to Blog</a>
+    </div>
+
     <!-- Hero -->
     <div class="post-hero">
         {
@@ -1177,8 +1193,6 @@ const breadcrumbSchema = {
 
     <!-- Content -->
     <div class="post-layout">
-        <a href="/blog" class="back-link">← Back to Blog</a>
-
         {tocItems.length >= 3 && (
             <nav class="toc-box" aria-label="Table of Contents">
                 <div class="toc-title">📋 Table of Contents</div>
