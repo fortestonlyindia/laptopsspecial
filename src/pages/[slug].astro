@@ -1125,7 +1125,7 @@ const breadcrumbSchema = {
 
     <!-- Back to Blog -->
     <div class="back-link-wrap">
-        <a href="/blog/" class="back-link">← Back to Blog</a>
+        <a href="/blog/" class="back-link" data-astro-reload>← Back to Blog</a>
     </div>
 
     <!-- Hero -->
@@ -1244,6 +1244,7 @@ const breadcrumbSchema = {
                                 href={`/${rp.slug}`}
                                 class="related-card"
                                 aria-label={`Read: ${rp.title}`}
+                                data-astro-reload
                             >
                                 {rp.mainImage?.asset ? (
                                     <img

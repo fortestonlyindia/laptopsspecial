@@ -246,6 +246,8 @@ function formatDate(d: string) {
                                     src={urlFor(post.mainImage.asset)
                                         .width(600)
                                         .height(337)
+                                        .fit("crop")           // ← add karo
+                                        .crop("focalpoint")
                                         .auto("format")
                                         .url()}
                                     alt={post.mainImage.altText || post.title}
