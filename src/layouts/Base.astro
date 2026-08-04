@@ -29,6 +29,7 @@ const webAppSchema = {
         url: "https://laptopsspecial.com/",
     },
 };
+const currentYear = new Date().getFullYear();
 ---
 
 <!doctype html>
@@ -488,7 +489,7 @@ const webAppSchema = {
                             <a href="/terms/" data-astro-reload>Terms</a>
                         </div>
                         <p class="footer-copy">
-                            © 2026 Laptops Special — All Rights Reserved
+                            © {currentYear} Laptops Special — All Rights Reserved
                         </p>
                     </div>
                 </footer>
