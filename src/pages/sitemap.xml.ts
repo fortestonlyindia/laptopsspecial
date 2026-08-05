@@ -9,6 +9,7 @@ export const GET: APIRoute = async () => {
     "https://laptopsspecial.com/mouse-rate-test/",
     "https://laptopsspecial.com/blog/",
     "https://laptopsspecial.com/keyboard-latency-guide/",
+    "https://laptopsspecial.com/monitor-refresh-rate-test/",
     "https://laptopsspecial.com/about/",
     "https://laptopsspecial.com/contact/",
     "https://laptopsspecial.com/privacy/",
