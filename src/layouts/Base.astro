@@ -14,20 +14,50 @@ export interface Props {
 const { title, description, canonical, noWebAppSchema, ogImage } = Astro.props;
 const canonicalURL = canonical || Astro.url.href;
 
+const siteUrl = "https://laptopsspecial.com/";
+
+const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${siteUrl}#organization`,
+    name: "Laptops Special",
+    url: siteUrl,
+    logo: {
+        "@type": "ImageObject",
+        url: new URL("/favicon.avif", siteUrl).href,
+    },
+};
+
+const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}#website`,
+    name: "Laptops Special",
+    url: siteUrl,
+    publisher: { "@id": `${siteUrl}#organization` },
+    potentialAction: {
+        "@type": "SearchAction",
+        target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${siteUrl}blog/?s={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+    },
+};
+
 const webAppSchema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
+    "@id": `${canonicalURL}#webapp`,
     name: title,
     description: description,
     url: canonicalURL,
     applicationCategory: "UtilitiesApplication",
     operatingSystem: "Any",
+    isAccessibleForFree: true,
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    publisher: {
-        "@type": "Organization",
-        name: "Laptops Special",
-        url: "https://laptopsspecial.com/",
-    },
+    publisher: { "@id": `${siteUrl}#organization` },
+    isPartOf: { "@id": `${siteUrl}#website` },
 };
 const currentYear = new Date().getFullYear();
 ---
@@ -115,6 +145,16 @@ const currentYear = new Date().getFullYear();
         <!-- Per-page head additions (OG images, schemas etc.) -->
 <ViewTransitions />
         <slot name="head" />
+
+        <!-- Organization & WebSite Schema (site-wide, always present) -->
+        <script
+            type="application/ld+json"
+            set:html={JSON.stringify(organizationSchema)}
+        />
+        <script
+            type="application/ld+json"
+            set:html={JSON.stringify(websiteSchema)}
+        />
 
         <!-- WebApp Schema for tool pages (keyboard tester, mouse tester) -->
         {

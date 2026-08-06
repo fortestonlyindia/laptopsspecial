@@ -8,6 +8,122 @@ try {
 } catch (e) {
     products = [];
 }
+
+const pageUrl = "https://laptopsspecial.com/monitor-refresh-rate-test/";
+const siteUrl = "https://laptopsspecial.com/";
+
+const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${pageUrl}#faq`,
+    mainEntity: [
+        {
+            "@type": "Question",
+            name: "Why does it show 60Hz when my monitor is 144Hz?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Most common causes: your OS display setting hasn't been switched from the 60Hz default, you're using a cable that can't carry the full bandwidth, browser hardware acceleration is off, or your laptop is in a power-saving mode.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "How accurate is a browser-based refresh rate test?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "requestAnimationFrame is tied to your display's vsync, so under normal conditions readings are accurate to within ±1–2Hz. Background tabs, high CPU load, or OS-level frame pacing can cause temporary dips, which the stability grade and frame-time chart are designed to surface.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "What does the Stability Grade actually measure?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "It's the percentage of frames that land within ±15% of your session's median frame interval. A high average Hz with a low grade usually means your setup is technically capable but not consistently hitting that rate.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "What's the difference between the VRR simulator and real G-Sync/FreeSync?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "This simulator is a visual explainer, not a hardware test, since your browser can't control your monitor's actual variable refresh window. It illustrates why VRR eliminates the stutter/tear pattern you'd get from a fixed refresh rate when frame times fluctuate.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Is the difference between 60Hz and 144Hz really noticeable?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes, very much so, and it's most visible when scrolling quickly or dragging windows. At 144Hz edges stay sharp; at 60Hz there's clear motion blur. Improvements above 144Hz follow diminishing returns for most people.",
+            },
+        },
+    ],
+};
+
+const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${pageUrl}#breadcrumb`,
+    itemListElement: [
+        {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: siteUrl,
+        },
+        {
+            "@type": "ListItem",
+            position: 2,
+            name: "Monitor Refresh Rate Test",
+            item: pageUrl,
+        },
+    ],
+};
+
+const featureListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": `${pageUrl}#features`,
+    name: "Monitor Refresh Rate Test — Key Features",
+    itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Live Hz detection via requestAnimationFrame" },
+        { "@type": "ListItem", position: 2, name: "Frame-time consistency chart with dropped-frame flagging" },
+        { "@type": "ListItem", position: 3, name: "Stability grade (A–F) based on frame timing consistency" },
+        { "@type": "ListItem", position: 4, name: "3-speed motion clarity test" },
+        { "@type": "ListItem", position: 5, name: "VRR / G-Sync / FreeSync visual simulator" },
+        { "@type": "ListItem", position: 6, name: "Shareable PNG result card export" },
+        { "@type": "ListItem", position: 7, name: "Raw JSON data export" },
+        { "@type": "ListItem", position: 8, name: "Fullscreen test mode" },
+    ],
+};
+
+const softwareAppSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": `${pageUrl}#software`,
+    name: "Monitor Refresh Rate Test",
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Any",
+    url: pageUrl,
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    publisher: { "@id": `${siteUrl}#organization` },
+    isPartOf: { "@id": `${siteUrl}#website` },
+};
+
+const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: "Monitor Refresh Rate Test — Check Your Screen's Real Hz Online",
+    description:
+        "Test your monitor's real-time refresh rate, frame consistency and stability grade. Includes motion clarity test, VRR/G-Sync simulator, and shareable result card. Free, no download.",
+    isPartOf: { "@id": `${siteUrl}#website` },
+    about: { "@id": `${pageUrl}#software` },
+    breadcrumb: { "@id": `${pageUrl}#breadcrumb` },
+    mainEntity: { "@id": `${pageUrl}#software` },
+};
 ---
 
 <Base
@@ -1377,4 +1493,9 @@ try {
             );
         });
     </script>
+    <script type="application/ld+json" set:html={JSON.stringify(webPageSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(softwareAppSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(featureListSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 </Base>
