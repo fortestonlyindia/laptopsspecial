@@ -1,11 +1,18 @@
 ---
 import Base from "@layouts/Base.astro";
+import { getAllPosts, urlFor } from "../lib/sanity";
 
 const canonicalUrl = "https://laptopsspecial.com/keyboard-latency-guide/";
+const featuredImage = "https://cdn.pixabay.com/photo/2021/12/08/22/43/keyboard-6856832_1280.jpg";
 const seoTitle =
     "Keyboard Latency Explained: What It Is and Why It Matters for Gaming";
 const seoDescription =
     "Understand the difference between scan rate, polling rate, and response time — and how each affects your gaming performance.";
+
+// Fetch latest blog posts for "Related Articles" section
+const allPosts = await getAllPosts();
+const relatedPosts = allPosts.slice(0, 3); // top 3 — adjust as needed
+
 
 // 1. Article Schema
 const articleSchema = {
@@ -13,6 +20,7 @@ const articleSchema = {
     "@type": "Article",
     headline: seoTitle,
     description: seoDescription,
+    image: "https://cdn.pixabay.com/photo/2021/12/08/22/43/keyboard-6856832_1280.jpg",
     datePublished: "2026-06-15",
     dateModified: "2026-06-15",
     author: { "@type": "Organization", name: "Laptops Special" },
@@ -108,27 +116,22 @@ const breadcrumbSchema = {
             name: "Home",
             item: "https://laptopsspecial.com",
         },
+
         {
             "@type": "ListItem",
             position: 2,
-            name: "Blog",
-            item: "https://laptopsspecial.com/blog",
-        },
-        {
-            "@type": "ListItem",
-            position: 3,
             name: seoTitle,
             item: canonicalUrl,
         },
     ],
 };
 ---
-
 <Base
     title={`${seoTitle} | Laptops Special`}
     description={seoDescription}
     canonical={canonicalUrl}
     noWebAppSchema={true}
+    ogImage={featuredImage}
 >
     <Fragment slot="head">
         <script
@@ -206,11 +209,22 @@ const breadcrumbSchema = {
             margin: 0 auto;
             line-height: 1.7;
         }
-
+        .post-featured-image {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        .post-featured-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            display: block;
+        }
         .post-wrap {
             max-width: 760px;
             margin: 0 auto;
-            padding: 3rem 1.5rem 4rem;
+            padding: 1rem 1.5rem 4rem;
         }
 
         .post-wrap h2 {
@@ -374,6 +388,14 @@ const breadcrumbSchema = {
             font-size: 1.25rem;
             margin-bottom: 0.4rem;
         }
+        .related-card-img {
+            width: 100%;
+            aspect-ratio: 5/3;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.6rem;
+            display: block;
+        }
         .related-card-title {
             font-size: 0.825rem;
             font-weight: 600;
@@ -398,6 +420,15 @@ const breadcrumbSchema = {
             around a lot. Here's what they actually mean and how they affect
             your gameplay.
         </p>
+    </div>
+  <div class="post-featured-image">
+        <img
+            src="https://cdn.pixabay.com/photo/2021/12/08/22/43/keyboard-6856832_1280.jpg"
+            alt="Close-up of mechanical keyboard keys illustrating keyboard latency and response time"
+            loading="eager"
+            width="1280"
+            height="853"
+        />
     </div>
 
     <div class="post-wrap">
@@ -533,7 +564,7 @@ const breadcrumbSchema = {
                 Measure your keyboard's shortest key press time and estimated
                 scan rate instantly in your browser.
             </p>
-            <a href="/" class="btn-cta">Test My Keyboard →</a>
+            <a href="/tools/keyboard-latency-tester/" class="btn-cta">Test My Keyboard →</a>
         </div>
 
         <h2>How to Reduce Keyboard Latency</h2>
@@ -575,24 +606,19 @@ const breadcrumbSchema = {
         <div class="related-posts">
             <div class="related-title">Related Articles</div>
             <div class="related-grid">
-                <a href="/mouse-polling-rate-guide" class="related-card">
-                    <div class="related-card-icon">🖱</div>
-                    <div class="related-card-title">
-                        Mouse Polling Rate: 125Hz vs 1000Hz vs 8000Hz
-                    </div>
-                </a>
-                <a href="/anti-ghosting-explained" class="related-card">
-                    <div class="related-card-icon">👻</div>
-                    <div class="related-card-title">
-                        What is Anti-Ghosting? Test Your Keyboard
-                    </div>
-                </a>
-                <a href="/best-low-latency-keyboards-2026" class="related-card">
-                    <div class="related-card-icon">🏆</div>
-                    <div class="related-card-title">
-                        Best Low-Latency Gaming Keyboards 2026
-                    </div>
-                </a>
+                {relatedPosts.map((post: any) => (
+                    <a href={`/${post.slug}/`} class="related-card" data-astro-reload>
+                        {post.mainImage?.asset && (
+                            <img
+                                src={urlFor(post.mainImage).width(400).height(240).url()}
+                                alt={post.mainImage.altText || post.title}
+                                class="related-card-img"
+                                loading="lazy"
+                            />
+                        )}
+                        <div class="related-card-title">{post.title}</div>
+                    </a>
+                ))}
             </div>
         </div>
     </div>

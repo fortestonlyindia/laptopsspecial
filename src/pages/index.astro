@@ -1,30 +1,178 @@
 ---
-import { getProductsByPage, urlFor } from "../lib/sanity";
 import Base from "@layouts/Base.astro";
 
-let products: any[] = [];
-try {
-    products = (await getProductsByPage("keyboard")) || [];
-} catch (e) {
-    products = [];
-}
+const pageUrl = "https://laptopsspecial.com/tools/";
+const siteUrl = "https://laptopsspecial.com/";
 
+const seoTitle = "Free PC Diagnostic Tools — Keyboard, Mouse & Monitor Testers";
+const seoDescription =
+    "All free browser-based hardware testing tools in one place. Test your keyboard latency, mouse polling rate, and monitor refresh rate — no downloads, no signup.";
+
+const tools = [
+    {
+        icon: "⌨️",
+        name: "Keyboard Tester",
+        url: "/tools/keyboard-latency-tester/",
+        color: "#00d4ff",
+        badge: "Full 104-Key Test",
+        description:
+            "Test every key on your full-size keyboard including numpad, arrows, and function keys. Measures shortest press time and estimated scan rate live in your browser.",
+        tags: ["Latency test", "Scan rate", "104-key layout"],
+    },
+    {
+        icon: "🖱",
+        name: "Mouse Rate Test",
+        url: "/tools/mouse-rate-test/",
+        color: "#a78bfa",
+        badge: "Up to 8000Hz",
+        description:
+            "Check your mouse's real polling rate, click latency, jitter, and movement speed. Includes a live heatmap and CPS counter, with JSON/CSV export for deeper analysis.",
+        tags: ["Polling rate", "Jitter", "Click latency"],
+    },
+    {
+        icon: "🖥️",
+        name: "Monitor Refresh Rate Test",
+        url: "/tools/monitor-refresh-rate-test/",
+        color: "#f59e0b",
+        badge: "Live Hz + Grade",
+        description:
+            "Measure your screen's real refresh rate and frame consistency with a stability grade. Includes a motion clarity test and a VRR/G-Sync simulator to see the difference.",
+        tags: ["Refresh rate", "Frame timing", "VRR simulator"],
+    },
+];
+
+// CollectionPage + ItemList schema tying the hub together with the
+// existing WebApplication pages via @id references.
+// NOTE: item 3 uses "#software" fragment while items 1-2 use "#webapp" —
+// verify this matches the actual @id set in monitor-refresh-rate-test.astro's
+// own schema block. If that page also uses "#webapp", change this to match.
+const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${pageUrl}#collection`,
+    url: pageUrl,
+    name: seoTitle,
+    description: seoDescription,
+    isPartOf: { "@id": `${siteUrl}#website` },
+    about: {
+        "@type": "ItemList",
+        itemListElement: [
+            {
+                "@type": "ListItem",
+                position: 1,
+                url: `${siteUrl}#webapp`,
+                name: "Keyboard Tester",
+            },
+            {
+                "@type": "ListItem",
+                position: 2,
+                url: `${siteUrl}mouse-rate-test/#webapp`,
+                name: "Mouse Rate Test",
+            },
+            {
+                "@type": "ListItem",
+                position: 3,
+                url: `${siteUrl}monitor-refresh-rate-test/#software`,
+                name: "Monitor Refresh Rate Test",
+            },
+        ],
+    },
+};
+
+const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${pageUrl}#breadcrumb`,
+    itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+        { "@type": "ListItem", position: 2, name: "Free Tools", item: pageUrl },
+    ],
+};
+
+const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+        {
+            "@type": "Question",
+            name: "Is my data uploaded or stored anywhere?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "No. Every test runs locally in your browser. Data never leaves your device or gets sent to any server.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Why does my 1000Hz mouse show a lower polling rate in the test?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "This is a browser limitation, not a mouse problem. Browsers throttle input event updates to conserve battery and CPU, so a 1000Hz mouse may display 60-120Hz in-browser even while reporting correctly at full rate.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Why is my keyboard stuck at 125Hz even on a gaming keyboard?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Standard office and budget keyboards are hardware-locked to 125Hz regardless of software settings. Only keyboards explicitly rated 1000Hz+ can exceed this.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Are these tests actually accurate, or just an estimate?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Browser-based tests measure input as it reaches your operating system, making them reliable for comparison. However, browsers typically cap visual updates around 60-120Hz, so a 1000Hz mouse may show a lower reading even when the hardware works correctly.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Do I need to install anything to use these tools?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "No. All three tools run entirely in your browser using native web APIs — nothing is installed, and no drivers are required.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Do these tools work on laptops and trackpads?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes — the keyboard and mouse testers work with built-in laptop keyboards and trackpads as well as external peripherals, on any modern browser.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Which browser gives the most accurate results?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Chromium-based browsers (Chrome, Edge) generally expose the most precise timing APIs for polling-rate and refresh-rate measurement.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Can these tools detect a faulty or dying peripheral?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes, indirectly. Inconsistent jitter, keys that fail to register, or a refresh rate that won't hold steady are all signs worth investigating before assuming you need a replacement.",
+            },
+        },
+    ],
+};
 ---
 
 <Base
-    title="Keyboard Tester Online | Full 104-Key Test — Latency & Polling Rate"
-    description="Test every key on your full-size 104-key keyboard including numpad, arrows, navigation cluster, and function keys. Free browser-based keyboard tester — no download needed."
-    canonical="https://laptopsspecial.com/"
+    title={`${seoTitle} | Laptops Special`}
+    description={seoDescription}
+    canonical={pageUrl}
+    noWebAppSchema={true}
 >
     <style>
-        /* ═══════════════════════════════════
-     HERO
-  ═══════════════════════════════════ */
-        .hero {
+        .hub-hero {
             text-align: center;
-            padding: 2.5rem 1.5rem 1.25rem;
+            padding: 3rem 1.5rem 2rem;
         }
-        .hero-badge {
+        .hub-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
@@ -39,546 +187,129 @@ try {
             border-radius: 100px;
             margin-bottom: 1.1rem;
         }
-        [data-theme="light"] .hero-badge {
+        [data-theme="light"] .hub-badge {
             background: rgba(2, 132, 199, 0.1);
             border-color: rgba(2, 132, 199, 0.3);
             color: #0284c7;
         }
-        .hero h1 {
-            font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+        .hub-hero h1 {
+            font-size: clamp(1.75rem, 4vw, 2.75rem);
             font-weight: 700;
-            line-height: 1.2;
-            margin-bottom: 0.6rem;
             color: var(--text);
+            margin-bottom: 0.75rem;
         }
-        .hero h1 span {
-            color: var(--accent);
-        }
-        .hero p {
+        .hub-hero p {
             color: var(--text2);
-            font-size: 0.95rem;
-            max-width: 520px;
+            font-size: 1rem;
+            max-width: 560px;
             margin: 0 auto;
+            line-height: 1.7;
         }
 
-        /* ═══════════════════════════════════
-     STATS ROW
-  ═══════════════════════════════════ */
-        .stats-row {
-            display: flex;
-            justify-content: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            padding: 1.25rem 1.5rem;
-            max-width: 960px;
+        .tool-grid {
+            max-width: 1080px;
             margin: 0 auto;
+            padding: 1rem 1.5rem 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
         }
-        .stat-card {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1rem 1.4rem;
-            text-align: center;
-            min-width: 140px;
-            flex: 1;
-            transition: border-color 0.2s;
-        }
-        .stat-card:hover {
-            border-color: rgba(0, 212, 255, 0.35);
-        }
-        .stat-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--muted);
-            margin-bottom: 0.4rem;
-        }
-        .stat-value {
-            font-family: var(--font-mono);
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--accent);
-        }
-        .stat-unit {
-            font-size: 0.72rem;
-            color: var(--muted);
-            margin-top: 0.1rem;
-        }
-
-        /* ═══════════════════════════════════
-     TOOL CARD WRAPPER
-  ═══════════════════════════════════ */
-        .tool-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem 1.5rem;
-        }
-        .tool-card {
+        .tool-hub-card {
             background: var(--bg2);
             border: 1px solid var(--border);
             border-radius: 16px;
-            overflow: hidden;
-        }
-        .tool-header {
-            padding: 0.85rem 1.25rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .tool-title {
-            font-size: 0.83rem;
-            font-weight: 600;
-            color: var(--text2);
-        }
-        .tool-status {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            font-size: 0.76rem;
-            font-weight: 600;
-            color: var(--text2);
-        }
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #22c55e;
-            animation: pulse 2s infinite;
-            flex-shrink: 0;
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.3;
-            }
-        }
-
-        /* ═══════════════════════════════════
-     KEYBOARD SHELL
-  ═══════════════════════════════════ */
-        .kb-area {
-            padding: 1.5rem 1.25rem 1rem;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .kb-prompt {
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.83rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Outer shell (mimics keyboard body) */
-        .keyboard-shell {
-            display: inline-flex;
-            flex-direction: column;
-            gap: 0;
-            background: linear-gradient(160deg, #1a2540 0%, #111928 100%);
-            border: 1px solid #243050;
-            border-bottom: 4px solid #0a1020;
-            border-radius: 12px;
-            padding: 12px 14px 16px;
-            box-shadow:
-                0 12px 40px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            user-select: none;
-            min-width: max-content;
-        }
-        [data-theme="light"] .keyboard-shell {
-            background: linear-gradient(160deg, #c8d0dc 0%, #b8c2cc 100%);
-            border-color: #9aa8b8;
-            border-bottom-color: #7888a0;
-            box-shadow:
-                0 8px 28px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.7);
-        }
-
-        /* The 3 sections sit in a horizontal row */
-        .kb-body {
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-        }
-
-        /* ═══════════════════════════════════
-     KEY BASE STYLE
-  ═══════════════════════════════════ */
-        .k {
-            position: relative;
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 38px;
-            min-width: 38px;
-            background: linear-gradient(
-                180deg,
-                #212e48 0%,
-                #18243a 60%,
-                #111d30 100%
-            );
-            border: 1px solid #2a3a58;
-            border-bottom: 3px solid #090f1c;
-            border-radius: 5px;
-            font-family: var(--font-mono);
-            font-size: 0.58rem;
-            font-weight: 600;
-            color: #9dbbd8;
-            cursor: default;
-            transition:
-                background 0.07s,
-                border-color 0.07s,
-                transform 0.07s,
-                color 0.07s,
-                box-shadow 0.07s;
-            white-space: nowrap;
-            flex-shrink: 0;
-            line-height: 1.1;
-        }
-        [data-theme="light"] .k {
-            background: linear-gradient(180deg, #ffffff 0%, #eaeff6 100%);
-            border-color: #c0ccd8;
-            border-bottom-color: #8a9ab0;
-            color: #2d4060;
-        }
-
-        /* Dual-legend keys: top symbol + main char */
-        .k .sym {
-            font-size: 0.5rem;
-            color: #7a9ab8;
-            line-height: 1;
-            margin-bottom: 1px;
-        }
-        [data-theme="light"] .k .sym {
-            color: #6080a0;
-        }
-        .k .ch {
-            font-size: 0.6rem;
-        }
-
-        /* Pressed state */
-        .k.pressed {
-            background: linear-gradient(
-                180deg,
-                rgba(0, 212, 255, 0.3) 0%,
-                rgba(0, 170, 210, 0.2) 100%
-            ) !important;
-            border-color: #00d4ff !important;
-            border-bottom-color: rgba(0, 200, 240, 0.45) !important;
-            color: #00d4ff !important;
-            transform: translateY(2px) !important;
-            box-shadow: 0 0 14px rgba(0, 212, 255, 0.3) !important;
-        }
-        .k.pressed .sym {
-            color: #00d4ff !important;
-        }
-        [data-theme="light"] .k.pressed {
-            color: #0284c7 !important;
-            border-color: #0284c7 !important;
-        }
-
-        /* ═══════════════════════════════════
-     KEY WIDTH TOKENS  (1u = 38px + gap)
-     Gap between keys = 4px
-     1u   = 38px
-     1.25u= 49px
-     1.5u = 60px
-     1.75u= 71px
-     2u   = 80px
-     2.25u= 91px
-     2.75u= 113px
-     6.25u= 257px (space)
-  ═══════════════════════════════════ */
-        .w-125 {
-            min-width: 49px;
-        }
-        .w-150 {
-            min-width: 60px;
-        }
-        .w-175 {
-            min-width: 71px;
-        }
-        .w-200 {
-            min-width: 80px;
-        }
-        .w-225 {
-            min-width: 91px;
-        }
-        .w-275 {
-            min-width: 113px;
-        }
-        .w-625 {
-            min-width: 257px;
-        }
-
-        /* ═══════════════════════════════════
-     ROW LAYOUT
-  ═══════════════════════════════════ */
-        .kb-section {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .kb-row {
-            display: flex;
-            gap: 4px;
-            align-items: flex-end;
-        }
-
-        /* Function row sits above main section with small gap */
-        .fn-row {
-            margin-bottom: 6px;
-        }
-        /* Small gap between F4/F5 and F8/F9 */
-        .fn-gap {
-            width: 10px;
-            flex-shrink: 0;
-        }
-
-        /* ═══════════════════════════════════
-     NUMPAD TALL KEYS  (2u tall)
-  ═══════════════════════════════════ */
-        .k-tall {
-            height: 80px; /* 2 keys + 1 gap = 38+4+38 */
-            justify-content: center;
-        }
-
-        /* ═══════════════════════════════════
-     NAV CLUSTER — special layout
-  ═══════════════════════════════════ */
-        .nav-top-row {
-            display: flex;
-            gap: 4px;
-        }
-        .nav-mid-row {
-            display: flex;
-            gap: 4px;
-            margin-top: 4px;
-        }
-        .nav-space {
-            height: 38px;
-            width: 38px;
-            visibility: hidden;
-        } /* invisible spacer */
-
-        /* Arrow cluster */
-        .arrow-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-top: 4px;
-        }
-        .arrow-top {
-            display: flex;
-            justify-content: center;
-        }
-        .arrow-bot {
-            display: flex;
-            gap: 4px;
-        }
-
-        /* ═══════════════════════════════════
-     KEY HISTORY
-  ═══════════════════════════════════ */
-        .history-section {
-            padding: 0 1.25rem 1.25rem;
-        }
-        .history-label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--muted);
-            margin-bottom: 0.6rem;
-        }
-        .history-feed {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    max-height: 320px;
-                    overflow-y: auto;
-                    padding-right: 4px;
-                }
-                .history-feed::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .history-feed::-webkit-scrollbar-thumb {
-                    background: var(--border);
-                    border-radius: 3px;
-                }
-                .hkey {
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            gap: 0.6rem;
-                            font-family: var(--font-mono);
-                            font-size: 0.75rem;
-                            font-weight: 600;
-                            background: rgba(0, 212, 255, 0.1);
-                            border: 1px solid rgba(0, 212, 255, 0.22);
-                            color: #00d4ff;
-                            padding: 0.35rem 0.65rem;
-                            border-radius: 6px;
-                            animation: fadeIn 0.12s ease;
-                        }
-                        .hkey .hkey-time {
-                            font-size: 0.68rem;
-                            font-weight: 600;
-                            color: var(--muted);
-                        }
-        [data-theme="light"] .hkey {
-            background: rgba(2, 132, 199, 0.1);
-            border-color: rgba(2, 132, 199, 0.25);
-            color: #0284c7;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.75);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .btn-reset {
-            display: block;
-            margin: 0.9rem auto 0;
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            font-family: var(--font-display);
-            font-size: 0.78rem;
-            font-weight: 600;
-            padding: 0.4rem 1.2rem;
-            border-radius: 7px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-reset:hover {
-            border-color: var(--muted);
-            color: var(--text2);
-        }
-
-        /* ═══════════════════════════════════
-     CTA + CONTENT
-  ═══════════════════════════════════ */
-        .cta-banner {
-            max-width: 1200px;
-            margin: 1.25rem auto;
-            padding: 0 1rem;
-        }
-        .cta-inner {
-            background: linear-gradient(
-                135deg,
-                rgba(124, 58, 237, 0.13),
-                rgba(0, 212, 255, 0.08)
-            );
-            border: 1px solid rgba(124, 58, 237, 0.28);
-            border-radius: 12px;
-            padding: 1.1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .cta-text {
-            font-size: 0.88rem;
-            color: var(--text2);
-        }
-        .cta-text strong {
-            color: var(--text);
-        }
-        .cta-btn {
-            background: var(--accent);
-            color: #0a0e1a;
-            font-family: var(--font-display);
-            font-size: 0.83rem;
-            font-weight: 700;
-            padding: 0.55rem 1.2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
-        .cta-btn:hover {
-            opacity: 0.85;
-        }
-
-        .content-section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-        .content-section h2 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.7rem;
-            color: var(--text);
-        }
-        .content-section p {
-            color: var(--text2);
-            line-height: 1.75;
-            font-size: 0.88rem;
-            margin-bottom: 0.75rem;
-        }
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-        .product-card {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
+            padding: 1.5rem;
             text-decoration: none;
             display: flex;
             flex-direction: column;
             transition: border-color 0.2s, transform 0.2s;
         }
-        .product-card:hover {
-            border-color: rgba(0, 212, 255, 0.35);
-            transform: translateY(-2px);
+        .tool-hub-card:hover {
+            transform: translateY(-3px);
         }
-        .product-img {
-            width: 100%;
-            aspect-ratio: 3/2;
-            object-fit: cover;
+        .tool-hub-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
         }
-        .product-body {
-            padding: 1rem;
+        .tool-hub-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.2rem 0.55rem;
+            border-radius: 100px;
+            margin-bottom: 0.6rem;
+            width: fit-content;
         }
-        .product-name {
-            font-size: 0.9rem;
+        .tool-hub-name {
+            font-size: 1.15rem;
             font-weight: 700;
             color: var(--text);
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
         }
-        .product-desc {
-            font-size: 0.78rem;
+        .tool-hub-desc {
+            font-size: 0.85rem;
             color: var(--text2);
-            line-height: 1.5;
-            margin-bottom: 0.6rem;
+            line-height: 1.65;
+            margin-bottom: 1rem;
+            flex-grow: 1;
         }
-        .product-cta {
-            font-size: 0.78rem;
+        .tool-hub-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1.1rem;
+        }
+        .tool-hub-tag {
+            font-size: 0.68rem;
             font-weight: 600;
-            color: var(--accent);
+            color: var(--muted);
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+        }
+        .tool-hub-cta {
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .hub-content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem 4rem;
+        }
+        .hub-content h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 2rem 0 0.75rem;
+        }
+        .hub-content p {
+            color: var(--text2);
+            font-size: 0.88rem;
+            line-height: 1.8;
+            margin-bottom: 0.9rem;
         }
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 900px) {
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 560px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
         }
         .info-card {
             background: var(--bg2);
@@ -600,6 +331,23 @@ try {
             font-size: 0.78rem;
             color: var(--text2);
             line-height: 1.55;
+        }
+        .trust-strip {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            padding: 0 1.5rem 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 600;
         }
         .faq-list {
             display: flex;
@@ -624,871 +372,172 @@ try {
             color: var(--text2);
             line-height: 1.65;
         }
-
-        /* ═══════════════════════════════════
-     MOBILE — shrink keyboard to fit
-  ═══════════════════════════════════ */
-        @media (max-width: 900px) {
-            .keyboard-shell {
-                transform: scale(0.62);
-                transform-origin: top left;
-            }
-            .kb-area {
-                min-height: 260px;
-            }
-        }
-        @media (max-width: 540px) {
-            .keyboard-shell {
-                transform: scale(0.45);
-                transform-origin: top left;
-            }
-            .kb-area {
-                min-height: 200px;
-            }
-        }
     </style>
 
-    <!-- HERO -->
-    <div class="hero">
-        <div class="hero-badge">🟢 Free Online Tool</div>
-        <h1>Full <span>Keyboard Tester</span></h1>
+    <div class="hub-hero">
+        <div class="hub-badge">🟢 100% Free — No Signup</div>
+        <h1>Free PC Diagnostic Tools</h1>
         <p>
-            Test all 104 keys including numpad, arrows, navigation cluster and
-            function keys — instantly in your browser.
+            Browser-based tools to test your keyboard, mouse, and monitor —
+            instantly, with no downloads. Built for gamers, builders, and
+            anyone troubleshooting their setup.
         </p>
     </div>
-
-    <!-- STATS -->
-    <div class="stats-row" aria-label="Test statistics">
-        <div class="stat-card">
-            <div class="stat-label">Shortest Press</div>
-            <div class="stat-value" id="s-short" aria-live="polite">—</div>
-            <div class="stat-unit">milliseconds</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Est. Scan Rate</div>
-            <div class="stat-value" id="s-scan" aria-live="polite">—</div>
-            <div class="stat-unit">Hz</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Keys Pressed</div>
-            <div class="stat-value" id="s-count" aria-live="polite">0</div>
-            <div class="stat-unit">total</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Keys Tested</div>
-            <div class="stat-value" id="s-unique" aria-live="polite">0</div>
-            <div class="stat-unit">/ 104</div>
-        </div>
+    <div class="trust-strip">
+        <span class="trust-item">🚫 No downloads</span>
+        <span class="trust-item">🔒 Runs locally in your browser</span>
+        <span class="trust-item">⚡ Instant results</span>
+        <span class="trust-item">🆓 100% free, no signup</span>
     </div>
-
-    <!-- ═══════ TOOL CARD ═══════ -->
-    <div class="tool-container">
-        <div class="tool-card">
-            <div class="tool-header">
-                <span class="tool-title">⌨️ Full 104-Key Keyboard Tester</span>
-                <span class="tool-status">
-                    <span class="status-dot" aria-hidden="true"></span>
-                    Ready — press any key
+    <div class="tool-grid">
+        {tools.map((tool) => (
+            <a href={tool.url} class="tool-hub-card" data-astro-reload>
+                <div class="tool-hub-icon">{tool.icon}</div>
+                <span
+                    class="tool-hub-badge"
+                    style={`background: ${tool.color}1A; color: ${tool.color}; border: 1px solid ${tool.color}40;`}
+                >
+                    {tool.badge}
                 </span>
-            </div>
-
-            <div class="kb-area">
-                <p class="kb-prompt" id="kb-prompt">
-                    Press any key to highlight it on the keyboard below
-                </p>
-
-                <div
-                    class="keyboard-shell"
-                    role="img"
-                    aria-label="Interactive full-size keyboard diagram"
-                >
-                    <div class="kb-body">
-                        <!-- ══════════════════════════════
-               SECTION 1 — MAIN KEYBOARD
-          ══════════════════════════════ -->
-                        <div class="kb-section" id="main-section">
-                            <!-- F-ROW -->
-                            <div class="kb-row fn-row">
-                                <div class="k w-125" data-code="Escape">
-                                    Esc
-                                </div>
-                                <div class="fn-gap"></div>
-                                <div class="k" data-code="F1">F1</div>
-                                <div class="k" data-code="F2">F2</div>
-                                <div class="k" data-code="F3">F3</div>
-                                <div class="k" data-code="F4">F4</div>
-                                <div class="fn-gap"></div>
-                                <div class="k" data-code="F5">F5</div>
-                                <div class="k" data-code="F6">F6</div>
-                                <div class="k" data-code="F7">F7</div>
-                                <div class="k" data-code="F8">F8</div>
-                                <div class="fn-gap"></div>
-                                <div class="k" data-code="F9">F9</div>
-                                <div class="k" data-code="F10">F10</div>
-                                <div class="k" data-code="F11">F11</div>
-                                <div class="k" data-code="F12">F12</div>
-                            </div>
-
-                            <!-- NUMBER ROW -->
-                            <div class="kb-row">
-                                <div class="k" data-code="Backquote">
-                                    <span class="sym">~</span><span class="ch"
-                                        >`</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit1">
-                                    <span class="sym">!</span><span class="ch"
-                                        >1</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit2">
-                                    <span class="sym">@</span><span class="ch"
-                                        >2</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit3">
-                                    <span class="sym">#</span><span class="ch"
-                                        >3</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit4">
-                                    <span class="sym">$</span><span class="ch"
-                                        >4</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit5">
-                                    <span class="sym">%</span><span class="ch"
-                                        >5</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit6">
-                                    <span class="sym">^</span><span class="ch"
-                                        >6</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit7">
-                                    <span class="sym">&amp;</span><span
-                                        class="ch">7</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit8">
-                                    <span class="sym">*</span><span class="ch"
-                                        >8</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit9">
-                                    <span class="sym">(</span><span class="ch"
-                                        >9</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Digit0">
-                                    <span class="sym">)</span><span class="ch"
-                                        >0</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Minus">
-                                    <span class="sym">_</span><span class="ch"
-                                        >-</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Equal">
-                                    <span class="sym">+</span><span class="ch"
-                                        >=</span
-                                    >
-                                </div>
-                                <div class="k w-200" data-code="Backspace">
-                                    Backspace
-                                </div>
-                            </div>
-
-                            <!-- QWERTY ROW -->
-                            <div class="kb-row">
-                                <div class="k w-150" data-code="Tab">Tab</div>
-                                <div class="k" data-code="KeyQ">Q</div>
-                                <div class="k" data-code="KeyW">W</div>
-                                <div class="k" data-code="KeyE">E</div>
-                                <div class="k" data-code="KeyR">R</div>
-                                <div class="k" data-code="KeyT">T</div>
-                                <div class="k" data-code="KeyY">Y</div>
-                                <div class="k" data-code="KeyU">U</div>
-                                <div class="k" data-code="KeyI">I</div>
-                                <div class="k" data-code="KeyO">O</div>
-                                <div class="k" data-code="KeyP">P</div>
-                                <div class="k" data-code="BracketLeft">
-                                    <span class="sym"
-                                        >{}<span class="ch">[</span>
-                                    </span>
-                                    <div class="k" data-code="BracketRight">
-                                        <span class="sym"></span>
-                                    </div><span class="ch">]</span>
-                                </div>
-                                <div class="k w-150" data-code="Backslash">
-                                    <span class="sym">|</span><span class="ch"
-                                        >\</span
-                                    >
-                                </div>
-                            </div>
-
-                            <!-- ASDF ROW -->
-                            <div class="kb-row">
-                                <div class="k w-175" data-code="CapsLock">
-                                    Caps Lock
-                                </div>
-                                <div class="k" data-code="KeyA">A</div>
-                                <div class="k" data-code="KeyS">S</div>
-                                <div class="k" data-code="KeyD">D</div>
-                                <div class="k" data-code="KeyF">F</div>
-                                <div class="k" data-code="KeyG">G</div>
-                                <div class="k" data-code="KeyH">H</div>
-                                <div class="k" data-code="KeyJ">J</div>
-                                <div class="k" data-code="KeyK">K</div>
-                                <div class="k" data-code="KeyL">L</div>
-                                <div class="k" data-code="Semicolon">
-                                    <span class="sym">:</span><span class="ch"
-                                        >;</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Quote">
-                                    <span class="sym">"</span><span class="ch"
-                                        >'</span
-                                    >
-                                </div>
-                                <div class="k w-225" data-code="Enter">
-                                    Enter
-                                </div>
-                            </div>
-
-                            <!-- ZXCV ROW -->
-                            <div class="kb-row">
-                                <div class="k w-225" data-code="ShiftLeft">
-                                    Shift
-                                </div>
-                                <div class="k" data-code="KeyZ">Z</div>
-                                <div class="k" data-code="KeyX">X</div>
-                                <div class="k" data-code="KeyC">C</div>
-                                <div class="k" data-code="KeyV">V</div>
-                                <div class="k" data-code="KeyB">B</div>
-                                <div class="k" data-code="KeyN">N</div>
-                                <div class="k" data-code="KeyM">M</div>
-                                <div class="k" data-code="Comma">
-                                    <span class="sym">&lt;</span><span
-                                        class="ch">,</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Period">
-                                    <span class="sym">&gt;</span><span
-                                        class="ch">.</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Slash">
-                                    <span class="sym">?</span><span class="ch"
-                                        >/</span
-                                    >
-                                </div>
-                                <div class="k w-275" data-code="ShiftRight">
-                                    Shift
-                                </div>
-                            </div>
-
-                            <!-- BOTTOM ROW -->
-                            <div class="kb-row">
-                                <div class="k w-125" data-code="ControlLeft">
-                                    Ctrl
-                                </div>
-                                <div class="k w-125" data-code="MetaLeft">
-                                    Win
-                                </div>
-                                <div class="k w-125" data-code="AltLeft">
-                                    Alt
-                                </div>
-                                <div class="k w-625" data-code="Space"></div>
-                                <div class="k w-125" data-code="AltRight">
-                                    Alt
-                                </div>
-                                <div class="k w-125" data-code="MetaRight">
-                                    Win
-                                </div>
-                                <div class="k w-125" data-code="ContextMenu">
-                                    Menu
-                                </div>
-                                <div class="k w-125" data-code="ControlRight">
-                                    Ctrl
-                                </div>
-                            </div>
-                        </div><!-- /main-section -->
-
-                        <!-- ══════════════════════════════
-               SECTION 2 — NAVIGATION CLUSTER
-          ══════════════════════════════ -->
-                        <div class="kb-section">
-                            <!-- Top row: PrtSc, ScrLk, Pause -->
-                            <div class="kb-row fn-row">
-                                <div
-                                    class="k"
-                                    data-code="PrintScreen"
-                                    style="min-width:42px;font-size:.48rem;"
-                                >
-                                    PrtSc<br />SysRq
-                                </div>
-                                <div
-                                    class="k"
-                                    data-code="ScrollLock"
-                                    style="min-width:42px;font-size:.48rem;"
-                                >
-                                    Scroll<br />Lock
-                                </div>
-                                <div
-                                    class="k"
-                                    data-code="Pause"
-                                    style="min-width:42px;font-size:.48rem;"
-                                >
-                                    Pause<br />Break
-                                </div>
-                            </div>
-
-                            <!-- Ins/Home/PgUp -->
-                            <div class="nav-top-row">
-                                <div class="k" data-code="Insert">Ins</div>
-                                <div class="k" data-code="Home">Home</div>
-                                <div
-                                    class="k"
-                                    data-code="PageUp"
-                                    style="font-size:.52rem;"
-                                >
-                                    PgUp
-                                </div>
-                            </div>
-
-                            <!-- Del/End/PgDn -->
-                            <div class="nav-mid-row">
-                                <div class="k" data-code="Delete">Del</div>
-                                <div class="k" data-code="End">End</div>
-                                <div
-                                    class="k"
-                                    data-code="PageDown"
-                                    style="font-size:.52rem;"
-                                >
-                                    PgDn
-                                </div>
-                            </div>
-
-                            <!-- Spacer (matches 2 main rows height) -->
-                            <div style="height:80px;"></div>
-
-                            <!-- Arrow keys -->
-                            <div class="arrow-group">
-                                <div class="arrow-top">
-                                    <div class="k" data-code="ArrowUp">↑</div>
-                                </div>
-                                <div class="arrow-bot">
-                                    <div class="k" data-code="ArrowLeft">←</div>
-                                    <div class="k" data-code="ArrowDown">↓</div>
-                                    <div class="k" data-code="ArrowRight">
-                                        →
-                                    </div>
-                                </div>
-                            </div>
-                        </div><!-- /nav section -->
-
-                        <!-- ══════════════════════════════
-               SECTION 3 — NUMPAD
-          ══════════════════════════════ -->
-                        <div class="kb-section">
-                            <!-- NumLock / / * - -->
-                            <div class="kb-row fn-row">
-                                <div
-                                    class="k"
-                                    data-code="NumLock"
-                                    style="font-size:.52rem;"
-                                >
-                                    Num<br />Lock
-                                </div>
-                                <div class="k" data-code="NumpadDivide">/</div>
-                                <div class="k" data-code="NumpadMultiply">
-                                    *
-                                </div>
-                                <div class="k" data-code="NumpadSubtract">
-                                    -
-                                </div>
-                            </div>
-
-                            <!-- 7 8 9  + (tall) -->
-                            <div class="kb-row">
-                                <div class="k" data-code="Numpad7">
-                                    <span class="sym">Home</span><span
-                                        class="ch">7</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Numpad8">
-                                    <span class="sym">↑</span><span class="ch"
-                                        >8</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Numpad9">
-                                    <span class="sym">PgUp</span><span
-                                        class="ch">9</span
-                                    >
-                                </div>
-                                <div class="k k-tall" data-code="NumpadAdd">
-                                    +
-                                </div>
-                            </div>
-
-                            <!-- 4 5 6 -->
-                            <div class="kb-row">
-                                <div class="k" data-code="Numpad4">
-                                    <span class="sym">←</span><span class="ch"
-                                        >4</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Numpad5">
-                                    <span class="sym">·</span><span class="ch"
-                                        >5</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Numpad6">
-                                    <span class="sym">→</span><span class="ch"
-                                        >6</span
-                                    >
-                                </div>
-                                <!-- + key is tall, spans this row too — rendered above -->
-                            </div>
-
-                            <!-- 1 2 3  Enter (tall) -->
-                            <div class="kb-row">
-                                <div class="k" data-code="Numpad1">
-                                    <span class="sym">End</span><span class="ch"
-                                        >1</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Numpad2">
-                                    <span class="sym">↓</span><span class="ch"
-                                        >2</span
-                                    >
-                                </div>
-                                <div class="k" data-code="Numpad3">
-                                    <span class="sym">PgDn</span><span
-                                        class="ch">3</span
-                                    >
-                                </div>
-                                <div class="k k-tall" data-code="NumpadEnter">
-                                    Enter
-                                </div>
-                            </div>
-
-                            <!-- 0 (wide)  . -->
-                            <div class="kb-row">
-                                <div class="k w-200" data-code="Numpad0">
-                                    <span class="sym">Ins</span><span class="ch"
-                                        >0</span
-                                    >
-                                </div>
-                                <div class="k" data-code="NumpadDecimal">
-                                    <span class="sym">Del</span><span class="ch"
-                                        >.</span
-                                    >
-                                </div>
-                                <!-- Enter key is tall — already rendered above -->
-                            </div>
-                        </div><!-- /numpad section -->
-                    </div><!-- /kb-body -->
-                </div><!-- /keyboard-shell -->
-            </div><!-- /kb-area -->
-
-            <!-- KEY HISTORY -->
-            <div class="history-section">
-                <div class="history-label">Key Press History</div>
-                <div
-                    class="history-feed"
-                    id="history-feed"
-                    aria-live="polite"
-                    aria-label="Recently pressed keys"
-                >
-                    <span style="color:var(--muted);font-size:.78rem;"
-                        >Keys will appear here…</span
-                    >
+                <div class="tool-hub-name">{tool.name}</div>
+                <div class="tool-hub-desc">{tool.description}</div>
+                <div class="tool-hub-tags">
+                    {tool.tags.map((tag) => (
+                        <span class="tool-hub-tag">{tag}</span>
+                    ))}
                 </div>
-                <button
-                    class="btn-reset"
-                    id="btn-reset"
-                    aria-label="Reset keyboard test results">Reset Test</button
-                >
-            </div>
-        </div><!-- /tool-card -->
-    </div><!-- /tool-container -->
-
-    <!-- CTA -->
-    <div class="cta-banner">
-        <div class="cta-inner">
-            <p class="cta-text">
-                <strong>Also test your mouse!</strong> Check polling rate, click latency
-                and movement speed with our free Mouse Rate Test.
-            </p>
-            <a
-                href="/mouse-rate-test/"
-                class="cta-btn"
-                aria-label="Open Mouse Rate Test tool" data-astro-reload>🖱 Mouse Rate Test →</a
-            >
-        </div>
+                <span class="tool-hub-cta" style={`color: ${tool.color};`}>
+                    Open tool →
+                </span>
+            </a>
+        ))}
     </div>
 
-    <!-- CONTENT -->
-    <div class="content-section">
-        <h2>What is Keyboard Latency?</h2>
-        <p>
-            Keyboard latency is the delay between pressing a key and the signal
-            being registered by your system. For everyday typing it is
-            imperceptible, but in competitive gaming even a few milliseconds can
-            affect your performance.
-        </p>
-        <h2 style="margin-top:2rem;">How is Keyboard Latency Calculated?</h2>
-                <p>
-                    Keyboard latency is the sum of three delays that happen between
-                    your finger pressing a key and the character appearing on screen.
-                    Here's a real-world example:
-                </p>
-                <div class="callout" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; margin: 1.25rem 0; font-size: 0.875rem; color: var(--text2); line-height: 1.75;">
-                    <strong>Example calculation:</strong><br />
-                    5ms (key debounce time) + 1ms (polling rate) + 5ms (system latency)
-                    = <strong style="color: var(--accent);">11ms total latency</strong>
-                </div>
-                <p>
-                    <strong>Scan Rate Formula:</strong> Scan Rate (Hz) = 1000 ÷ shortest key press time (ms).
-                    So if your shortest press in the test above was 2ms, your estimated
-                    scan rate is 1000 ÷ 2 = <strong>500Hz</strong>.
-                </p>
-
-                <h2 style="margin-top:2rem;">Why This Tool Goes Beyond a Basic Polling Rate Checker</h2>
-                        <p>
-                            Most online polling rate checkers only show average and peak Hz.
-                            This tool also measures jitter (consistency of your mouse's report
-                            timing), tracks click latency and CPS, visualizes movement with a
-                            live heatmap, and lets you export your full test session as JSON
-                            or CSV for deeper analysis.
-                        </p>
-
-                <h2 style="margin-top:2rem;">How to Test Your Keyboard Latency</h2>
-                <ol style="color: var(--text2); font-size: 0.88rem; line-height: 1.85; padding-left: 1.6rem; margin-bottom: 1rem;">
-                    <li>Scroll up to the keyboard tester above.</li>
-                    <li>Press any key on your physical keyboard — it will highlight instantly on screen.</li>
-                    <li>Each press logs its response time in the Key Press History section.</li>
-                    <li>Your shortest press time and estimated scan rate update live at the top.</li>
-                    <li>Test multiple keys to get a reliable average — then compare against the table below.</li>
-                </ol>
+    <div class="hub-content">
+        <h2>Common Problems These Tools Help You Diagnose</h2>
         <div class="info-grid">
             <div class="info-card">
-                <div class="info-card-icon">⚡</div><div
-                    class="info-card-title"
-                >
-                    Scan Rate
-                </div><div class="info-card-desc">
-                    How many times per second the keyboard's controller scans
-                    for key presses. Higher means faster detection.
+                <div class="info-card-icon">⌨️</div>
+                <div class="info-card-title">Keys not registering or repeating</div>
+                <div class="info-card-desc">
+                    Stuck keys, double inputs, or dead zones on your keyboard? Test
+                    every key individually before assuming it's a hardware failure.
                 </div>
             </div>
             <div class="info-card">
-                <div class="info-card-icon">📡</div><div
-                    class="info-card-title"
-                >
-                    Polling Rate
-                </div><div class="info-card-desc">
-                    How often the keyboard reports data to your PC. Standard is
-                    1000Hz (1ms). Gaming keyboards reach 8000Hz.
+                <div class="info-card-icon">🖱</div>
+                <div class="info-card-title">Cursor feels laggy or inconsistent</div>
+                <div class="info-card-desc">
+                    Verify your mouse is actually hitting its rated polling rate —
+                    many "gaming" mice ship running below spec out of the box.
                 </div>
             </div>
             <div class="info-card">
-                <div class="info-card-icon">⏱</div><div class="info-card-title">
-                    Response Time
-                </div><div class="info-card-desc">
-                    Total delay from key press to on-screen action — scan rate
-                    plus polling rate plus system latency combined.
+                <div class="info-card-icon">🖥️</div>
+                <div class="info-card-title">Monitor not showing full refresh rate</div>
+                <div class="info-card-desc">
+                    A 144Hz monitor plugged in wrong (cable, port, or Windows
+                    setting) often silently runs at 60Hz. Confirm what you're
+                    actually getting.
                 </div>
             </div>
             <div class="info-card">
-                <div class="info-card-icon">🔌</div><div
-                    class="info-card-title"
-                >
-                    Connection Type
-                </div><div class="info-card-desc">
-                    Wired USB has the lowest latency. Modern 2.4GHz wireless
-                    nearly matches wired. Bluetooth adds 10–30ms extra.
+                <div class="info-card-icon">🛒</div>
+                <div class="info-card-title">Buying a used or refurbished PC</div>
+                <div class="info-card-desc">
+                    Before buying secondhand hardware, run a full check on the
+                    keyboard, mouse, and display — takes under a minute per device.
                 </div>
             </div>
         </div>
-        {products.length > 0 && (
-            <div class="content-section">
-                <h2>Recommended Low-Latency Keyboards</h2>
-                <p style="font-size: 0.78rem; color: var(--muted); font-style: italic; margin-bottom: 1rem;">
-                    As an Amazon Associate, we earn from qualifying purchases.
-                </p>
-                <div class="product-grid">
-                {products.map((p: any) => (
-                        <a
-                        href={p.affiliateLink}
-                        target="_blank"
-                        rel="sponsored noopener"
-                        class="product-card"
-                    >
-                        {p.image && (
-                            <img
-                                src={urlFor(p.image).width(300).height(200).url()}
-                                alt={p.title}
-                                class="product-img"
-                                loading="lazy"
-                            />
-                        )}
-                        <div class="product-body">
-                            <div class="product-name">{p.title}</div>
-                            {p.description && (
-                                <div class="product-desc">{p.description}</div>
-                            )}
-                            <span class="product-cta">Check Price on Amazon →</span>
-                        </div>
-                    </a>
-                ))}
-                </div>
-            </div>
-        )}
-        <h2 style="margin-top:2rem;">Frequently Asked Questions</h2>
+
+        <h2>Why Test Online Instead of Calling a Technician?</h2>
+        <p>
+            Most keyboard, mouse, and monitor issues aren't hardware failures — they're
+            driver conflicts, wrong Windows settings, or a cable running below spec.
+            Testing in-browser first means you skip the diagnostic fee and know
+            exactly what's wrong before spending money on a repair or replacement.
+        </p>
+
+        <h2>Frequently Asked Questions</h2>
         <div class="faq-list">
             <div class="faq-item">
-                <div class="faq-q">What is average keyboard latency?</div><div
-                    class="faq-a"
-                >
-                    Most keyboards fall between 1ms and 15ms depending on switch
-                    type (mechanical vs membrane) and connection method.
+                <div class="faq-q">Is my data uploaded or stored anywhere?</div>
+                <div class="faq-a">
+                    No. Every test runs locally in your browser. Key presses, mouse
+                    movement, and refresh-rate measurements never leave your device
+                    or get sent to any server.
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-q">
-                    Which keyboard has the lowest latency?
-                </div><div class="faq-a">
-                    The Logitech G915 TKL achieves as low as 1.3ms in wired
-                    mode, placing it among the fastest available keyboards
-                    today.
+                <div class="faq-q">Why does my 1000Hz mouse show a lower polling rate in the test?</div>
+                <div class="faq-a">
+                    This is a browser limitation, not a problem with your mouse.
+                    Browsers typically throttle input event updates to conserve
+                    battery and CPU, so a 1000Hz mouse may display 60–120Hz in-browser
+                    even though the hardware is reporting correctly at full rate.
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-q">
-                    How can I reduce keyboard latency on Windows?
-                </div><div class="faq-a">
-                    Update keyboard drivers, disable Filter Keys in
-                    accessibility settings, use a wired USB 3.0 connection, and
-                    close unnecessary background applications.
+                <div class="faq-q">Why is my keyboard stuck at 125Hz even on a gaming keyboard?</div>
+                <div class="faq-a">
+                    Standard office and budget keyboards are hardware-locked to
+                    125Hz regardless of software settings. Only keyboards explicitly
+                    marketed with 1000Hz+ polling (common in gaming keyboards) can
+                    exceed this — check your keyboard's spec sheet to confirm.
                 </div>
             </div>
             <div class="faq-item">
-                            <div class="faq-q">What is polling rate jitter?</div>
-                            <div class="faq-a">
-                                Jitter measures how consistently your mouse reports data
-                                — calculated as the standard deviation between consecutive
-                                poll intervals. Low jitter means stable, predictable
-                                tracking; high jitter can cause micro-stutters even if
-                                your average polling rate looks high.
-                            </div>
-                        </div>
-            <div class="faq-item">
-                <div class="faq-q">
-                    Does polling rate affect keyboard latency?
-                </div><div class="faq-a">
-                    Yes. At 125Hz polling rate latency is around 8ms. At 1000Hz
-                    it drops to roughly 1ms. Higher polling rate equals lower
-                    latency.
+                <div class="faq-q">Are these tests actually accurate, or just an estimate?</div>
+                <div class="faq-a">
+                    Browser-based tests measure input as it reaches your operating
+                    system — through the same path any game or app would receive it.
+                    This makes them highly reliable for comparison purposes, though a
+                    browser can't bypass OS-level polling limits. For example, most
+                    browsers cap visual updates around 60–120Hz, so a 1000Hz mouse
+                    may show a lower number even when the hardware itself is working
+                    correctly.
                 </div>
             </div>
             <div class="faq-item">
-                            <div class="faq-q">How is keyboard scan rate calculated?</div>
-                            <div class="faq-a">
-                                Scan rate (Hz) = 1000 ÷ shortest key press time (in ms).
-                                For example, a 2ms press time gives an estimated scan
-                                rate of 500Hz — this tool calculates it automatically
-                                from your fastest recorded press.
-                            </div>
-                        </div>
-                        <div class="faq-item">
-                            <div class="faq-q">
-                                Is 1ms keyboard latency actually noticeable?
-                            </div>
-                            <div class="faq-a">
-                                Not for everyday typing — but in competitive FPS games
-                                running at 240fps, a single frame is only 4.17ms, so
-                                even 1-2ms of extra latency can shift your reaction
-                                window in close encounters.
-                            </div>
-                        </div>
+                <div class="faq-q">Do I need to install anything to use these tools?</div>
+                <div class="faq-a">
+                    No. All three tools run entirely in your browser using native
+                    web APIs — nothing is installed, and no drivers are required.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">Do these tools work on laptops and trackpads?</div>
+                <div class="faq-a">
+                    Yes — the keyboard and mouse testers work with built-in laptop
+                    keyboards and trackpads as well as external peripherals, on any
+                    modern browser.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">Which browser gives the most accurate results?</div>
+                <div class="faq-a">
+                    Chromium-based browsers (Chrome, Edge) generally expose the most
+                    precise timing APIs for polling-rate and refresh-rate
+                    measurement. Firefox and Safari work fine too, but numbers can
+                    vary slightly between browsers due to differences in event
+                    throttling.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">Can these tools detect a faulty or dying peripheral?</div>
+                <div class="faq-a">
+                    Yes, indirectly. Inconsistent jitter on the mouse test, keys that
+                    fail to register on the keyboard tester, or a refresh rate that
+                    won't hold steady on the monitor test are all signs worth
+                    investigating further — often before assuming you need a
+                    replacement.
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- ════════════════════════
-     JAVASCRIPT
-════════════════════════ -->
-    <script>
-        // A module-scoped controller keeps track of the currently active
-        // keydown/keyup listeners. Since this script tag is part of the
-        // page content that gets swapped by View Transitions, "astro:page-load"
-        // fires every time this page becomes active again (including when
-        // navigating away and back) — that's what makes the tool work again
-        // without a manual reload. The controller lets us cleanly remove the
-        // previous run's listeners first, so they don't stack up.
-        let controller: AbortController | null = null;
-
-        function getKeyEl(code: string): HTMLElement | null {
-            return document.querySelector(`.k[data-code="${code}"]`);
-        }
-
-        document.addEventListener("astro:page-load", () => {
-            const sShort = document.getElementById("s-short");
-            const sScan = document.getElementById("s-scan");
-            const sCount = document.getElementById("s-count");
-            const sUnique = document.getElementById("s-unique");
-            const feed = document.getElementById("history-feed");
-            const kbPrompt = document.getElementById("kb-prompt");
-            const btnReset = document.getElementById("btn-reset");
-
-            if (!feed) return;
-
-            // Remove any listeners left over from a previous page-load
-            // (e.g. the user navigated away and came back to this page).
-            controller?.abort();
-            controller = new AbortController();
-            const { signal } = controller;
-
-            let shortestPress = Infinity;
-            let totalKeys = 0;
-            let historyCleared = false;
-            const keyDownTimes = new Map<string, number>();
-            const pressedCodes = new Set<string>();
-
-            document.addEventListener(
-                "keydown",
-                (e: KeyboardEvent) => {
-                    // Agar user Ctrl, Alt, ya Meta (Windows/Mac) key use kar raha hai, ya F1-F12 daba raha hai
-                    // toh usko block mat karo, browser apna kaam karega.
-                    if (
-                        !e.ctrlKey &&
-                        !e.metaKey &&
-                        !e.altKey &&
-                        !e.key.startsWith("F")
-                    ) {
-                        // Sirf in keys par scroll roko taaki test karte waqt page upar-niche jump na kare
-                        if (
-                            [
-                                "Space",
-                                "ArrowUp",
-                                "ArrowDown",
-                                "ArrowLeft",
-                                "ArrowRight",
-                            ].includes(e.code)
-                        ) {
-                            e.preventDefault();
-                        }
-                    }
-
-                    // Yahan se purana code shuru hota hai jo keys ko screen par highlight karta hai
-                    const el = getKeyEl(e.code);
-                    if (el) el.classList.add("pressed");
-
-                    if (!keyDownTimes.has(e.code)) {
-                        keyDownTimes.set(e.code, performance.now());
-                    }
-                    if (kbPrompt) kbPrompt.style.display = "none";
-                },
-                { signal },
-            );
-
-            document.addEventListener(
-                "keyup",
-                (e: KeyboardEvent) => {
-                    const el = getKeyEl(e.code);
-                    if (el) el.classList.remove("pressed");
-
-                    const t = keyDownTimes.get(e.code);
-                    if (t === undefined) return;
-                    keyDownTimes.delete(e.code);
-
-                    const dur = performance.now() - t;
-
-                    if (!historyCleared) {
-                        feed.innerHTML = "";
-                        historyCleared = true;
-                    }
-
-                    // History tag
-                                        const keyLabel =
-                                            e.key === " "
-                                                ? "Space"
-                                                : e.key.length > 8
-                                                  ? e.code
-                                                        .replace("Key", "")
-                                                        .replace("Digit", "")
-                                                        .replace("Numpad", "Num")
-                                                  : e.key;
-
-                                        const now = new Date();
-                                        const timeLabel = now.toLocaleTimeString("en-US", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                        });
-
-                                        const tag = document.createElement("span");
-                                        tag.className = "hkey";
-                                        tag.title = `${dur.toFixed(1)} ms — ${timeLabel}`;
-                                        const keySpan = document.createElement("span");
-                                        keySpan.textContent = keyLabel;
-                                        const timeSpan = document.createElement("span");
-                                        timeSpan.className = "hkey-time";
-                                        timeSpan.textContent = `${dur.toFixed(1)}ms · ${timeLabel}`;
-                                        tag.appendChild(keySpan);
-                                        tag.appendChild(timeSpan);
-                                        feed.prepend(tag);
-                                        // No cap — poori session ki history rakhi jaayegi, scroll se dekho
-
-                    // Stats
-                    totalKeys++;
-                    if (sCount) sCount.textContent = String(totalKeys);
-
-                    pressedCodes.add(e.code);
-                    if (sUnique)
-                        sUnique.textContent = String(pressedCodes.size);
-
-                    if (dur < shortestPress) {
-                        shortestPress = dur;
-                        if (sShort) sShort.textContent = dur.toFixed(1);
-                        if (sScan) sScan.textContent = (1000 / dur).toFixed(0);
-                    }
-                },
-                { signal },
-            );
-
-            btnReset?.addEventListener(
-                "click",
-                () => {
-                    shortestPress = Infinity;
-                    totalKeys = 0;
-                    historyCleared = false;
-                    pressedCodes.clear();
-                    keyDownTimes.clear();
-                    if (sShort) sShort.textContent = "—";
-                    if (sScan) sScan.textContent = "—";
-                    if (sCount) sCount.textContent = "0";
-                    if (sUnique) sUnique.textContent = "0";
-                    feed.innerHTML =
-                        '<span style="color:var(--muted);font-size:.78rem;">Keys will appear here…</span>';
-                    document
-                        .querySelectorAll(".k.pressed")
-                        .forEach((k) => k.classList.remove("pressed"));
-                    if (kbPrompt) kbPrompt.style.display = "";
-                },
-                { signal },
-            );
-        });
-
-        // Belt-and-braces: also clean up right before a page swap happens,
-        // so listeners never survive across a navigation even in edge cases.
-        document.addEventListener("astro:before-swap", () => {
-            controller?.abort();
-        });
-    </script>
+    <script type="application/ld+json" set:html={JSON.stringify(collectionSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 </Base>

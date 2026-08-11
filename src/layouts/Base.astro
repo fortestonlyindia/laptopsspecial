@@ -77,6 +77,8 @@ const currentYear = new Date().getFullYear();
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
+        {ogImage && <meta property="og:image" content={ogImage} />}
+        {ogImage && <meta name="twitter:image" content={ogImage} />}
 
         <!-- Google Search Console Verification -->
         <meta
@@ -326,7 +328,116 @@ const currentYear = new Date().getFullYear();
             [data-theme="light"] .nav-links a[aria-current="page"] {
                 background: rgba(2, 132, 199, 0.08);
             }
+            .nav-dropdown {
+                position: relative;
+            }
+            .nav-dropdown-btn {
+                background: none;
+                border: none;
+                color: var(--text2);
+                font-family: inherit;
+                font-size: 0.875rem;
+                font-weight: 500;
+                padding: 0.4rem 0.7rem;
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                transition: color 0.15s, background 0.15s;
+            }
+            .nav-dropdown-btn:hover,
+            .nav-dropdown.open .nav-dropdown-btn {
+                color: var(--accent);
+                background: rgba(0, 212, 255, 0.08);
+            }
+            [data-theme="light"] .nav-dropdown-btn:hover,
+            [data-theme="light"] .nav-dropdown.open .nav-dropdown-btn {
+                background: rgba(2, 132, 199, 0.08);
+            }
+            .chevron {
+                font-size: 0.7rem;
+                transition: transform 0.15s;
+            }
+            .nav-dropdown.open .chevron {
+                transform: rotate(180deg);
+            }
+            .nav-dropdown-menu {
+                list-style: none;
+                position: absolute;
+                top: 100%;
+                padding-top: 8px;      /* invisible bridge — hover yahan bhi active rahega */
+                left: 0;
+                display: none;
+                flex-direction: column;
+            }
+            <ul class="nav-links" id="nav-links" role="list">
+                <li class="nav-dropdown">
+                    <button class="nav-dropdown-btn" aria-expanded="false" aria-haspopup="true">
+                        Tools <span class="chevron">▾</span>
+                    </button>
+                    <div class="nav-dropdown-menu">
+                        <ul class="nav-dropdown-menu-inner">
+                            <li><a href="/tools/keyboard-latency-tester/" data-astro-reload>Keyboard Tester</a></li>
+                            <li><a href="/tools/mouse-rate-test/" data-astro-reload>Mouse Rate Test</a></li>
+                            <li><a href="/tools/monitor-refresh-rate-test/" data-astro-reload>Monitor Test</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li><a href="/about/" data-astro-reload>About</a></li>
+                <li><a href="/contact/" data-astro-reload>Contact</a></li>
+                <li><a href="/blog/" data-astro-reload>Blog</a></li>
+            </ul>
+            .nav-dropdown-menu-inner {
+                background: var(--bg2);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                min-width: 200px;
+                padding: 0.4rem;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+                display: flex;
+                flex-direction: column;
+            }
+            .nav-dropdown.open .nav-dropdown-menu {
+                display: flex;
+            }
+            .nav-dropdown-menu a {
+                display: block;
+                padding: 0.5rem 0.7rem;
+                color: var(--text2);
+                text-decoration: none;
+                font-size: 0.85rem;
+                border-radius: 6px;
+            }
+            @media (min-width: 641px) {
+                .nav-dropdown:hover .nav-dropdown-menu {
+                    display: flex;
+                }
+                .nav-dropdown:hover .chevron {
+                    transform: rotate(180deg);
+                }
+            }
+            .nav-dropdown-menu a:hover {
+                color: var(--accent);
+                background: rgba(0, 212, 255, 0.08);
+            }
+            .dropdown-divider {
+                border-top: 1px solid var(--border);
+                margin-top: 0.3rem;
+                padding-top: 0.3rem;
+            }
 
+            @media (max-width: 640px) {
+                .nav-dropdown-menu {
+                    position: static;
+                    border: none;
+                    box-shadow: none;
+                    padding-left: 0.5rem;
+                }
+                .nav-dropdown.open .nav-dropdown-menu {
+                    display: flex;
+                }
+            }
             .theme-btn {
                 background: none;
                 border: 1px solid var(--border);
@@ -493,12 +604,20 @@ const currentYear = new Date().getFullYear();
                 </a>
                 <div class="nav-right">
                     <ul class="nav-links" id="nav-links" role="list">
-                        <li><a href="/" data-astro-reload>Keyboard Tester</a></li>
-                        <li><a href="/mouse-rate-test/" data-astro-reload>Mouse Rate Test</a></li>
-                        <li><a href="/monitor-refresh-rate-test/" data-astro-reload>Monitor Test</a></li>
-                        <li><a href="/about/" data-astro-reload>About</a></li>
-                        <li><a href="/blog/" data-astro-reload>Blog</a></li>
-                    </ul>
+                        <li class="nav-dropdown">
+                                <button class="nav-dropdown-btn" aria-expanded="false" aria-haspopup="true">
+                                    Tools <span class="chevron">▾</span>
+                                </button>
+                                <ul class="nav-dropdown-menu">
+                                    <li><a href="/tools/keyboard-latency-tester/" data-astro-reload>Keyboard Tester</a></li>
+                                    <li><a href="/tools/mouse-rate-test/" data-astro-reload>Mouse Rate Test</a></li>
+                                    <li><a href="/tools/monitor-refresh-rate-test/" data-astro-reload>Monitor Test</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="/about/" data-astro-reload>About</a></li>
+                            <li><a href="/contact/" data-astro-reload>Contact</a></li>
+                            <li><a href="/blog/" data-astro-reload>Blog</a></li>
+                        </ul>
                     <button
                         class="theme-btn"
                         id="theme-btn"
@@ -591,7 +710,24 @@ const currentYear = new Date().getFullYear();
                     ham.setAttribute("aria-expanded", String(open));
                 };
             }
+            function initToolsDropdown() {
+                const dropdown = document.querySelector(".nav-dropdown") as HTMLElement;
+                const btn = document.querySelector(".nav-dropdown-btn") as HTMLButtonElement;
+                if (!dropdown || !btn) return;
 
+                btn.onclick = (e: MouseEvent) => {
+                    e.stopPropagation();
+                    const isOpen = dropdown.classList.toggle("open");
+                    btn.setAttribute("aria-expanded", String(isOpen));
+                };
+
+                document.addEventListener("click", (e: MouseEvent) => {
+                    if (!dropdown.contains(e.target as Node)) {
+                        dropdown.classList.remove("open");
+                        btn.setAttribute("aria-expanded", "false");
+                    }
+                });
+            }
             function initNavActiveState() {
                 document.querySelectorAll(".nav-links a").forEach((a) => {
                     const href = a.getAttribute("href") as string;
@@ -618,6 +754,7 @@ const currentYear = new Date().getFullYear();
                 initNavActiveState();
                 initAdsRefresh();
                 initNavScrollHide();
+                initToolsDropdown();
             }
 
             document.addEventListener("astro:page-load", initAll);

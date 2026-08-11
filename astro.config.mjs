@@ -51,5 +51,9 @@ export default defineConfig({
       drop: ["console", "debugger"],
       legalComments: "none",
     },
+    redirects: {
+      "/mouse-rate-test/": "/tools/mouse-rate-test/",
+      "/monitor-refresh-rate-test/": "/tools/monitor-refresh-rate-test/",
+    },
   },
 });

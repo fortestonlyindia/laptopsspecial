@@ -1,6 +1,6 @@
 ---
 import Base from "@layouts/Base.astro";
-import { getProductsByPage, urlFor } from "../lib/sanity";
+import { getProductsByPage, urlFor } from "../../lib/sanity";
 
 let products: any[] = [];
 try {
@@ -8,6 +8,52 @@ try {
 } catch (e) {
     products = [];
 }
+const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+        {
+            "@type": "Question",
+            name: "What polling rate does this tool support?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "This tool reads events using the getCoalescedEvents() API, and pointerrawupdate where the browser supports it, so it reflects your mouse's true report rate far more accurately than a plain mousemove counter. In practice, most Chromium browsers reliably read up to roughly 1500–2000Hz; readings above that depend on your OS, USB port, and CPU load, and can under-report a mouse's rated 4000Hz or 8000Hz.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "What is a good polling rate for gaming?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "500Hz is the competitive minimum. 1000Hz is the standard for most gaming mice. Ultra-competitive players on high-refresh monitors prefer 4000Hz or 8000Hz.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "What is polling rate jitter?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Jitter measures how consistently your mouse reports data — calculated as the standard deviation between consecutive poll intervals. Low jitter means stable, predictable tracking; high jitter can cause micro-stutters even if your average polling rate looks high.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Is higher polling rate always better?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Not necessarily. Above 4000Hz, CPU usage increases slightly. The benefit depends on your monitor refresh rate — a 4000Hz mouse on a 60Hz monitor provides no visible advantage.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Can I increase my mouse polling rate?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes, through manufacturer software — Logitech G HUB, Razer Synapse, or SteelSeries Engine — if your mouse hardware supports it. Not all mice can exceed 1000Hz.",
+            },
+        },
+    ],
+};
 ---
 
 <Base
@@ -859,7 +905,7 @@ try {
                 scan rate, and all 104 keys.
             </p>
             <a
-                href="/"
+                href="/tools/keyboard-latency-tester/"
                 class="cta-btn"
                 aria-label="Open full keyboard tester tool" data-astro-reload
                 >⌨️ Keyboard Tester →</a
@@ -867,8 +913,29 @@ try {
         </div>
     </div>
 
+    <div class="cta-banner">
+        <div class="cta-inner">
+            <p class="cta-text">
+                <strong>Also test your monitor!</strong> Check your real refresh rate, frame consistency, and motion clarity with Monitor Refresh Rate Test.
+            </p>
+            <a
+                href="/tools/monitor-refresh-rate-test/"
+                class="cta-btn"
+                aria-label="Open Monitor Refresh Rate Test tool" data-astro-reload>🖥️ Monitor Test→</a
+            >
+        </div>
+    </div>
+
     <!-- CONTENT -->
     <div class="content-section">
+        <h2 style="margin-top:2rem;">Why This Tool Goes Beyond a Basic Polling Rate Checker</h2>
+                <p>
+                    Most online polling rate checkers only show average and peak Hz.
+                    This tool also measures jitter (consistency of your mouse's report
+                    timing), tracks click latency and CPS, visualizes movement with a
+                    live heatmap, and lets you export your full test session as JSON
+                    or CSV for deeper analysis.
+                </p>
         <h2>Mouse Polling Rate Guide</h2>
         <p>
             Polling rate is how often your mouse reports its position to the
@@ -970,6 +1037,16 @@ try {
                     monitors prefer 4000Hz or 8000Hz.
                 </div>
             </div>
+            <div class="faq-item">
+                            <div class="faq-q">What is polling rate jitter?</div>
+                            <div class="faq-a">
+                                Jitter measures how consistently your mouse reports data
+                                — calculated as the standard deviation between consecutive
+                                poll intervals. Low jitter means stable, predictable
+                                tracking; high jitter can cause micro-stutters even if
+                                your average polling rate looks high.
+                            </div>
+                        </div>
             <div class="faq-item">
                 <div class="faq-q">
                     Is higher polling rate always better?
@@ -1628,4 +1705,6 @@ try {
             );
         });
     </script>
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    </Base>
 </Base>

@@ -1,6 +1,6 @@
 ---
 import Base from "@layouts/Base.astro";
-import { getProductsByPage, urlFor } from "../lib/sanity";
+import { getProductsByPage, urlFor } from "../../lib/sanity";
 
 let products: any[] = [];
 try {
@@ -915,13 +915,13 @@ const webPageSchema = {
             <p class="cta-text">
                 <strong>Also test your keyboard!</strong> Check key response time, scan rate and all 104 keys.
             </p>
-            <a href="/" class="cta-btn" aria-label="Open full keyboard tester tool" data-astro-reload>⌨️ Keyboard Tester →</a>
+            <a href="/tools/keyboard-latency-tester/" class="cta-btn" aria-label="Open full keyboard tester tool" data-astro-reload>⌨️ Keyboard Tester →</a>
         </div>
         <div class="cta-inner">
             <p class="cta-text">
                 <strong>Also test your mouse!</strong> Check polling rate up to 8000Hz, click latency and heatmap.
             </p>
-            <a href="/mouse-rate-test/" class="cta-btn" aria-label="Open mouse rate test tool" data-astro-reload>🖱 Mouse Rate Test →</a>
+            <a href="/tools/mouse-rate-test/" class="cta-btn" aria-label="Open mouse rate test tool" data-astro-reload>🖱 Mouse Rate Test →</a>
         </div>
     </div>
 
