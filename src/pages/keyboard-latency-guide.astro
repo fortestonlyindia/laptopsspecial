@@ -614,7 +614,7 @@ const breadcrumbSchema = {
                     <a href={`/${post.slug}/`} class="related-card" data-astro-reload>
                         {post.mainImage?.asset && (
                             <img
-                                src={urlFor(post.mainImage).width(400).height(240).url()}
+                            src={urlFor(post.mainImage).width(400).height(240).auto('format').url()}
                                 alt={post.mainImage.altText || post.title}
                                 class="related-card-img"
                                 loading="lazy"
