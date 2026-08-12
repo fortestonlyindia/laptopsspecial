@@ -7,6 +7,12 @@ export default defineConfig({
   trailingSlash: "always", // ← YEH ADD KARO
   output: "static",
   compressHTML: true,
+
+  redirects: {
+    "/mouse-rate-test/": "/tools/mouse-rate-test/",
+    "/monitor-refresh-rate-test/": "/tools/monitor-refresh-rate-test/",
+  },
+
   // Image optimization — WebP + AVIF support built-in
   image: {
     // Sharp is Astro's built-in image processor
@@ -50,10 +56,6 @@ export default defineConfig({
     esbuild: {
       drop: ["console", "debugger"],
       legalComments: "none",
-    },
-    redirects: {
-      "/mouse-rate-test/": "/tools/mouse-rate-test/",
-      "/monitor-refresh-rate-test/": "/tools/monitor-refresh-rate-test/",
     },
   },
 });
