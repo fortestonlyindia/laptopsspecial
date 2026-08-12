@@ -365,38 +365,25 @@ const currentYear = new Date().getFullYear();
             .nav-dropdown-menu {
                 list-style: none;
                 position: absolute;
-                top: 100%;
-                padding-top: 8px;      /* invisible bridge — hover yahan bhi active rahega */
+                top: calc(100% + 8px);
                 left: 0;
-                display: none;
-                flex-direction: column;
-            }
-            <ul class="nav-links" id="nav-links" role="list">
-                <li class="nav-dropdown">
-                    <button class="nav-dropdown-btn" aria-expanded="false" aria-haspopup="true">
-                        Tools <span class="chevron">▾</span>
-                    </button>
-                    <div class="nav-dropdown-menu">
-                        <ul class="nav-dropdown-menu-inner">
-                            <li><a href="/tools/keyboard-latency-tester/" data-astro-reload>Keyboard Tester</a></li>
-                            <li><a href="/tools/mouse-rate-test/" data-astro-reload>Mouse Rate Test</a></li>
-                            <li><a href="/tools/monitor-refresh-rate-test/" data-astro-reload>Monitor Test</a></li>
-                        </ul>
-                    </div>
-                </li>
-                <li><a href="/about/" data-astro-reload>About</a></li>
-                <li><a href="/contact/" data-astro-reload>Contact</a></li>
-                <li><a href="/blog/" data-astro-reload>Blog</a></li>
-            </ul>
-            .nav-dropdown-menu-inner {
                 background: var(--bg2);
                 border: 1px solid var(--border);
                 border-radius: 10px;
                 min-width: 200px;
                 padding: 0.4rem;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-                display: flex;
+                display: none;
                 flex-direction: column;
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+                z-index: 200;
+            }
+            .nav-dropdown-menu::before {
+                content: "";
+                position: absolute;
+                top: -8px;
+                left: 0;
+                right: 0;
+                height: 8px;
             }
             .nav-dropdown.open .nav-dropdown-menu {
                 display: flex;
@@ -426,7 +413,6 @@ const currentYear = new Date().getFullYear();
                 margin-top: 0.3rem;
                 padding-top: 0.3rem;
             }
-
             @media (max-width: 640px) {
                 .nav-dropdown-menu {
                     position: static;
@@ -471,7 +457,6 @@ const currentYear = new Date().getFullYear();
             [data-theme="light"] .icon-sun {
                 display: block;
             }
-
             #back-to-top {
                 position: fixed;
                 bottom: 1.75rem;
@@ -505,7 +490,6 @@ const currentYear = new Date().getFullYear();
             #back-to-top:hover {
                 opacity: 0.85;
             }
-
             footer {
                 margin-top: auto;
                 border-top: 1px solid var(--border);
@@ -533,13 +517,12 @@ const currentYear = new Date().getFullYear();
                 color: var(--accent);
             }
             .footer-copy {
-                            color: var(--muted);
-                            font-size: 0.8rem;
-                        }
-                        main {
-                            flex: 1;
-                        }
-
+                color: var(--muted);
+                font-size: 0.8rem;
+            }
+            main {
+                flex: 1;
+            }
             @media (max-width: 640px) {
                 .nav-links {
                     display: none;
@@ -570,7 +553,6 @@ const currentYear = new Date().getFullYear();
                 padding: 0.35rem 0.5rem;
                 font-size: 1.1rem;
             }
-
         </style>
     </head>
     <body>
