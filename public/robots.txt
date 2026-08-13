@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://laptopsspecial.com/sitemap.xml
+# LLM-readable site summary: https://laptopsspecial.com/llms.txt
