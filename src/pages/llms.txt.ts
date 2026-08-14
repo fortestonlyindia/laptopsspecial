@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { getAllPosts } from "../lib/sanity";
 
-const MAX_POSTS_LISTED = 25; // Keep the file concise as the blog grows
+const MAX_POSTS_LISTED = 50; // Keep the file concise as the blog grows
 
 export const GET: APIRoute = async () => {
   const allPosts = await getAllPosts();
@@ -26,9 +26,19 @@ export const GET: APIRoute = async () => {
 ## Tools
 
 - [Keyboard Tester](https://laptopsspecial.com/tools/keyboard-latency-tester/): Full 104-key keyboard tester that measures shortest key press time and estimated scan rate live in the browser.
-- [Mouse Rate Test](https://laptopsspecial.com/tools/mouse-rate-test/): Tests real mouse polling rate (up to 8000Hz), click latency, jitter, and movement speed with live heatmap and CPS counter.
+- [Mouse Rate Test](https://laptopsspecial.com/tools/mouse-rate-test/): Measures browser-observed mouse polling behavior (up to 8000Hz), click latency, jitter, and movement speed with live heatmap and CPS counter.
 - [Monitor Refresh Rate Test](https://laptopsspecial.com/tools/monitor-refresh-rate-test/): Measures actual monitor refresh rate and frame consistency with a stability grade, motion clarity test, and VRR/G-Sync simulator.
 - [All Tools Hub](https://laptopsspecial.com/): Overview page linking to all diagnostic tools with FAQs on browser-based hardware testing.
+
+## Measurement Limitations
+
+- Mouse polling-rate results represent browser-observed input events and may
+  differ from the device's hardware/USB report rate.
+- Browser scheduling, event coalescing, operating-system behavior, and CPU load
+  can affect timing measurements.
+- Keyboard key-press duration should not be interpreted as hardware scan rate.
+- These browser tests cannot independently measure end-to-end hardware-to-display
+  latency.
 
 ## Guides
 

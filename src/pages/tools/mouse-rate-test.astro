@@ -8,6 +8,10 @@ try {
 } catch (e) {
     products = [];
 }
+
+const pageUrl = "https://laptopsspecial.com/tools/mouse-rate-test/";
+const siteUrl = "https://laptopsspecial.com/";
+
 const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -59,7 +63,7 @@ const faqSchema = {
 <Base
     title="Mouse Rate Test — Check Mouse Polling Rate up to 8000Hz"
     description="Test your mouse polling rate up to 8000Hz, click latency, movement speed and heatmap. Supports high-frequency gaming mice. Free, no download needed."
-    canonical="https://laptopsspecial.com/mouse-rate-test/"
+    canonical="https://laptopsspecial.com/tools/mouse-rate-test/"
 >
     <style>
         .hero {
@@ -939,8 +943,10 @@ const faqSchema = {
         <h2>Mouse Polling Rate Guide</h2>
         <p>
             Polling rate is how often your mouse reports its position to the
-            computer per second. Higher polling rate means smoother and more
-            responsive cursor movement — essential for competitive gaming.
+            computer per second. A higher polling rate reduces the time between
+            position updates, which can make fast movements feel smoother —
+            but it doesn't improve sensor accuracy, which comes down to DPI
+            and sensor quality instead.
         </p>
         <table class="rate-table">
             <thead

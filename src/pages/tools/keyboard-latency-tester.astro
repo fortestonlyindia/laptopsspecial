@@ -43,7 +43,7 @@ const faqSchema = {
             name: "Does polling rate affect keyboard latency?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Yes. At 125Hz polling rate latency is around 8ms. At 1000Hz it drops to roughly 1ms. Higher polling rate equals lower latency.",
+                text: "Yes, it sets the maximum reporting interval — at 125Hz that's up to 8ms, at 1000Hz up to 1ms. Total latency also depends on switch debounce time and system processing, so a higher polling rate lowers the ceiling on latency rather than guaranteeing a lower number every time.",
             },
         },
         {
@@ -51,7 +51,7 @@ const faqSchema = {
             name: "How is keyboard scan rate calculated?",
             acceptedAnswer: {
                 "@type": "Answer",
-                text: "Scan rate (Hz) = 1000 ÷ shortest key press time (in ms). For example, a 2ms press time gives an estimated scan rate of 500Hz — this tool calculates it automatically from your fastest recorded press.",
+                text: "This tool actually measures your fastest recorded key-press duration, not the keyboard's true hardware scan rate, since scan rate is a fixed controller spec that can't be derived from press timing in a browser. Press duration is still useful for comparing individual keys or spotting a sluggish one.",
             },
         },
         {
@@ -721,9 +721,9 @@ const faqSchema = {
             <div class="stat-unit">milliseconds</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Est. Scan Rate</div>
+            <div class="stat-label">Fastest Key Response</div>
             <div class="stat-value" id="s-scan" aria-live="polite">—</div>
-            <div class="stat-unit">Hz</div>
+            <div class="stat-unit">milliseconds</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Keys Pressed</div>
@@ -736,7 +736,13 @@ const faqSchema = {
             <div class="stat-unit">/ 104</div>
         </div>
     </div>
-
+    <!-- RESULT INTERPRETATION (NEW) -->
+    <div class="tool-container" style="padding-bottom: 0;">
+        <div id="result-interpret" style="display:none; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.82rem; color: var(--text2); margin-bottom: 1rem;">
+            <strong style="color: var(--text);">What this means: </strong>
+            <span id="result-interpret-text"></span>
+        </div>
+    </div>
     <!-- ═══════ TOOL CARD ═══════ -->
     <div class="tool-container">
         <div class="tool-card">
@@ -1228,9 +1234,7 @@ const faqSchema = {
                     = <strong style="color: var(--accent);">11ms total latency</strong>
                 </div>
                 <p>
-                    <strong>Scan Rate Formula:</strong> Scan Rate (Hz) = 1000 ÷ shortest key press time (ms).
-                    So if your shortest press in the test above was 2ms, your estimated
-                    scan rate is 1000 ÷ 2 = <strong>500Hz</strong>.
+                    <strong>Note on scan rate:</strong> This tool measures your <strong>fastest recorded key-press duration</strong>, not your keyboard's actual hardware scan rate. Scan rate is a fixed property of the keyboard's internal controller (typically 1000Hz or higher) and can't be reliably derived from how long you hold a key. What this number <em>is</em> useful for: comparing keys against each other, or spotting one key that's noticeably slower than the rest.
                 </p>
 
                 <h2 style="margin-top:2rem;">How to Test Your Keyboard Latency</h2>
@@ -1249,7 +1253,8 @@ const faqSchema = {
                     Scan Rate
                 </div><div class="info-card-desc">
                     How many times per second the keyboard's controller scans
-                    for key presses. Higher means faster detection.
+                    for key presses (a fixed hardware spec — not something this
+                    browser tool can measure directly).
                 </div>
             </div>
             <div class="info-card">
@@ -1347,19 +1352,23 @@ const faqSchema = {
                 <div class="faq-q">
                     Does polling rate affect keyboard latency?
                 </div><div class="faq-a">
-                    Yes. At 125Hz polling rate latency is around 8ms. At 1000Hz
-                    it drops to roughly 1ms. Higher polling rate equals lower
-                    latency.
+                    Yes, it sets the maximum reporting interval — at 125Hz that's
+                    up to 8ms, at 1000Hz up to 1ms. Total latency also depends on
+                    switch debounce time and system processing, so a higher
+                    polling rate lowers the ceiling on latency rather than
+                    guaranteeing a lower number every time.
                 </div>
             </div>
             <div class="faq-item">
-                            <div class="faq-q">How is keyboard scan rate calculated?</div>
-                            <div class="faq-a">
-                                Scan rate (Hz) = 1000 ÷ shortest key press time (in ms).
-                                For example, a 2ms press time gives an estimated scan
-                                rate of 500Hz — this tool calculates it automatically
-                                from your fastest recorded press.
-                            </div>
+                <div class="faq-q">How is keyboard scan rate calculated?</div>
+                <div class="faq-a">
+                    This tool actually measures your fastest recorded key-press
+                    duration, not the keyboard's true hardware scan rate, since
+                    scan rate is a fixed controller spec that can't be derived
+                    from press timing in a browser. Press duration is still
+                    useful for comparing individual keys or spotting a sluggish
+                    one.
+                </div>
                         </div>
                         <div class="faq-item">
                             <div class="faq-q">
@@ -1511,7 +1520,19 @@ const faqSchema = {
                     if (dur < shortestPress) {
                         shortestPress = dur;
                         if (sShort) sShort.textContent = dur.toFixed(1);
-                        if (sScan) sScan.textContent = (1000 / dur).toFixed(0);
+                        if (sScan) sScan.textContent = dur.toFixed(1);
+                    }
+                    const interpretBox = document.getElementById("result-interpret");
+                    const interpretText = document.getElementById("result-interpret-text");
+                    if (interpretBox && interpretText) {
+                        interpretBox.style.display = "block";
+                        if (dur < 20) {
+                            interpretText.textContent = "Fast, consistent response — this key is behaving normally, in line with a typical 1-15ms range depending on your keyboard's switch type.";
+                        } else if (dur < 60) {
+                            interpretText.textContent = "Slightly higher than typical, but still within normal range for everyday typing. Test a few more keys to see if this is consistent or specific to one key.";
+                        } else {
+                            interpretText.textContent = "Noticeably slower than average. If this happens on one specific key repeatedly, it could indicate a sticky switch or debris under the keycap — worth cleaning or investigating further.";
+                        }
                     }
                 },
                 { signal },
