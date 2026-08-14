@@ -6,6 +6,26 @@
   "trailingSlash": true,
   "redirects": [
     {
+      "source": "/mouse-rate-test",
+      "destination": "/tools/mouse-rate-test/",
+      "permanent": true
+    },
+    {
+      "source": "/mouse-rate-test/",
+      "destination": "/tools/mouse-rate-test/",
+      "permanent": true
+    },
+    {
+      "source": "/monitor-refresh-rate-test",
+      "destination": "/tools/monitor-refresh-rate-test/",
+      "permanent": true
+    },
+    {
+      "source": "/monitor-refresh-rate-test/",
+      "destination": "/tools/monitor-refresh-rate-test/",
+      "permanent": true
+    },
+    {
       "source": "/:path([^.]+[^/])",
       "destination": "/:path/",
       "permanent": true
