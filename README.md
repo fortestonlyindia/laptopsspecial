@@ -3,8 +3,9 @@
 Fast, static rebuild of laptopsspecial.com tools using Astro.js.
 
 ## Tools Included
-- `/` → Keyboard Tester (latency, scan rate, key history)
-- `/mouse-rate-test` → Mouse Rate Test (polling rate, click stats, heatmap, export)
+
+- `//tools/keyboard-latency-tester/` → Keyboard Tester (latency, scan rate, key history)
+- `/tools/mouse-rate-test` → Mouse Rate Test (polling rate, click stats, heatmap, export)
 
 ## Local Development
 
@@ -17,6 +18,7 @@ npm run dev
 ## Deploy to Vercel
 
 ### Option 1: Vercel CLI
+
 ```bash
 npm install -g vercel
 vercel
@@ -25,6 +27,7 @@ vercel
 ```
 
 ### Option 2: GitHub + Vercel (Recommended)
+
 1. Push this folder to a GitHub repo
 2. Go to vercel.com → New Project → Import repo
 3. Vercel auto-detects Astro → click Deploy
@@ -34,6 +37,7 @@ vercel
    - CNAME `www`: `cname.vercel-dns.com`
 
 ## Project Structure
+
 ```
 src/
   layouts/Base.astro    ← Nav + Footer + SEO
@@ -43,4 +47,5 @@ src/
 ```
 
 ## Adding More Tools
+
 Copy any page, update the `<Base>` props (title, description), build your tool in the `<style>` + `<script>` blocks. Zero framework overhead — pure browser JS.
