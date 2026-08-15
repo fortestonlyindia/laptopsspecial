@@ -311,6 +311,28 @@ const breadcrumbSchema = {
             color: #22c55e;
         }
 
+        .btn-pdf {
+            border-color: rgba(0, 212, 255, 0.4);
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .btn-pdf:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.08);
+        }
+        .btn-fulldiag {
+                    border-color: rgba(34, 197, 94, 0.4);
+                    color: #22c55e;
+                    font-weight: 700;
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                }
+                .btn-fulldiag:hover {
+                    border-color: #22c55e;
+                    background: rgba(34, 197, 94, 0.08);
+                }
+
         /* TRACKING ZONE */
         .tracking-zone {
             position: relative;
@@ -796,32 +818,40 @@ const breadcrumbSchema = {
         <div class="tool-card">
             <div class="tool-header">
                 <span class="tool-title"
-                    >🖱 Mouse Tracking Zone — Move and Click Inside</span
+                    >🖱 Mouse Tracking Zone - Move and Click Inside</span
                 >
                 <div class="tool-actions">
-                    <button
-                        class="btn-sm btn-sound"
-                        id="btn-sound"
-                        aria-label="Toggle click sound">🔊 Sound: ON</button
-                    >
-                    <button
-                        class="btn-sm"
-                        id="btn-reset"
-                        aria-label="Reset all mouse test data">Reset</button
-                    >
-                    <button
-                        class="btn-sm btn-export"
-                        id="btn-export"
-                        aria-label="Export results as JSON file"
-                        >Export JSON</button
-                    >
-                    <button
-                        class="btn-sm btn-csv"
-                        id="btn-csv"
-                        aria-label="Export polling history as CSV file"
-                        >Export CSV</button
-                    >
-                </div>
+                                    <button
+                                        class="btn-sm btn-sound"
+                                        id="btn-sound"
+                                        aria-label="Toggle click sound">🔊 Sound: ON</button
+                                    >
+                                    <button
+                                        class="btn-sm"
+                                        id="btn-reset"
+                                        aria-label="Reset all mouse test data">Reset</button
+                                    >
+                                    <button
+                                        class="btn-sm btn-export"
+                                        id="btn-export"
+                                        aria-label="Export results as JSON file"
+                                        >Export JSON</button
+                                    >
+                                    <button
+                                        class="btn-sm btn-csv"
+                                        id="btn-csv"
+                                        aria-label="Export polling history as CSV file"
+                                        >Export CSV</button
+                                    >
+                                    <button
+                                        class="btn-sm btn-pdf"
+                                        id="btn-pdf"
+                                        aria-label="Download diagnostic report as PDF"
+                                        >💾 PDF Report</button
+                                    >
+                                    <a href="https://laptopsspecial.com/full-diagnostic-report/" class="btn-sm btn-fulldiag" id="btn-fulldiag" aria-label="Open full diagnostic report page in a new tab" target="_blank" rel="noopener" >🧪 Full Diag Report</a >
+                                                                    </div>
+                                </div>
             </div>
 
             <div
@@ -1598,6 +1628,7 @@ const breadcrumbSchema = {
                                         }
 
                                         drawPollChart();
+                                        saveMouseResultToLocalStorage();
                 }
             }
             st.rafId = requestAnimationFrame(rafLoop);
@@ -1719,6 +1750,21 @@ const breadcrumbSchema = {
                 return Math.sqrt(variance);
             }
 
+            function detectBrowserName(): string {
+                const ua = navigator.userAgent;
+                if (ua.includes("Edg/")) return "Microsoft Edge";
+                if (ua.includes("Chrome/") && !ua.includes("Edg/")) {
+                    const match = ua.match(/Chrome\/([\d.]+)/);
+                    return `Chrome ${match ? match[1].split(".")[0] : ""}`.trim();
+                }
+                if (ua.includes("Firefox/")) {
+                    const match = ua.match(/Firefox\/([\d.]+)/);
+                    return `Firefox ${match ? match[1] : ""}`.trim();
+                }
+                if (ua.includes("Safari/") && !ua.includes("Chrome/")) return "Safari";
+                return "Unknown";
+            }
+
             // ---- Export JSON ----
             document
                 .getElementById("btn-export")
@@ -1796,6 +1842,246 @@ const breadcrumbSchema = {
                     );
                     showToast("Exported polling history as CSV");
                 });
+
+            // ---- Download PDF Report ----
+                        document
+                            .getElementById("btn-pdf")
+                            ?.addEventListener("click", () => {
+                                if (st.totalEvents < 30) {
+                                    showToast("Move your mouse and click a few times first");
+                                    return;
+                                }
+
+                                const jsPDFLib = (window as any).jspdf;
+                                if (!jsPDFLib || !jsPDFLib.jsPDF) {
+                                    showToast("Report generator still loading — try again in a second");
+                                    return;
+                                }
+
+                                const jitter = currentJitterMs();
+                                const avgHz =
+                                    st.totalActiveMs > 0
+                                        ? Math.round((st.totalEvents / st.totalActiveMs) * 1000)
+                                        : 0;
+
+                                let statusLabel = "Good";
+                                let statusNote =
+                                    "Stable, consistent reporting. No issues detected.";
+                                if (jitter !== null && jitter > 2.5) {
+                                    statusLabel = "Investigate";
+                                    statusNote =
+                                        "High jitter detected — reporting timing is inconsistent. Try a different USB port or check for interference.";
+                                } else if (avgHz < 125 || (jitter !== null && jitter > 1.5)) {
+                                    statusLabel = "Check";
+                                    statusNote =
+                                        "Polling rate or consistency is below typical gaming range. May be normal for an office mouse.";
+                                }
+
+                                const { jsPDF } = jsPDFLib;
+                                const doc = new jsPDF({ unit: "pt", format: "a4" });
+                                const pageWidth = doc.internal.pageSize.getWidth();
+                                const margin = 48;
+                                let y = 56;
+
+                                // Header
+                                doc.setFillColor(10, 14, 26);
+                                doc.rect(0, 0, pageWidth, 90, "F");
+                                doc.setTextColor(255, 255, 255);
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(18);
+                                doc.text("Laptops Special — Hardware Diagnostic Report", margin, 40);
+                                doc.setFont("helvetica", "normal");
+                                doc.setFontSize(10);
+                                doc.setTextColor(180, 190, 210);
+                                doc.text("Device: Mouse", margin, 60);
+                                doc.text(
+                                    `Generated: ${new Date().toLocaleString()}`,
+                                    margin,
+                                    75,
+                                );
+
+                                y = 120;
+                                doc.setTextColor(20, 20, 30);
+
+                                // Status badge
+                                const statusColor: [number, number, number] =
+                                    statusLabel === "Good"
+                                        ? [34, 197, 94]
+                                        : statusLabel === "Check"
+                                          ? [245, 158, 11]
+                                          : [239, 68, 68];
+                                doc.setFillColor(...statusColor);
+                                doc.roundedRect(margin, y, 90, 22, 4, 4, "F");
+                                doc.setTextColor(255, 255, 255);
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(11);
+                                doc.text(statusLabel, margin + 45, y + 15, { align: "center" });
+
+                                y += 40;
+                                doc.setTextColor(60, 60, 70);
+                                doc.setFont("helvetica", "normal");
+                                doc.setFontSize(10);
+                                const noteLines = doc.splitTextToSize(statusNote, pageWidth - margin * 2);
+                                doc.text(noteLines, margin, y);
+                                y += noteLines.length * 13 + 20;
+
+                                // Section: Polling
+                                doc.setDrawColor(220, 220, 225);
+                                doc.line(margin, y, pageWidth - margin, y);
+                                y += 22;
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(13);
+                                doc.setTextColor(20, 20, 30);
+                                doc.text("Polling Rate", margin, y);
+                                y += 18;
+
+                                const rows: [string, string][] = [
+                                    ["Average Polling Rate", `${avgHz} Hz`],
+                                    ["Peak Polling Rate", `${st.peakHz} Hz`],
+                                    [
+                                        "Min Interval",
+                                        st.minPI < Infinity ? `${st.minPI.toFixed(3)} ms` : "—",
+                                    ],
+                                    [
+                                        "Max Interval",
+                                        st.maxPI > 0 ? `${st.maxPI.toFixed(2)} ms` : "—",
+                                    ],
+                                    [
+                                        "Jitter (StdDev)",
+                                        jitter !== null ? `${jitter.toFixed(3)} ms` : "—",
+                                    ],
+                                ];
+
+                                doc.setFont("helvetica", "normal");
+                                doc.setFontSize(10.5);
+                                rows.forEach(([label, val]) => {
+                                    doc.setTextColor(90, 90, 100);
+                                    doc.text(label, margin, y);
+                                    doc.setTextColor(20, 20, 30);
+                                    doc.setFont("helvetica", "bold");
+                                    doc.text(val, pageWidth - margin, y, { align: "right" });
+                                    doc.setFont("helvetica", "normal");
+                                    y += 18;
+                                });
+
+                                y += 12;
+                                doc.line(margin, y, pageWidth - margin, y);
+                                y += 22;
+
+                                // Section: Clicks & Movement
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(13);
+                                doc.setTextColor(20, 20, 30);
+                                doc.text("Clicks & Movement", margin, y);
+                                y += 18;
+
+                                const rows2: [string, string][] = [
+                                    ["Left / Right / Middle Clicks", `${st.lc} / ${st.rc} / ${st.mc}`],
+                                    ["Total Clicks", String(st.lc + st.rc + st.mc)],
+                                    ["Max Movement Speed", `${st.maxSpd.toFixed(0)} px/s`],
+                                    ["Total Events Recorded", String(st.totalEvents)],
+                                ];
+                                doc.setFont("helvetica", "normal");
+                                doc.setFontSize(10.5);
+                                rows2.forEach(([label, val]) => {
+                                    doc.setTextColor(90, 90, 100);
+                                    doc.text(label, margin, y);
+                                    doc.setTextColor(20, 20, 30);
+                                    doc.setFont("helvetica", "bold");
+                                    doc.text(val, pageWidth - margin, y, { align: "right" });
+                                    doc.setFont("helvetica", "normal");
+                                    y += 18;
+                                });
+
+                                y += 20;
+                                doc.line(margin, y, pageWidth - margin, y);
+                                y += 22;
+
+                                // Testing environment
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(13);
+                                doc.text("Testing Environment", margin, y);
+                                y += 18;
+                                doc.setFont("helvetica", "normal");
+                                doc.setFontSize(10.5);
+                                const envRows: [string, string][] = [
+                                  ["Browser", detectBrowserName()],
+                                    [
+                                        "Precision Mode",
+                                        supportsRawUpdate
+                                            ? "High-precision (pointerrawupdate)"
+                                            : "Standard-precision",
+                                    ],
+                                ];
+                                envRows.forEach(([label, val]) => {
+                                    doc.setTextColor(90, 90, 100);
+                                    doc.text(label, margin, y);
+                                    doc.setTextColor(20, 20, 30);
+                                    const valLines = doc.splitTextToSize(val, 260);
+                                    doc.text(valLines, pageWidth - margin, y, { align: "right" });
+                                    y += 14 * valLines.length + 4;
+                                });
+
+                                // Footer note
+                                y += 16;
+                                doc.setDrawColor(220, 220, 225);
+                                doc.line(margin, y, pageWidth - margin, y);
+                                y += 18;
+                                doc.setFont("helvetica", "italic");
+                                doc.setFontSize(8.5);
+                                doc.setTextColor(130, 130, 140);
+                                const disclaimer = doc.splitTextToSize(
+                                    "This report reflects browser-observed measurements, not direct hardware readings. Values above ~1500-2000Hz may be under-reported due to browser/OS event throttling. See laptopsspecial.com/how-accurate-are-these-tests/ for full methodology.",
+                                    pageWidth - margin * 2,
+                                );
+                                doc.text(disclaimer, margin, y);
+
+                                y += disclaimer.length * 11 + 10;
+                                doc.setFont("helvetica", "normal");
+                                doc.setTextColor(0, 150, 200);
+                                doc.text("laptopsspecial.com/tools/mouse-rate-test/", margin, y);
+
+                                doc.save(`mouse-diagnostic-report-${Date.now()}.pdf`);
+                                showToast("Diagnostic report downloaded");
+                            });
+
+                            // ---- Save result summary for the combined Full Diagnostic Report ----
+                            function saveMouseResultToLocalStorage() {
+                                if (st.totalEvents < 30) return;
+                                const jitter = currentJitterMs();
+                                const avgHz =
+                                    st.totalActiveMs > 0
+                                        ? Math.round((st.totalEvents / st.totalActiveMs) * 1000)
+                                        : 0;
+
+                                let status: "good" | "check" | "investigate" = "good";
+                                if (jitter !== null && jitter > 2.5) status = "investigate";
+                                else if (avgHz < 125 || (jitter !== null && jitter > 1.5)) status = "check";
+
+                                const score =
+                                    status === "good" ? 90 + Math.min(10, Math.round(avgHz / 200)) :
+                                    status === "check" ? 65 + Math.round(Math.random() * 10) :
+                                    40;
+
+                                const result = {
+                                    tool: "mouse",
+                                    score: Math.min(score, 100),
+                                    status,
+                                    metrics: {
+                                        "Mouse polling": `${avgHz} Hz`,
+                                        "Mouse jitter": jitter !== null ? `${jitter.toFixed(1)} ms` : "—",
+                                    },
+                                    timestamp: Date.now(),
+                                };
+                                try {
+                                    localStorage.setItem("ls_diag_mouse", JSON.stringify(result));
+                                } catch (e) {
+                                    // localStorage unavailable — silently skip
+                                }
+                            }
+
+                            // Call this whenever we have a meaningful reading — piggyback on the
+                            // existing periodic stats update inside rafLoop's domUpdatesNeeded block.
 
             // ---- Advanced metrics collapse/expand ----
             const metricsToggle = document.getElementById(

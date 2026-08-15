@@ -1,0 +1,466 @@
+---
+import Base from "@layouts/Base.astro";
+
+const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
+---
+
+<Base
+    title="Full PC Diagnostic Report | Laptops Special"
+    description="A combined keyboard, mouse and monitor diagnostic report — run all three tests to see your full PC health score."
+    canonical={pageUrl}
+    noWebAppSchema={true}
+>
+    <style>
+        .report-wrap {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+        .report-empty {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+        .report-empty h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        .report-empty p {
+            color: var(--text2);
+            font-size: 0.9rem;
+            max-width: 480px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.7;
+        }
+        .empty-links {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .empty-links a {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .report-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .report-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+        .report-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .score-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .score-value {
+            font-family: var(--font-mono);
+            font-size: 3.2rem;
+            font-weight: 700;
+        }
+        .score-value.good { color: #22c55e; }
+        .score-value.check { color: #f59e0b; }
+        .score-value.investigate { color: #ef4444; }
+        .score-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 0.4rem;
+        }
+        .score-label.good { color: #22c55e; }
+        .score-label.check { color: #f59e0b; }
+        .score-label.investigate { color: #ef4444; }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+        .result-table th {
+            background: var(--bg3);
+            color: var(--muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.7rem 1rem;
+            text-align: left;
+        }
+        .result-table td {
+            padding: 0.7rem 1rem;
+            border-top: 1px solid var(--border);
+            color: var(--text2);
+        }
+        .status-pill {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.15rem 0.55rem;
+            border-radius: 100px;
+        }
+        .status-pill.good { background: rgba(34,197,94,0.12); color: #22c55e; }
+        .status-pill.check { background: rgba(245,158,11,0.12); color: #f59e0b; }
+        .status-pill.investigate { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+        .report-section {
+            margin-bottom: 1.5rem;
+        }
+        .report-section h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        .finding-item {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.6rem;
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+        .finding-item strong { color: var(--text); }
+
+        .report-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+        .report-actions button, .report-actions a {
+            background: var(--accent);
+            color: #0a0e1a;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.65rem 1.3rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .report-actions .secondary {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text2);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.65rem 1.1rem;
+            border-radius: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 100;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+
+    <div class="report-wrap" id="report-wrap">
+        <!-- Filled by JS -->
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        interface ToolResult {
+            tool: string;
+            score: number;
+            status: "good" | "check" | "investigate";
+            metrics: Record<string, string>;
+            timestamp: number;
+        }
+
+        document.addEventListener("astro:page-load", () => {
+            const wrap = document.getElementById("report-wrap");
+            const toastEl = document.getElementById("toast");
+            if (!wrap) return;
+
+            function showToast(msg: string) {
+                if (!toastEl) return;
+                toastEl.textContent = msg;
+                toastEl.classList.add("show");
+                setTimeout(() => toastEl.classList.remove("show"), 2200);
+            }
+
+            function loadResult(key: string): ToolResult | null {
+                try {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw) as ToolResult;
+                    // Ignore results older than 24 hours — keep the report fresh
+                    if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) return null;
+                    return parsed;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            const kb = loadResult("ls_diag_keyboard");
+            const mouse = loadResult("ls_diag_mouse");
+            const monitor = loadResult("ls_diag_monitor");
+            const results = [kb, mouse, monitor].filter(Boolean) as ToolResult[];
+
+            if (results.length === 0) {
+                wrap.innerHTML = `
+                    <div class="report-empty">
+                        <h1>No Test Results Yet</h1>
+                        <p>
+                            Run any of the three diagnostic tools below and your
+                            results will automatically appear here. Test all
+                            three for a complete PC health report.
+                        </p>
+                        <div class="empty-links">
+                            <a href="/tools/keyboard-latency-tester/" data-astro-reload>⌨️ Keyboard Tester</a>
+                            <a href="/tools/mouse-rate-test/" data-astro-reload>🖱 Mouse Rate Test</a>
+                            <a href="/tools/monitor-refresh-rate-test/" data-astro-reload>🖥️ Monitor Test</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const overallScore = Math.round(
+                results.reduce((sum, r) => sum + r.score, 0) / results.length,
+            );
+            const overallStatus: "good" | "check" | "investigate" =
+                overallScore >= 80 ? "good" : overallScore >= 60 ? "check" : "investigate";
+            const overallLabel =
+                overallStatus === "good" ? "Good" :
+                overallStatus === "check" ? "Needs Attention" : "Investigate";
+
+            const toolNames: Record<string, string> = {
+                keyboard: "⌨️ Keyboard",
+                mouse: "🖱 Mouse",
+                monitor: "🖥️ Monitor",
+            };
+
+            const tableRows = results
+                .map((r) => {
+                    const metricRows = Object.entries(r.metrics)
+                        .map(
+                            ([label, val]) => `
+                        <tr>
+                            <td>${label}</td>
+                            <td>${val}</td>
+                            <td><span class="status-pill ${r.status}">${r.status === "good" ? "🟢 Good" : r.status === "check" ? "🟡 Check" : "🔴 Investigate"}</span></td>
+                        </tr>`,
+                        )
+                        .join("");
+                    return metricRows;
+                })
+                .join("");
+
+            const missing = ["keyboard", "mouse", "monitor"].filter(
+                (t) => !results.find((r) => r.tool === t),
+            );
+
+            const findings = results
+                .map((r) => {
+                    const name = toolNames[r.tool] || r.tool;
+                    const metricSummary = Object.entries(r.metrics)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(", ");
+                    let note = "";
+                    if (r.status === "good") note = "Performing within normal range.";
+                    else if (r.status === "check") note = "Slightly outside typical range — worth a closer look, not necessarily a fault.";
+                    else note = "Noticeably outside normal range — worth investigating further.";
+                    return `<div class="finding-item"><strong>${name}</strong> — ${metricSummary}. ${note}</div>`;
+                })
+                .join("");
+
+            const missingNote =
+                missing.length > 0
+                    ? `<div class="finding-item">Not yet tested: ${missing.map((m) => toolNames[m]).join(", ")}. <a href="/tools/${missing[0] === "keyboard" ? "keyboard-latency-tester" : missing[0] + "-rate-test"}/" data-astro-reload style="color:var(--accent);">Run this test →</a></div>`
+                    : "";
+
+            const recommendation =
+                overallStatus === "good"
+                    ? "No immediate hardware replacement is recommended based on these results."
+                    : overallStatus === "check"
+                      ? "No urgent hardware failure indicated, but review the flagged items above — often a driver update, cable swap, or OS setting fixes this."
+                      : "One or more components show results outside normal range. Review the flagged items — confirm with a second test before assuming hardware failure.";
+
+            const reportId = "LS-" + Date.now().toString(36).toUpperCase();
+
+            wrap.innerHTML = `
+                <div class="report-header">
+                    <h1>Full PC Diagnostic Report</h1>
+                    <div class="report-meta">
+                        Generated ${new Date().toLocaleString()} · Report ID ${reportId}
+                    </div>
+                </div>
+
+                <div class="score-card">
+                    <div class="score-value ${overallStatus}">${overallScore}<span style="font-size:1.4rem;color:var(--muted);">/100</span></div>
+                    <div class="score-label ${overallStatus}">${overallLabel}</div>
+                </div>
+
+                <div class="report-section">
+                    <h2>Test Results</h2>
+                    <table class="result-table">
+                        <thead>
+                            <tr><th>Test</th><th>Result</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <h2>Findings</h2>
+                    ${findings}
+                    ${missingNote}
+                </div>
+
+                <div class="report-section">
+                    <h2>Recommendation</h2>
+                    <div class="finding-item">${recommendation}</div>
+                </div>
+
+                <div class="report-section">
+                    <h2>Methodology &amp; Limitations</h2>
+                    <div class="finding-item">
+                        All results are browser-observed measurements, not direct
+                        hardware readings. See the
+                        <a href="/how-accurate-are-these-tests/" data-astro-reload style="color:var(--accent);">full testing methodology</a>
+                        for what each test can and can't measure.
+                    </div>
+                </div>
+
+                <div class="report-actions">
+                    <button id="btn-download-pdf">📄 Download PDF</button>
+                    <button id="btn-run-again" class="secondary">🔄 Run Tests Again</button>
+                </div>
+            `;
+
+            document.getElementById("btn-run-again")?.addEventListener("click", () => {
+                localStorage.removeItem("ls_diag_keyboard");
+                localStorage.removeItem("ls_diag_mouse");
+                localStorage.removeItem("ls_diag_monitor");
+                window.location.href = "/tools/keyboard-latency-tester/";
+            });
+
+            document.getElementById("btn-download-pdf")?.addEventListener("click", () => {
+                const jsPDFLib = (window as any).jspdf;
+                if (!jsPDFLib || !jsPDFLib.jsPDF) {
+                    showToast("Report generator still loading — try again");
+                    return;
+                }
+                const { jsPDF } = jsPDFLib;
+                const doc = new jsPDF({ unit: "pt", format: "a4" });
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const margin = 48;
+                let y = 40;
+
+                doc.setFillColor(10, 14, 26);
+                doc.rect(0, 0, pageWidth, 90, "F");
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(18);
+                doc.text("Laptops Special — Full PC Diagnostic Report", margin, 40);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                doc.setTextColor(180, 190, 210);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 60);
+                doc.text(`Report ID: ${reportId}`, margin, 75);
+
+                y = 120;
+                const scoreColor: [number, number, number] =
+                    overallStatus === "good" ? [34, 197, 94] :
+                    overallStatus === "check" ? [245, 158, 11] : [239, 68, 68];
+                doc.setTextColor(...scoreColor);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(28);
+                doc.text(`${overallScore}/100 — ${overallLabel}`, margin, y);
+                y += 34;
+
+                doc.setDrawColor(220, 220, 225);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 22;
+
+                doc.setFontSize(13);
+                doc.setTextColor(20, 20, 30);
+                doc.text("Test Results", margin, y);
+                y += 18;
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                results.forEach((r) => {
+                    Object.entries(r.metrics).forEach(([label, val]) => {
+                        doc.setTextColor(90, 90, 100);
+                        doc.text(label, margin, y);
+                        doc.setTextColor(20, 20, 30);
+                        doc.text(String(val), pageWidth - margin, y, { align: "right" });
+                        y += 16;
+                    });
+                });
+
+                y += 14;
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 22;
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(13);
+                doc.setTextColor(20, 20, 30);
+                doc.text("Recommendation", margin, y);
+                y += 16;
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                const recLines = doc.splitTextToSize(recommendation, pageWidth - margin * 2);
+                doc.text(recLines, margin, y);
+                y += recLines.length * 13 + 20;
+
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 18;
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(8.5);
+                doc.setTextColor(130, 130, 140);
+                const disclaimer = doc.splitTextToSize(
+                    "Browser-observed measurements, not direct hardware readings. Full methodology: laptopsspecial.com/how-accurate-are-these-tests/",
+                    pageWidth - margin * 2,
+                );
+                doc.text(disclaimer, margin, y);
+
+                doc.save(`pc-diagnostic-report-${reportId}.pdf`);
+                showToast("Full report downloaded");
+            });
+        });
+    </script>
+</Base>
