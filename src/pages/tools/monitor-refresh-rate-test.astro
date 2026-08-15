@@ -902,30 +902,53 @@ const webPageSchema = {
             </div>
 
             <!-- PANEL 2: MOTION -->
-            <div class="test-panel" id="panel-motion">
-                <div class="motion-zone" id="motion-zone">
-                    <div class="motion-track">
-                        <span class="motion-track-label">1x SPEED</span>
-                        <div class="motion-block mb-1x" id="block-1x"></div>
-                    </div>
-                    <div class="motion-track">
-                        <span class="motion-track-label">2x SPEED</span>
-                        <div class="motion-block mb-2x" id="block-2x"></div>
-                    </div>
-                    <div class="motion-track">
-                        <span class="motion-track-label">4x SPEED</span>
-                        <div class="motion-block mb-4x" id="block-4x"></div>
-                    </div>
-                </div>
-                <div class="motion-controls">
-                    <p>
-                        Watch the moving blocks. On a high refresh-rate screen, edges
-                        stay crisp even at 4x speed. On 60Hz, expect visible ghosting
-                        and motion blur — especially on the fastest block.
-                    </p>
-                    <button class="btn-sm btn-amber" id="btn-motion-toggle">⏸ Pause</button>
-                </div>
-            </div>
+                        <div class="test-panel" id="panel-motion">
+                            <div id="motion-data-banner" style="margin: 1rem 1.5rem 0; padding: 0.85rem 1.1rem; border-radius: 10px; border: 1px solid rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); font-size: 0.82rem; color: var(--text2);">
+                                <strong style="color:#f59e0b;">⚠ Run the Live Hz Test tab first</strong> — blur numbers below are calculated from your measured refresh rate.
+                            </div>
+                            <div class="motion-zone" id="motion-zone">
+                                <div class="motion-track">
+                                    <span class="motion-track-label">SLOW</span>
+                                    <div class="motion-block mb-1x" id="block-1x"></div>
+                                </div>
+                                <div class="motion-track">
+                                    <span class="motion-track-label">MEDIUM</span>
+                                    <div class="motion-block mb-2x" id="block-2x"></div>
+                                </div>
+                                <div class="motion-track">
+                                    <span class="motion-track-label">FAST</span>
+                                    <div class="motion-block mb-4x" id="block-4x"></div>
+                                </div>
+                            </div>
+                            <div class="metrics-section" id="motion-metrics" style="display:none;">
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <div class="metric-name">SLOW — px moved/frame</div>
+                                        <div class="metric-val" id="motion-blur-1x">—</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-name">MEDIUM — px moved/frame</div>
+                                        <div class="metric-val" id="motion-blur-2x">—</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-name">FAST — px moved/frame</div>
+                                        <div class="metric-val" id="motion-blur-4x">—</div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-name">Based On</div>
+                                        <div class="metric-val" id="motion-basis">—</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="motion-controls">
+                                <p>
+                                    Higher px moved per frame means more visible ghosting on
+                                    sample-and-hold (LCD/OLED) displays. These numbers come from
+                                    your actual measured refresh rate, not a guess.
+                                </p>
+                                <button class="btn-sm btn-amber" id="btn-motion-toggle">⏸ Pause</button>
+                            </div>
+                        </div>
 
             <!-- PANEL 3: VRR SIMULATOR -->
             <div class="test-panel" id="panel-vrr">
@@ -935,26 +958,45 @@ const webPageSchema = {
                             <h4>Fixed Refresh Rate (simulated tearing risk)</h4>
                             <canvas class="vrr-canvas" id="vrr-fixed"></canvas>
                             <p class="vrr-desc">
-                                Frame delivery timed to a rigid interval. When the GPU
-                                can't keep up, frames arrive late and either tear or
-                                stall — visualized here as irregular red gaps.
-                            </p>
+                                                            Your actual measured frame intervals (from the Live Hz
+                                                            Test) mapped onto a rigid refresh grid. Red bars mark
+                                                            frames that arrived late relative to that fixed interval.
+                                                        </p>
                         </div>
                         <div class="vrr-col">
                             <h4>Variable Refresh Rate (G-Sync / FreeSync style)</h4>
                             <canvas class="vrr-canvas" id="vrr-variable"></canvas>
                             <p class="vrr-desc">
-                                The display refresh window stretches to match each
-                                frame as it's ready — shown as smoothly adapting green
-                                bars instead of rigid, missed intervals.
-                            </p>
+                                                            The same real frame data, but drawn as if the display
+                                                            refreshed exactly when each frame was ready — showing
+                                                            how VRR would absorb your actual timing fluctuations.
+                                                        </p>
                         </div>
                     </div>
                     <button class="btn-sm btn-amber" id="btn-vrr-run">▶ Run Simulation</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
+                                        <div class="metrics-grid" id="vrr-metrics" style="display:none; margin-top:1rem;">
+                                            <div class="metric-item">
+                                                <div class="metric-name">Frames Missed (Fixed 60Hz)</div>
+                                                <div class="metric-val" id="vrr-missed">—</div>
+                                            </div>
+                                            <div class="metric-item">
+                                                <div class="metric-name">Total Stall Time (Fixed)</div>
+                                                <div class="metric-val" id="vrr-stall">—</div>
+                                            </div>
+                                            <div class="metric-item">
+                                                <div class="metric-name">Frames Delivered On-Time (VRR)</div>
+                                                <div class="metric-val" id="vrr-ontime">100%</div>
+                                            </div>
+                                            <div class="metric-item">
+                                                <div class="metric-name">Sample Size</div>
+                                                <div class="metric-val" id="vrr-sample">—</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
     <!-- CTA -->
     <div class="cta-banner">
@@ -1190,13 +1232,15 @@ const webPageSchema = {
             }
 
             let st: RefreshState = {
-                frameTimes: [],
-                allIntervals: [],
-                lastTs: null,
-                rafId: null,
-                startTime: null,
-                droppedCount: 0,
-            };
+                            frameTimes: [],
+                            allIntervals: [],
+                            lastTs: null,
+                            rafId: null,
+                            startTime: null,
+                            droppedCount: 0,
+                        };
+                        let lastAvgHz: number | null = null;
+                        let lastStabilityPct: number | null = null;
 
             function resizeChart() {
                 if (!chartCvs) return;
@@ -1236,8 +1280,10 @@ const webPageSchema = {
                 const sorted = [...ints].sort((a, b) => a - b);
                 const median = sorted[Math.floor(sorted.length / 2)];
                 const withinRange = ints.filter((i) => Math.abs(i - median) <= median * 0.15).length;
-                const pct = (withinRange / ints.length) * 100;
-                const { grade, cls } = gradeFromConsistency(pct);
+                                const pct = (withinRange / ints.length) * 100;
+                                lastAvgHz = avgHz;
+                                lastStabilityPct = pct;
+                                const { grade, cls } = gradeFromConsistency(pct);
                 const monBadge = document.getElementById("monitor-confidence");
                 const monBadgeText = document.getElementById("monitor-confidence-text");
                 if (monBadge && monBadgeText) {
@@ -1302,14 +1348,52 @@ const webPageSchema = {
                                 }
 
                                 if (diagMsgs.length > 0 && els.diagBox && els.diagList) {
-                    els.diagList.innerHTML = diagMsgs.map((m) => `<li>${m}</li>`).join("");
-                    els.diagBox.classList.add("show");
-                } else if (els.diagBox) {
-                    els.diagBox.classList.remove("show");
-                }
-            }
+                                                    els.diagList.innerHTML = diagMsgs.map((m) => `<li>${m}</li>`).join("");
+                                                    els.diagBox.classList.add("show");
+                                                } else if (els.diagBox) {
+                                                    els.diagBox.classList.remove("show");
+                                                }
 
-            function loop(ts: number) {
+                                                updateMotionBlurData();
+                                            }
+
+                                            function updateMotionBlurData() {
+                                                const banner = document.getElementById("motion-data-banner");
+                                                const metrics = document.getElementById("motion-metrics");
+                                                if (lastAvgHz === null) {
+                                                    if (banner) banner.style.display = "block";
+                                                    if (metrics) metrics.style.display = "none";
+                                                    return;
+                                                }
+                                                if (banner) banner.style.display = "none";
+                                                if (metrics) metrics.style.display = "block";
+
+                                                const zone = document.getElementById("motion-zone");
+                                                const w = zone ? zone.clientWidth - 46 : 600;
+                                                const cycleMs = 2200;
+
+                                                const speed1x = w / (cycleMs / 1000);
+                                                const speed2x = w / (cycleMs / 2 / 1000);
+                                                const speed4x = w / (cycleMs / 4 / 1000);
+
+                                                const frameDuration = 1 / lastAvgHz;
+
+                                                const blur1x = speed1x * frameDuration;
+                                                const blur2x = speed2x * frameDuration;
+                                                const blur4x = speed4x * frameDuration;
+
+                                                const b1 = document.getElementById("motion-blur-1x");
+                                                const b2 = document.getElementById("motion-blur-2x");
+                                                const b4 = document.getElementById("motion-blur-4x");
+                                                const basis = document.getElementById("motion-basis");
+
+                                                if (b1) b1.textContent = blur1x.toFixed(1) + " px";
+                                                if (b2) b2.textContent = blur2x.toFixed(1) + " px";
+                                                if (b4) b4.textContent = blur4x.toFixed(1) + " px";
+                                                if (basis) basis.textContent = `${Math.round(lastAvgHz)}Hz measured`;
+                                            }
+
+                                            function loop(ts: number) {
                 st.rafId = requestAnimationFrame(loop);
                 if (st.lastTs !== null) {
                     const dt = ts - st.lastTs;
@@ -1505,45 +1589,68 @@ const webPageSchema = {
             });
 
             // ---- VRR Simulator ----
-            document.getElementById("btn-vrr-run")?.addEventListener("click", () => {
-                const fixedCvs = document.getElementById("vrr-fixed") as HTMLCanvasElement | null;
-                const varCvs = document.getElementById("vrr-variable") as HTMLCanvasElement | null;
-                if (!fixedCvs || !varCvs) return;
-                fixedCvs.width = fixedCvs.offsetWidth;
-                fixedCvs.height = 90;
-                varCvs.width = varCvs.offsetWidth;
-                varCvs.height = 90;
-                const fCtx = fixedCvs.getContext("2d");
-                const vCtx = varCvs.getContext("2d");
-                if (!fCtx || !vCtx) return;
+                        document.getElementById("btn-vrr-run")?.addEventListener("click", () => {
+                            const fixedCvs = document.getElementById("vrr-fixed") as HTMLCanvasElement | null;
+                            const varCvs = document.getElementById("vrr-variable") as HTMLCanvasElement | null;
+                            if (!fixedCvs || !varCvs) return;
+                            fixedCvs.width = fixedCvs.offsetWidth;
+                            fixedCvs.height = 90;
+                            varCvs.width = varCvs.offsetWidth;
+                            varCvs.height = 90;
+                            const fCtx = fixedCvs.getContext("2d");
+                            const vCtx = varCvs.getContext("2d");
+                            if (!fCtx || !vCtx) return;
 
-                // Simulated GPU frame-ready times (fluctuating, like real gameplay)
-                const frameCount = 24;
-                const gpuTimes: number[] = [];
-                let acc = 0;
-                for (let i = 0; i < frameCount; i++) {
-                    acc += 8 + Math.random() * 14; // 8-22ms fluctuating render time
-                    gpuTimes.push(acc);
-                }
-                const totalSpan = gpuTimes[gpuTimes.length - 1];
+                            if (st.allIntervals.length < 24) {
+                                showToast("Run Live Hz Test for a few seconds first — VRR sim uses your real frame data");
+                                return;
+                            }
 
-                // Fixed refresh: locked 60Hz grid (16.67ms) — frames must wait for next tick
-                const fixedInterval = 16.67;
-                fCtx.clearRect(0, 0, fixedCvs.width, 90);
-                let tick = 0;
-                let gi = 0;
-                const barWf = fixedCvs.width / Math.ceil(totalSpan / fixedInterval);
-                let x = 0;
-                while (tick < totalSpan) {
-                    while (gi < gpuTimes.length && gpuTimes[gi] <= tick) gi++;
-                    const missed = gi > 0 && gpuTimes[gi - 1] < tick - fixedInterval;
-                    fCtx.fillStyle = missed ? "#ef4444" : "#f59e0b";
-                    fCtx.globalAlpha = 0.85;
-                    fCtx.fillRect(x, 20, Math.max(barWf - 2, 1), 50);
-                    x += barWf;
-                    tick += fixedInterval;
-                }
-                fCtx.globalAlpha = 1;
+                            // Use your ACTUAL measured frame intervals from Live Hz Test,
+                            // not simulated/random data
+                            const recentIntervals = st.allIntervals.slice(-24);
+                            const gpuTimes: number[] = [];
+                            let acc = 0;
+                            for (const dt of recentIntervals) {
+                                acc += dt;
+                                gpuTimes.push(acc);
+                            }
+                            const totalSpan = gpuTimes[gpuTimes.length - 1];
+
+                            // Fixed refresh: locked 60Hz grid (16.67ms) — frames must wait for next tick
+                                            const fixedInterval = 16.67;
+                                            fCtx.clearRect(0, 0, fixedCvs.width, 90);
+                                            let tick = 0;
+                                            let gi = 0;
+                                            const barWf = fixedCvs.width / Math.ceil(totalSpan / fixedInterval);
+                                            let x = 0;
+                                            let missedCount = 0;
+                                            let totalStallMs = 0;
+                                            while (tick < totalSpan) {
+                                                while (gi < gpuTimes.length && gpuTimes[gi] <= tick) gi++;
+                                                const missed = gi > 0 && gpuTimes[gi - 1] < tick - fixedInterval;
+                                                if (missed) {
+                                                    missedCount++;
+                                                    totalStallMs += tick - fixedInterval - gpuTimes[gi - 1];
+                                                }
+                                                fCtx.fillStyle = missed ? "#ef4444" : "#f59e0b";
+                                                fCtx.globalAlpha = 0.85;
+                                                fCtx.fillRect(x, 20, Math.max(barWf - 2, 1), 50);
+                                                x += barWf;
+                                                tick += fixedInterval;
+                                            }
+                                            fCtx.globalAlpha = 1;
+
+                                            const missedEl = document.getElementById("vrr-missed");
+                                            const stallEl = document.getElementById("vrr-stall");
+                                            const ontimeEl = document.getElementById("vrr-ontime");
+                                            const sampleEl = document.getElementById("vrr-sample");
+                                            const metricsBox = document.getElementById("vrr-metrics");
+                                            if (missedEl) missedEl.textContent = String(missedCount);
+                                            if (stallEl) stallEl.textContent = totalStallMs.toFixed(1) + " ms";
+                                            if (ontimeEl) ontimeEl.textContent = "100%";
+                                            if (sampleEl) sampleEl.textContent = `${recentIntervals.length} real frames`;
+                                            if (metricsBox) metricsBox.style.display = "grid";
 
                 // Variable refresh: bar drawn right at each frame's ready time
                 vCtx.clearRect(0, 0, varCvs.width, 90);
