@@ -10,6 +10,7 @@ export const GET: APIRoute = async () => {
     "https://laptopsspecial.com/tools/keyboard-latency-tester/",
     "https://laptopsspecial.com/tools/mouse-rate-test/",
     "https://laptopsspecial.com/tools/monitor-refresh-rate-test/",
+    "https://laptopsspecial.com/how-accurate-are-these-tests/",
     "https://laptopsspecial.com/about/",
     "https://laptopsspecial.com/contact/",
     "https://laptopsspecial.com/privacy/",
