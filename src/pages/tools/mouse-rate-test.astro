@@ -681,6 +681,44 @@ const breadcrumbSchema = {
             color: var(--text2);
             line-height: 1.65;
         }
+        .confidence-badge {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.45rem 0.9rem;
+            border-radius: 100px;
+            margin: 0.75rem auto 0;
+            width: fit-content;
+        }
+        .confidence-badge.show { display: flex; }
+        .confidence-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .confidence-badge.status-good {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        .confidence-badge.status-good .confidence-dot { background: #22c55e; }
+
+        .confidence-badge.status-check {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+        .confidence-badge.status-check .confidence-dot { background: #f59e0b; }
+
+        .confidence-badge.status-investigate {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .confidence-badge.status-investigate .confidence-dot { background: #ef4444; }
     </style>
 
     <div class="hero">
@@ -747,6 +785,11 @@ const breadcrumbSchema = {
     </div>
 
     <div class="precision-badge" id="precision-badge" aria-live="polite"></div>
+
+    <div class="confidence-badge" id="mouse-confidence" style="margin-left:auto;margin-right:auto;">
+        <span class="confidence-dot" aria-hidden="true"></span>
+        <span id="mouse-confidence-text">—</span>
+    </div>
 
     <!-- TOOL -->
     <div class="tool-container">
@@ -837,18 +880,23 @@ const breadcrumbSchema = {
                     </div>
                 </div>
                 <div class="click-counter">
-                    <div class="click-label">Heat pts</div><div
-                        class="click-val"
-                        id="c-heat"
-                        aria-live="polite"
-                    >
-                        0
-                    </div>
-                </div>
-            </div>
+                                    <div class="click-label">Heat pts</div><div
+                                        class="click-val"
+                                        id="c-heat"
+                                        aria-live="polite"
+                                    >
+                                        0
+                                    </div>
+                                </div>
+                            </div>
 
-            <!-- POLLING HISTORY MINI-CHART -->
-            <div class="chart-section">
+                            <div id="mouse-interpret" style="display:none; margin: 0 1.5rem 1rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.82rem; color: var(--text2);">
+                                <strong style="color: var(--text);">What this means: </strong>
+                                <span id="mouse-interpret-text"></span>
+                            </div>
+
+                            <!-- POLLING HISTORY MINI-CHART -->
+                            <div class="chart-section">
                 <div class="chart-label">
                     Polling Rate History (last 120 events)
                 </div>
@@ -1504,7 +1552,52 @@ const breadcrumbSchema = {
                         els.maxspeed.textContent =
                             st.maxSpd.toFixed(0) + " px/s";
                     if (live.hz > 1500) hfBadge?.classList.add("show");
-                    drawPollChart();
+                    const mBadge = document.getElementById("mouse-confidence");
+                    const mBadgeText = document.getElementById("mouse-confidence-text");
+                    if (mBadge && mBadgeText && st.totalEvents > 30) {
+                        mBadge.classList.add("show");
+                        mBadge.classList.remove("status-good", "status-check", "status-investigate");
+                        const jitterNow = st.intervals.length > 2
+                            ? Math.sqrt(st.intervals.reduce((a, b) => {
+                                const meanV = st.intervals.reduce((x, y) => x + y, 0) / st.intervals.length;
+                                return a + (b - meanV) ** 2;
+                            }, 0) / st.intervals.length)
+                            : 0;
+
+                        if (jitterNow > 2.5) {
+                            mBadge.classList.add("status-investigate");
+                            mBadgeText.textContent = "Investigate — high jitter, inconsistent reporting";
+                        } else if (avgHz < 125 || jitterNow > 1.5) {
+                            mBadge.classList.add("status-check");
+                            mBadgeText.textContent = "Check — polling rate or consistency below typical gaming range";
+                        } else {
+                            mBadge.classList.add("status-good");
+                            mBadgeText.textContent = "Good — stable, consistent reporting";
+                        }
+                    }
+                                        const mInterpretBox = document.getElementById("mouse-interpret");
+                                        const mInterpretText = document.getElementById("mouse-interpret-text");
+                                        if (mInterpretBox && mInterpretText && st.totalEvents > 30) {
+                                            mInterpretBox.style.display = "block";
+                                            const jitterVal = st.intervals.length > 2
+                                                ? Math.sqrt(st.intervals.reduce((a, b) => {
+                                                    const meanV = st.intervals.reduce((x, y) => x + y, 0) / st.intervals.length;
+                                                    return a + (b - meanV) ** 2;
+                                                }, 0) / st.intervals.length)
+                                                : 0;
+
+                                            if (avgHz < 130 && st.peakHz < 200) {
+                                                mInterpretText.textContent = "Your mouse is reporting around 125Hz — normal for a basic office mouse, but low for gaming. If this is meant to be a gaming mouse, check the manufacturer's software to confirm polling rate is set correctly.";
+                                            } else if (jitterVal > 2.5) {
+                                                mInterpretText.textContent = "Polling rate looks fine on average, but jitter is on the higher side — meaning report timing isn't fully consistent. This is often browser scheduling, not a hardware fault, but try a different USB port if it persists.";
+                                            } else if (avgHz >= 800) {
+                                                mInterpretText.textContent = "Consistent high-frequency reporting — your mouse and system are handling polling well. Remember: numbers above ~1500-2000Hz can under-report in-browser even when the hardware is working correctly (see FAQ below).";
+                                            } else {
+                                                mInterpretText.textContent = "Reporting looks stable for standard use. If you expected a higher number and your mouse is rated for more, remember that browsers can throttle event delivery — see the FAQ below for why.";
+                                            }
+                                        }
+
+                                        drawPollChart();
                 }
             }
             st.rafId = requestAnimationFrame(rafLoop);

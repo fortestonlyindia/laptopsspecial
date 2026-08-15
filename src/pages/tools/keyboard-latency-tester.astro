@@ -454,40 +454,50 @@ const faqSchema = {
             margin-bottom: 0.6rem;
         }
         .history-feed {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    max-height: 320px;
-                    overflow-y: auto;
-                    padding-right: 4px;
-                }
-                .history-feed::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .history-feed::-webkit-scrollbar-thumb {
-                    background: var(--border);
-                    border-radius: 3px;
-                }
-                .hkey {
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            gap: 0.6rem;
-                            font-family: var(--font-mono);
-                            font-size: 0.75rem;
-                            font-weight: 600;
-                            background: rgba(0, 212, 255, 0.1);
-                            border: 1px solid rgba(0, 212, 255, 0.22);
-                            color: #00d4ff;
-                            padding: 0.35rem 0.65rem;
-                            border-radius: 6px;
-                            animation: fadeIn 0.12s ease;
-                        }
-                        .hkey .hkey-time {
-                            font-size: 0.68rem;
-                            font-weight: 600;
-                            color: var(--muted);
-                        }
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .history-feed::-webkit-scrollbar {
+            width: 6px;
+        }
+        .history-feed::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+        .hkey {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.22);
+            color: #00d4ff;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            animation: fadeIn 0.12s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .hkey-key {
+            flex: 0 0 auto;
+            font-weight: 700;
+            margin-right: 1rem;
+        }
+        .hkey-time {
+            flex: 1 1 auto;
+            text-align: right;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--muted);
+            white-space: nowrap;
+        }
         [data-theme="light"] .hkey {
             background: rgba(2, 132, 199, 0.1);
             border-color: rgba(2, 132, 199, 0.25);
@@ -701,6 +711,44 @@ const faqSchema = {
                 min-height: 200px;
             }
         }
+        .confidence-badge {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.45rem 0.9rem;
+            border-radius: 100px;
+            margin: 0.75rem auto 0;
+            width: fit-content;
+        }
+        .confidence-badge.show { display: flex; }
+        .confidence-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .confidence-badge.status-good {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        .confidence-badge.status-good .confidence-dot { background: #22c55e; }
+
+        .confidence-badge.status-check {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+        .confidence-badge.status-check .confidence-dot { background: #f59e0b; }
+
+        .confidence-badge.status-investigate {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .confidence-badge.status-investigate .confidence-dot { background: #ef4444; }
     </style>
 
     <!-- HERO -->
@@ -721,7 +769,7 @@ const faqSchema = {
             <div class="stat-unit">milliseconds</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Fastest Key Response</div>
+            <div class="stat-label">Last Key Response</div>
             <div class="stat-value" id="s-scan" aria-live="polite">—</div>
             <div class="stat-unit">milliseconds</div>
         </div>
@@ -743,6 +791,12 @@ const faqSchema = {
             <span id="result-interpret-text"></span>
         </div>
     </div>
+
+    <div class="confidence-badge" id="kb-confidence" style="margin-left:auto;margin-right:auto;">
+        <span class="confidence-dot" aria-hidden="true"></span>
+        <span id="kb-confidence-text">—</span>
+    </div>
+
     <!-- ═══════ TOOL CARD ═══════ -->
     <div class="tool-container">
         <div class="tool-card">
@@ -1462,81 +1516,101 @@ const faqSchema = {
             );
 
             document.addEventListener(
-                "keyup",
-                (e: KeyboardEvent) => {
-                    const el = getKeyEl(e.code);
-                    if (el) el.classList.remove("pressed");
+                            "keyup",
+                            (e: KeyboardEvent) => {
+                                const el = getKeyEl(e.code);
+                                if (el) el.classList.remove("pressed");
 
-                    const t = keyDownTimes.get(e.code);
-                    if (t === undefined) return;
-                    keyDownTimes.delete(e.code);
+                                const t = keyDownTimes.get(e.code);
+                                if (t === undefined) return;
+                                keyDownTimes.delete(e.code);
 
-                    const dur = performance.now() - t;
+                                const dur = performance.now() - t;
 
-                    if (!historyCleared) {
-                        feed.innerHTML = "";
-                        historyCleared = true;
-                    }
+                                if (!historyCleared) {
+                                    feed.innerHTML = "";
+                                    historyCleared = true;
+                                }
 
-                    // History tag
-                                        const keyLabel =
-                                            e.key === " "
-                                                ? "Space"
-                                                : e.key.length > 8
-                                                  ? e.code
-                                                        .replace("Key", "")
-                                                        .replace("Digit", "")
-                                                        .replace("Numpad", "Num")
-                                                  : e.key;
+                                // History tag
+                                const keyLabel =
+                                    e.key === " "
+                                        ? "Space"
+                                        : e.key.length > 8
+                                          ? e.code
+                                                .replace("Key", "")
+                                                .replace("Digit", "")
+                                                .replace("Numpad", "Num")
+                                          : e.key;
 
-                                        const now = new Date();
-                                        const timeLabel = now.toLocaleTimeString("en-US", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                        });
+                                const now = new Date();
+                                const timeLabel = now.toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit",
+                                });
 
-                                        const tag = document.createElement("span");
-                                        tag.className = "hkey";
-                                        tag.title = `${dur.toFixed(1)} ms — ${timeLabel}`;
-                                        const keySpan = document.createElement("span");
-                                        keySpan.textContent = keyLabel;
-                                        const timeSpan = document.createElement("span");
-                                        timeSpan.className = "hkey-time";
-                                        timeSpan.textContent = `${dur.toFixed(1)}ms · ${timeLabel}`;
-                                        tag.appendChild(keySpan);
-                                        tag.appendChild(timeSpan);
-                                        feed.prepend(tag);
-                                        // No cap — poori session ki history rakhi jaayegi, scroll se dekho
+                                const tag = document.createElement("div");
+                                tag.className = "hkey";
+                                tag.title = `${dur.toFixed(1)} ms — ${timeLabel}`;
 
-                    // Stats
-                    totalKeys++;
-                    if (sCount) sCount.textContent = String(totalKeys);
+                                const keySpan = document.createElement("span");
+                                keySpan.className = "hkey-key";
+                                keySpan.textContent = keyLabel;
 
-                    pressedCodes.add(e.code);
-                    if (sUnique)
-                        sUnique.textContent = String(pressedCodes.size);
+                                const timeSpan = document.createElement("span");
+                                timeSpan.className = "hkey-time";
+                                timeSpan.textContent = `${dur.toFixed(1)}ms · ${timeLabel}`;
 
-                    if (dur < shortestPress) {
-                        shortestPress = dur;
-                        if (sShort) sShort.textContent = dur.toFixed(1);
-                        if (sScan) sScan.textContent = dur.toFixed(1);
-                    }
-                    const interpretBox = document.getElementById("result-interpret");
-                    const interpretText = document.getElementById("result-interpret-text");
-                    if (interpretBox && interpretText) {
-                        interpretBox.style.display = "block";
-                        if (dur < 20) {
-                            interpretText.textContent = "Fast, consistent response — this key is behaving normally, in line with a typical 1-15ms range depending on your keyboard's switch type.";
-                        } else if (dur < 60) {
-                            interpretText.textContent = "Slightly higher than typical, but still within normal range for everyday typing. Test a few more keys to see if this is consistent or specific to one key.";
-                        } else {
-                            interpretText.textContent = "Noticeably slower than average. If this happens on one specific key repeatedly, it could indicate a sticky switch or debris under the keycap — worth cleaning or investigating further.";
-                        }
-                    }
-                },
-                { signal },
-            );
+                                tag.appendChild(keySpan);
+                                tag.appendChild(timeSpan);
+                                feed.prepend(tag);
+
+                                // Stats
+                                totalKeys++;
+                                if (sCount) sCount.textContent = String(totalKeys);
+
+                                pressedCodes.add(e.code);
+                                if (sUnique) sUnique.textContent = String(pressedCodes.size);
+
+                                if (dur < shortestPress) {
+                                                                    shortestPress = dur;
+                                                                }
+                                                                if (sShort) sShort.textContent = shortestPress.toFixed(1);
+                                                                if (sScan) sScan.textContent = dur.toFixed(1);
+
+                                const kbBadge = document.getElementById("kb-confidence");
+                                const kbBadgeText = document.getElementById("kb-confidence-text");
+                                if (kbBadge && kbBadgeText) {
+                                    kbBadge.classList.add("show");
+                                    kbBadge.classList.remove("status-good", "status-check", "status-investigate");
+                                    if (dur < 20) {
+                                        kbBadge.classList.add("status-good");
+                                        kbBadgeText.textContent = "Good — response time is healthy";
+                                    } else if (dur < 60) {
+                                        kbBadge.classList.add("status-check");
+                                        kbBadgeText.textContent = "Check — slightly slow, test a few more keys";
+                                    } else {
+                                        kbBadge.classList.add("status-investigate");
+                                        kbBadgeText.textContent = "Investigate — consistently slow response";
+                                    }
+                                }
+
+                                const interpretBox = document.getElementById("result-interpret");
+                                const interpretText = document.getElementById("result-interpret-text");
+                                if (interpretBox && interpretText) {
+                                    interpretBox.style.display = "block";
+                                    if (dur < 20) {
+                                        interpretText.textContent = "Fast, consistent response — this key is behaving normally, in line with a typical 1-15ms range depending on your keyboard's switch type.";
+                                    } else if (dur < 60) {
+                                        interpretText.textContent = "Slightly higher than typical, but still within normal range for everyday typing. Test a few more keys to see if this is consistent or specific to one key.";
+                                    } else {
+                                        interpretText.textContent = "Noticeably slower than average. If this happens on one specific key repeatedly, it could indicate a sticky switch or debris under the keycap — worth cleaning or investigating further.";
+                                    }
+                                }
+                            },
+                            { signal },
+                        );
 
             btnReset?.addEventListener(
                 "click",

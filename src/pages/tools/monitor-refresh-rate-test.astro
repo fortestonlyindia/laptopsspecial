@@ -741,15 +741,53 @@ const webPageSchema = {
         @media (max-width: 640px) {
             .live-hz { font-size: 3rem; }
         }
+        .confidence-badge {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.45rem 0.9rem;
+            border-radius: 100px;
+            margin: 0.75rem auto 0;
+            width: fit-content;
+        }
+        .confidence-badge.show { display: flex; }
+        .confidence-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .confidence-badge.status-good {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        .confidence-badge.status-good .confidence-dot { background: #22c55e; }
+
+        .confidence-badge.status-check {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+        .confidence-badge.status-check .confidence-dot { background: #f59e0b; }
+
+        .confidence-badge.status-investigate {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .confidence-badge.status-investigate .confidence-dot { background: #ef4444; }
     </style>
 
     <div class="hero">
         <div class="hero-badge">🟠 Live Hz + Grade + VRR Simulator</div>
         <h1>Monitor <span>Refresh Rate</span> Test</h1>
         <p>
-            Check your screen's real refresh rate, frame consistency and stability
-            grade — plus a motion clarity test and VRR/G-Sync simulator most
-            other tools don't have.
+            Check your screen's browser-observed refresh rate, frame consistency and
+            stability grade - plus a motion clarity test and VRR/G-Sync simulator
+            most other tools don't have.
         </p>
     </div>
 
@@ -775,6 +813,11 @@ const webPageSchema = {
             <div class="grade-value" id="s-grade" aria-live="polite">—</div>
             <div class="stat-unit" id="s-grade-sub">run test first</div>
         </div>
+    </div>
+
+    <div class="confidence-badge" id="monitor-confidence" style="margin-left:auto;margin-right:auto;">
+        <span class="confidence-dot" aria-hidden="true"></span>
+        <span id="monitor-confidence-text">—</span>
     </div>
 
     <!-- TOOL -->
@@ -847,7 +890,12 @@ const webPageSchema = {
                         </div>
                     </div>
                 </div>
+                <div id="monitor-interpret" style="display:none; margin: 0 1.5rem 1rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.82rem; color: var(--text2);">
+                                    <strong style="color: var(--text);">What this means: </strong>
+                                    <span id="monitor-interpret-text"></span>
+                                </div>
 
+                                <div class="diag-box" id="diag-box">
                 <div class="diag-box" id="diag-box">
                     <div class="diag-title">⚠️ Diagnostic Suggestions</div>
                     <ul id="diag-list"></ul>
@@ -1191,6 +1239,22 @@ const webPageSchema = {
                 const withinRange = ints.filter((i) => Math.abs(i - median) <= median * 0.15).length;
                 const pct = (withinRange / ints.length) * 100;
                 const { grade, cls } = gradeFromConsistency(pct);
+                const monBadge = document.getElementById("monitor-confidence");
+                const monBadgeText = document.getElementById("monitor-confidence-text");
+                if (monBadge && monBadgeText) {
+                    monBadge.classList.add("show");
+                    monBadge.classList.remove("status-good", "status-check", "status-investigate");
+                    if (grade === "A" || grade === "B") {
+                        monBadge.classList.add("status-good");
+                        monBadgeText.textContent = `Good — ${pct.toFixed(0)}% frame stability`;
+                    } else if (grade === "C") {
+                        monBadge.classList.add("status-check");
+                        monBadgeText.textContent = `Check — ${pct.toFixed(0)}% frame stability, close background apps`;
+                    } else {
+                        monBadge.classList.add("status-investigate");
+                        monBadgeText.textContent = `Investigate — only ${pct.toFixed(0)}% frames consistent`;
+                    }
+                }
                 if (els.sGrade) {
                     els.sGrade.textContent = grade;
                     els.sGrade.className = "grade-value " + cls;
@@ -1220,9 +1284,25 @@ const webPageSchema = {
                     diagMsgs.push("Low stability — close background apps/tabs, ensure your laptop is in high-performance power mode, and disable browser power-saving throttle if present.");
                 }
                 if (jitter > 3) {
-                    diagMsgs.push("High jitter detected — this can indicate an inadequate cable standard or GPU driver issue rather than a monitor problem.");
-                }
-                if (diagMsgs.length > 0 && els.diagBox && els.diagList) {
+                                    diagMsgs.push("High jitter detected — this can indicate an inadequate cable standard or GPU driver issue rather than a monitor problem.");
+                                }
+
+                                const mInterpretBox = document.getElementById("monitor-interpret");
+                                const mInterpretText = document.getElementById("monitor-interpret-text");
+                                if (mInterpretBox && mInterpretText) {
+                                    mInterpretBox.style.display = "block";
+                                    if (grade === "A" && avgHz >= 100) {
+                                        mInterpretText.textContent = `Your display is holding a consistent ${Math.round(avgHz)}Hz with ${pct.toFixed(0)}% frame stability — this is a high-refresh panel performing as expected. No action needed.`;
+                                    } else if (avgHz < 65 && avgHz > 55) {
+                                        mInterpretText.textContent = "Reading is close to 60Hz. If your monitor is rated higher than this, it's very likely running at its default refresh rate rather than a hardware problem — check the accuracy tips below.";
+                                    } else if (grade === "D" || grade === "F") {
+                                        mInterpretText.textContent = `Your average Hz looks reasonable, but only ${pct.toFixed(0)}% of frames are landing consistently. This usually points to background CPU load, power-saving mode, or a cable that can't sustain the bandwidth — not a failing panel.`;
+                                    } else {
+                                        mInterpretText.textContent = `Stable reading at roughly ${Math.round(avgHz)}Hz with ${pct.toFixed(0)}% consistency — within normal range.`;
+                                    }
+                                }
+
+                                if (diagMsgs.length > 0 && els.diagBox && els.diagList) {
                     els.diagList.innerHTML = diagMsgs.map((m) => `<li>${m}</li>`).join("");
                     els.diagBox.classList.add("show");
                 } else if (els.diagBox) {

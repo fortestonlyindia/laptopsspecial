@@ -1,0 +1,378 @@
+---
+import Base from "@layouts/Base.astro";
+
+const pageUrl = "https://laptopsspecial.com/how-accurate-are-these-tests/";
+const siteUrl = "https://laptopsspecial.com/";
+
+const seoTitle = "How Accurate Are Browser-Based Hardware Tests? — Methodology";
+const seoDescription =
+    "How our keyboard, mouse and monitor tests actually measure your hardware — the web APIs used, what browsers can and can't detect, and why some numbers read lower than the spec sheet.";
+
+const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${pageUrl}#breadcrumb`,
+    itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+        { "@type": "ListItem", position: 2, name: "How Accurate Are These Tests?", item: pageUrl },
+    ],
+};
+
+const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${pageUrl}#faq`,
+    mainEntity: [
+        {
+            "@type": "Question",
+            name: "Can a browser measure hardware directly?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "No. Browsers deliberately sandbox web pages away from direct hardware access for security reasons. Every measurement on this site comes from timing events the operating system already handed to the browser — not from querying the device driver or controller directly.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Why do polling rate numbers sometimes read lower than the mouse's rated spec?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Above roughly 1500-2000Hz, OS-level event coalescing and browser scheduling start merging or throttling updates before JavaScript ever sees them. A mouse can be reporting correctly at 4000Hz or 8000Hz at the hardware level while the browser only surfaces a fraction of those events.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Are these tests still useful if they can't hit the exact hardware number?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes, for comparison and consistency checks. Testing the same device twice, or comparing two devices under the same browser and conditions, gives you a reliable relative reading even if the absolute peak number is capped by browser throttling.",
+            },
+        },
+        {
+            "@type": "Question",
+            name: "Does background CPU load affect the results?",
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes. Background tabs, other applications, and general CPU load can delay when the browser processes an event, which shows up as jitter or dropped frames in these tools even though the underlying hardware is working correctly.",
+            },
+        },
+    ],
+};
+---
+
+<Base
+    title={`${seoTitle} | Laptops Special`}
+    description={seoDescription}
+    canonical={pageUrl}
+    noWebAppSchema={true}
+>
+    <style>
+        .m-hero {
+            text-align: center;
+            padding: 3rem 1.5rem 1.5rem;
+        }
+        .m-hero h1 {
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        .m-hero p {
+            color: var(--text2);
+            font-size: 0.95rem;
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+        .m-content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem 4rem;
+        }
+        .m-content h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 2.2rem 0 0.85rem;
+        }
+        .m-content h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 1.4rem 0 0.6rem;
+        }
+        .m-content p {
+            color: var(--text2);
+            font-size: 0.9rem;
+            line-height: 1.8;
+            margin-bottom: 0.9rem;
+        }
+        .m-content ul, .m-content ol {
+            color: var(--text2);
+            font-size: 0.9rem;
+            line-height: 1.85;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .flow-box {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--accent);
+            text-align: center;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .confidence-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin: 1rem 0 1.5rem;
+        }
+        .confidence-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            font-size: 0.85rem;
+        }
+        .confidence-row .cname {
+            flex: 1;
+            color: var(--text);
+            font-weight: 600;
+        }
+        .confidence-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+        .conf-high { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .conf-mid { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .conf-low { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+        .callout {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+        .tool-links {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+        .tool-links a {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.55rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin-top: 1rem;
+        }
+        .faq-item {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.95rem;
+        }
+        .faq-q {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.35rem;
+        }
+        .faq-a {
+            font-size: 0.8rem;
+            color: var(--text2);
+            line-height: 1.65;
+        }
+    </style>
+
+    <div class="m-hero">
+        <h1>How Accurate Are Browser-Based Hardware Tests?</h1>
+        <p>
+            Every tool on this site runs inside your browser, not as native
+            software. That has real implications for what can and can't be
+            measured precisely. Here's exactly how each test works, and where
+            the limits are.
+        </p>
+    </div>
+
+    <div class="m-content">
+        <h2>The Short Answer</h2>
+        <p>
+            Browser-based tests are reliable for detecting problems and comparing
+            results — a dead key, an inconsistent mouse, or a monitor stuck at
+            the wrong refresh rate will show up clearly. What they can't do is
+            replace a hardware-level utility for verifying an exact peak spec
+            number, because the browser only ever sees what the operating
+            system hands it, several layers removed from the device itself.
+        </p>
+
+        <h2>Why a Browser Can't Talk to Hardware Directly</h2>
+        <p>
+            Web pages run in a sandbox for security — a website has no permission
+            to query your keyboard controller, mouse sensor, or monitor's EDID
+            data directly. Every number these tools show is derived from
+            <strong>timing events</strong>, not from reading hardware registers.
+            That's true of virtually every browser-based tester, not just this
+            site.
+        </p>
+
+        <h3>Keyboard: the path from finger to screen</h3>
+        <div class="flow-box">Physical key → Keyboard controller → OS → Browser keydown/keyup event → Timer</div>
+        <p>
+            The keyboard tester measures the time between <code>keydown</code>
+            and <code>keyup</code> events using <code>performance.now()</code>,
+            a high-resolution timer. This captures how long you held the key
+            plus any delay the OS and browser introduced — it does not (and
+            cannot) read the keyboard's actual internal scan rate, which is a
+            fixed hardware spec baked into the controller.
+        </p>
+
+        <h3>Mouse: coalesced events and polling</h3>
+        <div class="flow-box">Mouse sensor → USB report → OS input stack → Pointer Events API → Browser</div>
+        <p>
+            The mouse tester uses the <code>getCoalescedEvents()</code> API,
+            and <code>pointerrawupdate</code> where supported, to recover as
+            many individual hardware reports as possible from each browser
+            paint cycle. This is meaningfully more accurate than a naive
+            <code>mousemove</code> counter, but it still inherits a ceiling:
+            once your mouse's real polling rate goes much above roughly
+            1500–2000Hz, OS-level event coalescing starts merging reports
+            before JavaScript ever sees them.
+        </p>
+
+        <h3>Monitor: requestAnimationFrame and vsync</h3>
+        <div class="flow-box">Display panel → GPU vsync → requestAnimationFrame callback → Timer</div>
+        <p>
+            <code>requestAnimationFrame()</code> is called by the browser in
+            sync with your display's vertical refresh, so timing the gap
+            between consecutive calls gives a genuinely accurate live Hz
+            reading — typically within ±1–2Hz under normal conditions. What
+            it's sensitive to is anything that delays the callback: background
+            tabs, high CPU load, or OS-level frame pacing, which is exactly
+            what the stability grade on the monitor test is designed to catch.
+        </p>
+
+        <h2>Measurement Confidence, By Test</h2>
+        <p>Not every reading carries the same level of certainty. Here's how we'd rate each one:</p>
+        <div class="confidence-grid">
+            <div class="confidence-row">
+                <span class="cname">Keyboard — is a key registering at all</span>
+                <span class="confidence-badge conf-high">High confidence</span>
+            </div>
+            <div class="confidence-row">
+                <span class="cname">Keyboard — exact scan rate in Hz</span>
+                <span class="confidence-badge conf-low">Not measurable in-browser</span>
+            </div>
+            <div class="confidence-row">
+                <span class="cname">Mouse — polling rate up to ~1500Hz</span>
+                <span class="confidence-badge conf-high">High confidence</span>
+            </div>
+            <div class="confidence-row">
+                <span class="cname">Mouse — polling rate above ~2000Hz (4000/8000Hz mice)</span>
+                <span class="confidence-badge conf-mid">Browser-limited, can under-report</span>
+            </div>
+            <div class="confidence-row">
+                <span class="cname">Monitor — live Hz via requestAnimationFrame</span>
+                <span class="confidence-badge conf-high">High confidence</span>
+            </div>
+            <div class="confidence-row">
+                <span class="cname">Monitor — true end-to-end input-to-photon latency</span>
+                <span class="confidence-badge conf-low">Not measurable in-browser</span>
+            </div>
+        </div>
+
+        <h2>What Can Affect Your Results</h2>
+        <ul>
+            <li><strong>Background tabs and apps</strong> — competing for CPU time delays when your browser processes each event.</li>
+            <li><strong>Power-saving mode</strong> — laptops often silently cap refresh rate or throttle polling to save battery.</li>
+            <li><strong>Cable and port standard</strong> — HDMI 1.4, for example, can't carry 144Hz at higher resolutions regardless of what your monitor supports.</li>
+            <li><strong>Browser choice</strong> — Chromium-based browsers (Chrome, Edge) generally expose more precise timing APIs than others.</li>
+            <li><strong>USB hubs and wireless dongles</strong> — an extra hop can add latency or reduce effective polling consistency.</li>
+        </ul>
+
+        <div class="callout">
+            <strong>Bottom line:</strong> use these tools to catch real problems
+            (a dead key, a monitor stuck at 60Hz, an inconsistent mouse) and to
+            compare devices under the same conditions. For certifying an exact
+            peak spec number on very high-end hardware, pair this with a
+            native, driver-level utility.
+        </div>
+
+        <h2>Test Your Hardware</h2>
+        <div class="tool-links">
+            <a href="/tools/keyboard-latency-tester/" data-astro-reload>⌨️ Keyboard Tester →</a>
+            <a href="/tools/mouse-rate-test/" data-astro-reload>🖱 Mouse Rate Test →</a>
+            <a href="/tools/monitor-refresh-rate-test/" data-astro-reload>🖥️ Monitor Refresh Rate Test →</a>
+        </div>
+
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-q">Can a browser measure hardware directly?</div>
+                <div class="faq-a">
+                    No. Browsers deliberately sandbox web pages away from direct
+                    hardware access for security reasons. Every measurement on
+                    this site comes from timing events the operating system
+                    already handed to the browser — not from querying the
+                    device driver or controller directly.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">Why do polling rate numbers sometimes read lower than the mouse's rated spec?</div>
+                <div class="faq-a">
+                    Above roughly 1500–2000Hz, OS-level event coalescing and
+                    browser scheduling start merging or throttling updates
+                    before JavaScript ever sees them. A mouse can be reporting
+                    correctly at 4000Hz or 8000Hz at the hardware level while
+                    the browser only surfaces a fraction of those events.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">Are these tests still useful if they can't hit the exact hardware number?</div>
+                <div class="faq-a">
+                    Yes, for comparison and consistency checks. Testing the same
+                    device twice, or comparing two devices under the same
+                    browser and conditions, gives you a reliable relative
+                    reading even if the absolute peak number is capped by
+                    browser throttling.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q">Does background CPU load affect the results?</div>
+                <div class="faq-a">
+                    Yes. Background tabs, other applications, and general CPU
+                    load can delay when the browser processes an event, which
+                    shows up as jitter or dropped frames in these tools even
+                    though the underlying hardware is working correctly.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</Base>
