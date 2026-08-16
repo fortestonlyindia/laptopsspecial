@@ -849,7 +849,7 @@ const breadcrumbSchema = {
                                         aria-label="Download diagnostic report as PDF"
                                         >💾 PDF Report</button
                                     >
-                                    <a href="https://laptopsspecial.com/full-diagnostic-report/" class="btn-sm btn-fulldiag" id="btn-fulldiag" aria-label="Open full diagnostic report page in a new tab" target="_blank" rel="noopener" >🧪 Full Diag Report</a >
+                                    <a href="/full-diagnostic-report/" class="btn-sm btn-fulldiag" id="btn-fulldiag" aria-label="Open full diagnostic report page in a new tab" target="_blank" rel="noopener" >🧪 Full Diag Report</a >
                                                                     </div>
                                 </div>
             </div>
@@ -1587,11 +1587,12 @@ const breadcrumbSchema = {
                     if (mBadge && mBadgeText && st.totalEvents > 30) {
                         mBadge.classList.add("show");
                         mBadge.classList.remove("status-good", "status-check", "status-investigate");
-                        const jitterNow = st.intervals.length > 2
-                            ? Math.sqrt(st.intervals.reduce((a, b) => {
-                                const meanV = st.intervals.reduce((x, y) => x + y, 0) / st.intervals.length;
+                        const cleanForBadge = st.intervals.filter((i) => i < 50);
+                        const jitterNow = cleanForBadge.length > 2
+                            ? Math.sqrt(cleanForBadge.reduce((a, b) => {
+                                const meanV = cleanForBadge.reduce((x, y) => x + y, 0) / cleanForBadge.length;
                                 return a + (b - meanV) ** 2;
-                            }, 0) / st.intervals.length)
+                            }, 0) / cleanForBadge.length)
                             : 0;
 
                         if (jitterNow > 2.5) {
@@ -1605,16 +1606,17 @@ const breadcrumbSchema = {
                             mBadgeText.textContent = "Good — stable, consistent reporting";
                         }
                     }
-                                        const mInterpretBox = document.getElementById("mouse-interpret");
-                                        const mInterpretText = document.getElementById("mouse-interpret-text");
-                                        if (mInterpretBox && mInterpretText && st.totalEvents > 30) {
-                                            mInterpretBox.style.display = "block";
-                                            const jitterVal = st.intervals.length > 2
-                                                ? Math.sqrt(st.intervals.reduce((a, b) => {
-                                                    const meanV = st.intervals.reduce((x, y) => x + y, 0) / st.intervals.length;
-                                                    return a + (b - meanV) ** 2;
-                                                }, 0) / st.intervals.length)
-                                                : 0;
+                    const mInterpretBox = document.getElementById("mouse-interpret");
+                    const mInterpretText = document.getElementById("mouse-interpret-text");
+                    if (mInterpretBox && mInterpretText && st.totalEvents > 30) {
+                        mInterpretBox.style.display = "block";
+                        const cleanForInterpret = st.intervals.filter((i) => i < 50);
+                        const jitterVal = cleanForInterpret.length > 2
+                            ? Math.sqrt(cleanForInterpret.reduce((a, b) => {
+                                const meanV = cleanForInterpret.reduce((x, y) => x + y, 0) / cleanForInterpret.length;
+                                return a + (b - meanV) ** 2;
+                            }, 0) / cleanForInterpret.length)
+                            : 0;
 
                                             if (avgHz < 130 && st.peakHz < 200) {
                                                 mInterpretText.textContent = "Your mouse is reporting around 125Hz — normal for a basic office mouse, but low for gaming. If this is meant to be a gaming mouse, check the manufacturer's software to confirm polling rate is set correctly.";
@@ -1741,12 +1743,13 @@ const breadcrumbSchema = {
 
             function currentJitterMs(): number | null {
                 if (st.intervals.length <= 2) return null;
+                const cleanIntervals = st.intervals.filter((i) => i < 50);
+                if (cleanIntervals.length <= 2) return null;
                 const mean =
-                    st.intervals.reduce((a, b) => a + b, 0) /
-                    st.intervals.length;
+                    cleanIntervals.reduce((a, b) => a + b, 0) / cleanIntervals.length;
                 const variance =
-                    st.intervals.reduce((a, b) => a + (b - mean) ** 2, 0) /
-                    st.intervals.length;
+                    cleanIntervals.reduce((a, b) => a + (b - mean) ** 2, 0) /
+                    cleanIntervals.length;
                 return Math.sqrt(variance);
             }
 

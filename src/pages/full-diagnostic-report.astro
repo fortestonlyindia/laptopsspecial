@@ -12,7 +12,7 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
 >
     <style>
         .report-wrap {
-            max-width: 720px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 2.5rem 1.5rem 4rem;
         }
@@ -49,13 +49,40 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
             color: var(--accent);
             text-decoration: none;
         }
-
+        .progress-track {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .progress-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.4rem 0.85rem;
+            border-radius: 100px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+        .progress-pill.done {
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.08);
+        }
+        .progress-pill a {
+            color: inherit;
+            text-decoration: none;
+        }
         .report-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         .report-header h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 0.4rem;
@@ -64,33 +91,81 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
             font-size: 0.8rem;
             color: var(--muted);
         }
-
         .score-card {
             background: var(--bg2);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 2rem 1.5rem;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
             margin-bottom: 1.5rem;
         }
-        .score-value {
+        .gauge-wrap {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            flex-shrink: 0;
+        }
+        .gauge-wrap svg { transform: rotate(-90deg); }
+        .gauge-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .gauge-score {
             font-family: var(--font-mono);
-            font-size: 3.2rem;
+            font-size: 2.2rem;
             font-weight: 700;
         }
-        .score-value.good { color: #22c55e; }
-        .score-value.check { color: #f59e0b; }
-        .score-value.investigate { color: #ef4444; }
-        .score-label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-top: 0.4rem;
+        .gauge-max {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: -4px;
         }
-        .score-label.good { color: #22c55e; }
-        .score-label.check { color: #f59e0b; }
-        .score-label.investigate { color: #ef4444; }
+        .score-good { color: #22c55e; }
+        .score-check { color: #f59e0b; }
+        .score-investigate { color: #ef4444; }
+        .score-summary { flex: 1; min-width: 220px; }
+        .score-summary-label { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .score-summary-desc { font-size: 0.85rem; color: var(--text2); line-height: 1.7; }
+
+        .tool-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .tool-mini-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.1rem 1.25rem;
+        }
+        .tool-mini-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .tool-mini-name { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+        .tool-mini-score { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; }
+        .tool-mini-metrics { display: flex; flex-direction: column; gap: 0.35rem; }
+        .tool-mini-metric { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text2); }
+        .tool-mini-metric span:last-child { color: var(--text); font-weight: 600; }
+        .tool-mini-bar-track {
+            height: 5px;
+            border-radius: 3px;
+            background: var(--bg3);
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+        .tool-mini-bar-fill { height: 100%; border-radius: 3px; }
 
         .result-table {
             width: 100%;
@@ -127,14 +202,15 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
         .status-pill.check { background: rgba(245,158,11,0.12); color: #f59e0b; }
         .status-pill.investigate { background: rgba(239,68,68,0.12); color: #ef4444; }
 
-        .report-section {
-            margin-bottom: 1.5rem;
-        }
+        .report-section { margin-bottom: 1.5rem; }
         .report-section h2 {
             font-size: 1rem;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
         .finding-item {
             background: var(--bg2);
@@ -144,8 +220,33 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
             margin-bottom: 0.6rem;
             font-size: 0.85rem;
             color: var(--text2);
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-start;
         }
+        .finding-item .fi-icon { flex-shrink: 0; margin-top: 1px; }
         .finding-item strong { color: var(--text); }
+
+        .sysinfo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+        .sysinfo-item {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+        .sysinfo-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        .sysinfo-val { font-size: 0.82rem; color: var(--text); font-weight: 600; }
 
         .report-actions {
             display: flex;
@@ -168,11 +269,7 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
             align-items: center;
             gap: 0.4rem;
         }
-        .report-actions .secondary {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text2);
-        }
+        .report-actions .secondary { background: none; border: 1px solid var(--border); color: var(--text2); }
 
         .toast {
             position: fixed;
@@ -192,12 +289,13 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
             z-index: 100;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        @media print {
+            .report-actions, .toast, nav, footer { display: none !important; }
+        }
     </style>
 
-    <div class="report-wrap" id="report-wrap">
-        <!-- Filled by JS -->
-    </div>
-
+    <div class="report-wrap" id="report-wrap"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -226,7 +324,6 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
                     const raw = localStorage.getItem(key);
                     if (!raw) return null;
                     const parsed = JSON.parse(raw) as ToolResult;
-                    // Ignore results older than 24 hours — keep the report fresh
                     if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) return null;
                     return parsed;
                 } catch (e) {
@@ -234,20 +331,44 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
                 }
             }
 
-            const kb = loadResult("ls_diag_keyboard");
-            const mouse = loadResult("ls_diag_mouse");
-            const monitor = loadResult("ls_diag_monitor");
-            const results = [kb, mouse, monitor].filter(Boolean) as ToolResult[];
+            function statusColor(status: string): string {
+                return status === "good" ? "#22c55e" : status === "check" ? "#f59e0b" : "#ef4444";
+            }
+            function statusIcon(status: string): string {
+                return status === "good" ? "🟢" : status === "check" ? "🟡" : "🔴";
+            }
+
+            const toolMeta: Record<string, { name: string; icon: string; url: string }> = {
+                keyboard: { name: "Keyboard", icon: "⌨️", url: "/tools/keyboard-latency-tester/" },
+                mouse: { name: "Mouse", icon: "🖱", url: "/tools/mouse-rate-test/" },
+                monitor: { name: "Monitor", icon: "🖥️", url: "/tools/monitor-refresh-rate-test/" },
+            };
+
+            const allTools = ["keyboard", "mouse", "monitor"];
+            const resultMap: Record<string, ToolResult | null> = {
+                keyboard: loadResult("ls_diag_keyboard"),
+                mouse: loadResult("ls_diag_mouse"),
+                monitor: loadResult("ls_diag_monitor"),
+            };
+            const results = allTools.map((t) => resultMap[t]).filter(Boolean) as ToolResult[];
+
+            const progressHtml = allTools
+                .map((t) => {
+                    const meta = toolMeta[t];
+                    const done = !!resultMap[t];
+                    return `<div class="progress-pill ${done ? "done" : ""}">
+                        ${done ? "✓" : "○"} ${meta.icon}
+                        ${done ? meta.name : `<a href="${meta.url}" data-astro-reload>${meta.name}</a>`}
+                    </div>`;
+                })
+                .join("");
 
             if (results.length === 0) {
                 wrap.innerHTML = `
+                    <div class="progress-track">${progressHtml}</div>
                     <div class="report-empty">
                         <h1>No Test Results Yet</h1>
-                        <p>
-                            Run any of the three diagnostic tools below and your
-                            results will automatically appear here. Test all
-                            three for a complete PC health report.
-                        </p>
+                        <p>Run any of the three diagnostic tools and your results will automatically appear here. Test all three for a complete PC health report.</p>
                         <div class="empty-links">
                             <a href="/tools/keyboard-latency-tester/" data-astro-reload>⌨️ Keyboard Tester</a>
                             <a href="/tools/mouse-rate-test/" data-astro-reload>🖱 Mouse Rate Test</a>
@@ -258,58 +379,74 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
                 return;
             }
 
-            const overallScore = Math.round(
-                results.reduce((sum, r) => sum + r.score, 0) / results.length,
-            );
+            const overallScore = Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length);
             const overallStatus: "good" | "check" | "investigate" =
                 overallScore >= 80 ? "good" : overallScore >= 60 ? "check" : "investigate";
             const overallLabel =
-                overallStatus === "good" ? "Good" :
-                overallStatus === "check" ? "Needs Attention" : "Investigate";
+                overallStatus === "good" ? "Good" : overallStatus === "check" ? "Needs Attention" : "Investigate";
+            const overallDesc =
+                overallStatus === "good"
+                    ? "Your tested hardware is performing within normal range across the board. No red flags detected."
+                    : overallStatus === "check"
+                      ? "Most things look fine, but one or more components are showing readings slightly outside the typical range — worth a quick look, not necessarily a fault."
+                      : "One or more components show results clearly outside normal range. Review the flagged items below before assuming hardware failure — re-test to confirm first.";
 
-            const toolNames: Record<string, string> = {
-                keyboard: "⌨️ Keyboard",
-                mouse: "🖱 Mouse",
-                monitor: "🖥️ Monitor",
-            };
+            const radius = 66;
+            const circumference = 2 * Math.PI * radius;
+            const dashOffset = circumference - (overallScore / 100) * circumference;
+            const gaugeColor = statusColor(overallStatus);
 
-            const tableRows = results
+            const toolCardsHtml = results
                 .map((r) => {
-                    const metricRows = Object.entries(r.metrics)
-                        .map(
-                            ([label, val]) => `
-                        <tr>
-                            <td>${label}</td>
-                            <td>${val}</td>
-                            <td><span class="status-pill ${r.status}">${r.status === "good" ? "🟢 Good" : r.status === "check" ? "🟡 Check" : "🔴 Investigate"}</span></td>
-                        </tr>`,
-                        )
+                    const meta = toolMeta[r.tool];
+                    const color = statusColor(r.status);
+                    const metricsHtml = Object.entries(r.metrics)
+                        .map(([k, v]) => `<div class="tool-mini-metric"><span>${k}</span><span>${v}</span></div>`)
                         .join("");
-                    return metricRows;
+                    return `
+                    <div class="tool-mini-card">
+                        <div class="tool-mini-header">
+                            <span class="tool-mini-name">${meta.icon} ${meta.name}</span>
+                            <span class="tool-mini-score" style="color:${color};">${r.score}</span>
+                        </div>
+                        <div class="tool-mini-metrics">${metricsHtml}</div>
+                        <div class="tool-mini-bar-track">
+                            <div class="tool-mini-bar-fill" style="width:${r.score}%; background:${color};"></div>
+                        </div>
+                    </div>`;
                 })
                 .join("");
 
-            const missing = ["keyboard", "mouse", "monitor"].filter(
-                (t) => !results.find((r) => r.tool === t),
-            );
+            const tableRows = results
+                .flatMap((r) =>
+                    Object.entries(r.metrics).map(
+                        ([label, val]) => `
+                    <tr>
+                        <td>${label}</td>
+                        <td>${val}</td>
+                        <td><span class="status-pill ${r.status}">${statusIcon(r.status)} ${r.status === "good" ? "Good" : r.status === "check" ? "Check" : "Investigate"}</span></td>
+                    </tr>`,
+                    ),
+                )
+                .join("");
+
+            const missing = allTools.filter((t) => !resultMap[t]);
 
             const findings = results
                 .map((r) => {
-                    const name = toolNames[r.tool] || r.tool;
-                    const metricSummary = Object.entries(r.metrics)
-                        .map(([k, v]) => `${k}: ${v}`)
-                        .join(", ");
+                    const meta = toolMeta[r.tool];
+                    const metricSummary = Object.entries(r.metrics).map(([k, v]) => `${k}: ${v}`).join(", ");
                     let note = "";
                     if (r.status === "good") note = "Performing within normal range.";
                     else if (r.status === "check") note = "Slightly outside typical range — worth a closer look, not necessarily a fault.";
                     else note = "Noticeably outside normal range — worth investigating further.";
-                    return `<div class="finding-item"><strong>${name}</strong> — ${metricSummary}. ${note}</div>`;
+                    return `<div class="finding-item"><span class="fi-icon">${statusIcon(r.status)}</span><span><strong>${meta.icon} ${meta.name}</strong> — ${metricSummary}. ${note}</span></div>`;
                 })
                 .join("");
 
             const missingNote =
                 missing.length > 0
-                    ? `<div class="finding-item">Not yet tested: ${missing.map((m) => toolNames[m]).join(", ")}. <a href="/tools/${missing[0] === "keyboard" ? "keyboard-latency-tester" : missing[0] + "-rate-test"}/" data-astro-reload style="color:var(--accent);">Run this test →</a></div>`
+                    ? `<div class="finding-item"><span class="fi-icon">○</span><span>Not yet tested: ${missing.map((m) => toolMeta[m].name).join(", ")}. <a href="${toolMeta[missing[0]].url}" data-astro-reload style="color:var(--accent);">Run this test →</a></span></div>`
                     : "";
 
             const recommendation =
@@ -320,56 +457,74 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
                       : "One or more components show results outside normal range. Review the flagged items — confirm with a second test before assuming hardware failure.";
 
             const reportId = "LS-" + Date.now().toString(36).toUpperCase();
+            const screenRes = `${screen.width}×${screen.height}`;
+            const platform = navigator.platform || "Unknown";
+            const uaLang = navigator.language || "—";
 
             wrap.innerHTML = `
+                <div class="progress-track">${progressHtml}</div>
                 <div class="report-header">
                     <h1>Full PC Diagnostic Report</h1>
-                    <div class="report-meta">
-                        Generated ${new Date().toLocaleString()} · Report ID ${reportId}
+                    <div class="report-meta">Generated ${new Date().toLocaleString()} · Report ID ${reportId} · ${results.length}/3 tests completed</div>
+                </div>
+                <div class="score-card">
+                    <div class="gauge-wrap">
+                        <svg width="160" height="160" viewBox="0 0 160 160">
+                            <circle cx="80" cy="80" r="${radius}" fill="none" stroke="var(--bg3)" stroke-width="12" />
+                            <circle cx="80" cy="80" r="${radius}" fill="none" stroke="${gaugeColor}" stroke-width="12"
+                                stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round" />
+                        </svg>
+                        <div class="gauge-center">
+                            <div class="gauge-score score-${overallStatus}">${overallScore}</div>
+                            <div class="gauge-max">/ 100</div>
+                        </div>
+                    </div>
+                    <div class="score-summary">
+                        <div class="score-summary-label score-${overallStatus}">${overallLabel}</div>
+                        <div class="score-summary-desc">${overallDesc}</div>
                     </div>
                 </div>
-
-                <div class="score-card">
-                    <div class="score-value ${overallStatus}">${overallScore}<span style="font-size:1.4rem;color:var(--muted);">/100</span></div>
-                    <div class="score-label ${overallStatus}">${overallLabel}</div>
-                </div>
-
                 <div class="report-section">
-                    <h2>Test Results</h2>
+                    <h2>📊 Component Breakdown</h2>
+                    <div class="tool-cards-grid">${toolCardsHtml}</div>
+                </div>
+                <div class="report-section">
+                    <h2>📋 Full Test Results</h2>
                     <table class="result-table">
-                        <thead>
-                            <tr><th>Test</th><th>Result</th><th>Status</th></tr>
-                        </thead>
+                        <thead><tr><th>Test</th><th>Result</th><th>Status</th></tr></thead>
                         <tbody>${tableRows}</tbody>
                     </table>
                 </div>
-
                 <div class="report-section">
-                    <h2>Findings</h2>
+                    <h2>🔍 Findings</h2>
                     ${findings}
                     ${missingNote}
                 </div>
-
                 <div class="report-section">
-                    <h2>Recommendation</h2>
-                    <div class="finding-item">${recommendation}</div>
+                    <h2>✅ Recommendation</h2>
+                    <div class="finding-item"><span class="fi-icon">💡</span><span>${recommendation}</span></div>
                 </div>
-
                 <div class="report-section">
-                    <h2>Methodology &amp; Limitations</h2>
-                    <div class="finding-item">
-                        All results are browser-observed measurements, not direct
-                        hardware readings. See the
-                        <a href="/how-accurate-are-these-tests/" data-astro-reload style="color:var(--accent);">full testing methodology</a>
-                        for what each test can and can't measure.
+                    <h2>💻 Testing Environment</h2>
+                    <div class="sysinfo-grid">
+                        <div class="sysinfo-item"><div class="sysinfo-label">Screen Resolution</div><div class="sysinfo-val">${screenRes}</div></div>
+                        <div class="sysinfo-item"><div class="sysinfo-label">Platform</div><div class="sysinfo-val">${platform}</div></div>
+                        <div class="sysinfo-item"><div class="sysinfo-label">Language</div><div class="sysinfo-val">${uaLang}</div></div>
+                        <div class="sysinfo-item"><div class="sysinfo-label">Report Expires</div><div class="sysinfo-val">24 hours from test</div></div>
                     </div>
                 </div>
-
+                <div class="report-section">
+                    <h2>📖 Methodology &amp; Limitations</h2>
+                    <div class="finding-item"><span class="fi-icon">ℹ️</span><span>All results are browser-observed measurements, not direct hardware readings. See the <a href="/how-accurate-are-these-tests/" data-astro-reload style="color:var(--accent);">full testing methodology</a> for what each test can and can't measure.</span></div>
+                </div>
                 <div class="report-actions">
                     <button id="btn-download-pdf">📄 Download PDF</button>
+                    <button id="btn-print" class="secondary">🖨️ Print Report</button>
                     <button id="btn-run-again" class="secondary">🔄 Run Tests Again</button>
                 </div>
             `;
+
+            document.getElementById("btn-print")?.addEventListener("click", () => window.print());
 
             document.getElementById("btn-run-again")?.addEventListener("click", () => {
                 localStorage.removeItem("ls_diag_keyboard");
@@ -379,88 +534,218 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
             });
 
             document.getElementById("btn-download-pdf")?.addEventListener("click", () => {
-                const jsPDFLib = (window as any).jspdf;
-                if (!jsPDFLib || !jsPDFLib.jsPDF) {
-                    showToast("Report generator still loading — try again");
-                    return;
-                }
-                const { jsPDF } = jsPDFLib;
-                const doc = new jsPDF({ unit: "pt", format: "a4" });
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const margin = 48;
-                let y = 40;
+                            const jsPDFLib = (window as any).jspdf;
+                            if (!jsPDFLib || !jsPDFLib.jsPDF) {
+                                showToast("Report generator still loading — try again");
+                                return;
+                            }
+                            const { jsPDF } = jsPDFLib;
+                            const doc = new jsPDF({ unit: "pt", format: "a4" });
+                            const pageWidth = doc.internal.pageSize.getWidth();
+                            const pageHeight = doc.internal.pageSize.getHeight();
+                            const margin = 48;
+                            let y = 40;
 
-                doc.setFillColor(10, 14, 26);
-                doc.rect(0, 0, pageWidth, 90, "F");
-                doc.setTextColor(255, 255, 255);
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(18);
-                doc.text("Laptops Special — Full PC Diagnostic Report", margin, 40);
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                doc.setTextColor(180, 190, 210);
-                doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 60);
-                doc.text(`Report ID: ${reportId}`, margin, 75);
+                            function ensureSpace(needed: number) {
+                                if (y + needed > pageHeight - 50) {
+                                    doc.addPage();
+                                    y = 50;
+                                }
+                            }
 
-                y = 120;
-                const scoreColor: [number, number, number] =
-                    overallStatus === "good" ? [34, 197, 94] :
-                    overallStatus === "check" ? [245, 158, 11] : [239, 68, 68];
-                doc.setTextColor(...scoreColor);
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(28);
-                doc.text(`${overallScore}/100 — ${overallLabel}`, margin, y);
-                y += 34;
+                            function sectionHeading(text: string) {
+                                ensureSpace(40);
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(13);
+                                doc.setTextColor(20, 20, 30);
+                                doc.text(text, margin, y);
+                                y += 18;
+                            }
 
-                doc.setDrawColor(220, 220, 225);
-                doc.line(margin, y, pageWidth - margin, y);
-                y += 22;
+                            function keyValRow(label: string, val: string, valColor: [number, number, number] = [20, 20, 30]) {
+                                ensureSpace(18);
+                                doc.setFont("helvetica", "normal");
+                                doc.setFontSize(10);
+                                doc.setTextColor(90, 90, 100);
+                                doc.text(label, margin, y);
+                                doc.setTextColor(...valColor);
+                                doc.setFont("helvetica", "bold");
+                                doc.text(val, pageWidth - margin, y, { align: "right" });
+                                y += 16;
+                            }
 
-                doc.setFontSize(13);
-                doc.setTextColor(20, 20, 30);
-                doc.text("Test Results", margin, y);
-                y += 18;
+                            function divider() {
+                                ensureSpace(20);
+                                doc.setDrawColor(220, 220, 225);
+                                doc.line(margin, y, pageWidth - margin, y);
+                                y += 20;
+                            }
 
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                results.forEach((r) => {
-                    Object.entries(r.metrics).forEach(([label, val]) => {
-                        doc.setTextColor(90, 90, 100);
-                        doc.text(label, margin, y);
-                        doc.setTextColor(20, 20, 30);
-                        doc.text(String(val), pageWidth - margin, y, { align: "right" });
-                        y += 16;
-                    });
-                });
+                            // ---- HEADER ----
+                            doc.setFillColor(10, 14, 26);
+                            doc.rect(0, 0, pageWidth, 100, "F");
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFont("helvetica", "bold");
+                            doc.setFontSize(18);
+                            doc.text("Laptops Special — Full PC Diagnostic Report", margin, 38);
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(10);
+                            doc.setTextColor(180, 190, 210);
+                            doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 58);
+                            doc.text(`Report ID: ${reportId}`, margin, 73);
+                            doc.text(`${results.length}/3 tests completed`, margin, 88);
 
-                y += 14;
-                doc.line(margin, y, pageWidth - margin, y);
-                y += 22;
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(13);
-                doc.setTextColor(20, 20, 30);
-                doc.text("Recommendation", margin, y);
-                y += 16;
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                const recLines = doc.splitTextToSize(recommendation, pageWidth - margin * 2);
-                doc.text(recLines, margin, y);
-                y += recLines.length * 13 + 20;
+                            // ---- OVERALL SCORE ----
+                            y = 130;
+                            const rgb: [number, number, number] =
+                                overallStatus === "good" ? [34, 197, 94] : overallStatus === "check" ? [245, 158, 11] : [239, 68, 68];
+                            doc.setTextColor(...rgb);
+                            doc.setFont("helvetica", "bold");
+                            doc.setFontSize(30);
+                            doc.text(`${overallScore}/100`, margin, y);
+                            doc.setFontSize(14);
+                            doc.text(overallLabel, margin + 130, y);
+                            y += 20;
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(9.5);
+                            doc.setTextColor(90, 90, 100);
+                            const descLines = doc.splitTextToSize(overallDesc, pageWidth - margin * 2);
+                            doc.text(descLines, margin, y);
+                            y += descLines.length * 12 + 16;
 
-                doc.line(margin, y, pageWidth - margin, y);
-                y += 18;
-                doc.setFont("helvetica", "italic");
-                doc.setFontSize(8.5);
-                doc.setTextColor(130, 130, 140);
-                const disclaimer = doc.splitTextToSize(
-                    "Browser-observed measurements, not direct hardware readings. Full methodology: laptopsspecial.com/how-accurate-are-these-tests/",
-                    pageWidth - margin * 2,
-                );
-                doc.text(disclaimer, margin, y);
+                            divider();
 
-                doc.save(`pc-diagnostic-report-${reportId}.pdf`);
-                showToast("Full report downloaded");
-            });
+                            // ---- COMPONENT SCORES + METRICS ----
+                            sectionHeading("Component Breakdown");
+                            results.forEach((res) => {
+                                const meta = toolMeta[res.tool];
+                                const crgb: [number, number, number] =
+                                    res.status === "good" ? [34, 197, 94] : res.status === "check" ? [245, 158, 11] : [239, 68, 68];
+                                ensureSpace(20);
+                                doc.setFont("helvetica", "bold");
+                                doc.setFontSize(11);
+                                doc.setTextColor(20, 20, 30);
+                                doc.text(meta.name, margin, y);
+                                doc.setTextColor(...crgb);
+                                doc.text(`${res.score}/100`, pageWidth - margin, y, { align: "right" });
+                                y += 15;
+                                Object.entries(res.metrics).forEach(([label, val]) => {
+                                    ensureSpace(13);
+                                    doc.setTextColor(120, 120, 130);
+                                    doc.setFont("helvetica", "normal");
+                                    doc.setFontSize(9);
+                                    doc.text(`   ${label}: ${val}`, margin, y);
+                                    y += 13;
+                                });
+                                y += 8;
+                            });
+
+                            divider();
+
+                            // ---- FULL TEST RESULTS TABLE ----
+                            sectionHeading("Full Test Results");
+                            results.forEach((r) => {
+                                Object.entries(r.metrics).forEach(([label, val]) => {
+                                    const crgb: [number, number, number] =
+                                        r.status === "good" ? [34, 197, 94] : r.status === "check" ? [245, 158, 11] : [239, 68, 68];
+                                    ensureSpace(16);
+                                    doc.setFont("helvetica", "normal");
+                                    doc.setFontSize(9.5);
+                                    doc.setTextColor(60, 60, 70);
+                                    doc.text(label, margin, y);
+                                    doc.setTextColor(120, 120, 130);
+                                    doc.text(val, margin + 200, y);
+                                    doc.setTextColor(...crgb);
+                                    doc.setFont("helvetica", "bold");
+                                    doc.text(
+                                        r.status === "good" ? "Good" : r.status === "check" ? "Check" : "Investigate",
+                                        pageWidth - margin,
+                                        y,
+                                        { align: "right" },
+                                    );
+                                    y += 16;
+                                });
+                            });
+
+                            divider();
+
+                            // ---- FINDINGS ----
+                            sectionHeading("Findings");
+                            results.forEach((r) => {
+                                const meta = toolMeta[r.tool];
+                                const metricSummary = Object.entries(r.metrics).map(([k, v]) => `${k}: ${v}`).join(", ");
+                                let note = "";
+                                if (r.status === "good") note = "Performing within normal range.";
+                                else if (r.status === "check") note = "Slightly outside typical range — worth a closer look, not necessarily a fault.";
+                                else note = "Noticeably outside normal range — worth investigating further.";
+                                const findingText = `${meta.name} — ${metricSummary}. ${note}`;
+                                ensureSpace(28);
+                                doc.setFont("helvetica", "normal");
+                                doc.setFontSize(9.5);
+                                doc.setTextColor(60, 60, 70);
+                                const lines = doc.splitTextToSize(findingText, pageWidth - margin * 2);
+                                doc.text(lines, margin, y);
+                                y += lines.length * 12 + 8;
+                            });
+                            if (missing.length > 0) {
+                                ensureSpace(20);
+                                doc.setFont("helvetica", "italic");
+                                doc.setFontSize(9.5);
+                                doc.setTextColor(130, 130, 140);
+                                const missingText = `Not yet tested: ${missing.map((m) => toolMeta[m].name).join(", ")}.`;
+                                doc.text(missingText, margin, y);
+                                y += 20;
+                            }
+
+                            divider();
+
+                            // ---- RECOMMENDATION ----
+                            sectionHeading("Recommendation");
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(10);
+                            doc.setTextColor(60, 60, 70);
+                            const recLines = doc.splitTextToSize(recommendation, pageWidth - margin * 2);
+                            ensureSpace(recLines.length * 13 + 10);
+                            doc.text(recLines, margin, y);
+                            y += recLines.length * 13 + 16;
+
+                            divider();
+
+                            // ---- TESTING ENVIRONMENT ----
+                            sectionHeading("Testing Environment");
+                            keyValRow("Screen Resolution", screenRes);
+                            keyValRow("Platform", platform);
+                            keyValRow("Language", uaLang);
+                            keyValRow("Report Expires", "24 hours from test");
+                            y += 8;
+
+                            divider();
+
+                            // ---- METHODOLOGY ----
+                            sectionHeading("Methodology & Limitations");
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(9);
+                            doc.setTextColor(90, 90, 100);
+                            const methodText =
+                                "All results are browser-observed measurements, not direct hardware readings. Full methodology and limitations: laptopsspecial.com/how-accurate-are-these-tests/";
+                            const methodLines = doc.splitTextToSize(methodText, pageWidth - margin * 2);
+                            ensureSpace(methodLines.length * 12 + 10);
+                            doc.text(methodLines, margin, y);
+                            y += methodLines.length * 12 + 16;
+
+                            // ---- FOOTER DISCLAIMER (always on last page) ----
+                            ensureSpace(30);
+                            doc.setDrawColor(220, 220, 225);
+                            doc.line(margin, y, pageWidth - margin, y);
+                            y += 16;
+                            doc.setFont("helvetica", "italic");
+                            doc.setFontSize(8);
+                            doc.setTextColor(150, 150, 160);
+                            doc.text(`Report ID: ${reportId} · laptopsspecial.com/full-diagnostic-report/`, margin, y);
+
+                            doc.save(`pc-diagnostic-report-${reportId}.pdf`);
+                            showToast("Full report downloaded");
+                        });
         });
     </script>
 </Base>
