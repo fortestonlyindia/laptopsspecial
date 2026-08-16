@@ -779,6 +779,27 @@ const webPageSchema = {
             color: #ef4444;
         }
         .confidence-badge.status-investigate .confidence-dot { background: #ef4444; }
+        .btn-pdf {
+            border-color: rgba(0, 212, 255, 0.4);
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .btn-pdf:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.08);
+        }
+        .btn-fulldiag {
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #22c55e;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-fulldiag:hover {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+        }
     </style>
 
     <div class="hero">
@@ -797,6 +818,11 @@ const webPageSchema = {
             <div class="stat-label">Current Hz</div>
             <div class="stat-value" id="s-current" aria-live="polite">0</div>
             <div class="stat-unit">Hz live</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Live FPS</div>
+            <div class="stat-value" id="s-fps" aria-live="polite">0</div>
+            <div class="stat-unit">frames/sec</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Average Hz</div>
@@ -830,7 +856,9 @@ const webPageSchema = {
                     <button class="btn-sm" id="btn-reset" aria-label="Reset all test data">Reset</button>
                     <button class="btn-sm btn-amber" id="btn-share" aria-label="Export result as shareable image">📤 Share Result</button>
                     <button class="btn-sm btn-amber" id="btn-json" aria-label="Export raw data as JSON">Export JSON</button>
-                </div>
+                    <button class="btn-sm btn-pdf" id="btn-pdf" aria-label="Download diagnostic report as PDF">💾 PDF Report</button>
+                    <a href="/full-diagnostic-report/" class="btn-sm btn-fulldiag" id="btn-fulldiag" aria-label="Open full diagnostic report page" target="_blank" rel="noopener" data-astro-reload>🧪 Full Diag</a>
+                    </div>
             </div>
 
             <div class="mode-tabs" role="tablist" aria-label="Test mode">
@@ -894,7 +922,13 @@ const webPageSchema = {
                                     <strong style="color: var(--text);">What this means: </strong>
                                     <span id="monitor-interpret-text"></span>
                                 </div>
-
+                                <div id="next-step-banner" style="display:none; margin: 0 1.5rem 1rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(245,158,11,0.3); background:rgba(245,158,11,0.06); font-size:0.85rem; color:var(--text2); text-align:center;">
+                                    <span id="next-step-text"></span>
+                                    <br />
+                                    <button id="btn-fresh-start" style="margin-top:0.6rem; background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--font-display); font-size:0.72rem; font-weight:600; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer;">
+                                        ↺ Start Fresh Test Session
+                                    </button>
+                                </div>
                 <div class="diag-box" id="diag-box">
                     <div class="diag-title">⚠️ Diagnostic Suggestions</div>
                     <ul id="diag-list"></ul>
@@ -1199,7 +1233,37 @@ const webPageSchema = {
             }
             return `${closest}Hz`;
         }
+        function getDiagSessionId(): string {
+            let id = sessionStorage.getItem("ls_diag_session");
+            if (!id) {
+                id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                sessionStorage.setItem("ls_diag_session", id);
+            }
+            return id;
+        }
 
+        function isFromThisSession(key: string): boolean {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return false;
+                const parsed = JSON.parse(raw);
+                return parsed.sessionId === getDiagSessionId();
+            } catch {
+                return false;
+            }
+        }
+
+        function startFreshDiagSession() {
+            try {
+                localStorage.removeItem("ls_diag_monitor");
+                localStorage.removeItem("ls_diag_keyboard");
+                localStorage.removeItem("ls_diag_mouse");
+                sessionStorage.removeItem("ls_diag_session");
+            } catch (e) {
+                // storage unavailable — ignore
+            }
+            location.reload();
+        }
         document.addEventListener("astro:page-load", () => {
             const els = {
                 current: document.getElementById("live-hz-display"),
@@ -1241,6 +1305,8 @@ const webPageSchema = {
                         };
                         let lastAvgHz: number | null = null;
                         let lastStabilityPct: number | null = null;
+                        let lastVrrMissed: number | null = null;
+                        let lastVrrStallMs: number | null = null;
 
             function resizeChart() {
                 if (!chartCvs) return;
@@ -1355,9 +1421,88 @@ const webPageSchema = {
                                                 }
 
                                                 updateMotionBlurData();
-                                            }
+                                                                // ---- Save result for combined Full Diagnostic Report ----
+                                                                try {
+                                                                    let monStatus: "good" | "check" | "investigate" = "good";
+                                                                    if (grade === "D" || grade === "F") monStatus = "investigate";
+                                                                    else if (grade === "C") monStatus = "check";
 
-                                            function updateMotionBlurData() {
+                                                                    const monScore =
+                                                                        monStatus === "good" ? Math.min(95, 80 + Math.round(pct / 10)) :
+                                                                        monStatus === "check" ? 68 : 42;
+
+                                                                    const motionBlur = computeMotionBlurAt(avgHz);
+                                                                    const extraMetrics: Record<string, string> = {
+                                                                        "Monitor refresh": `${Math.round(avgHz)} Hz`,
+                                                                        "Frame stability": `${pct.toFixed(0)}%`,
+                                                                        "Motion blur (slow)": motionBlur.slow,
+                                                                        "Motion blur (medium)": motionBlur.medium,
+                                                                        "Motion blur (fast)": motionBlur.fast,
+                                                                    };
+                                                                    if (lastVrrMissed !== null && lastVrrStallMs !== null) {
+                                                                        extraMetrics["VRR frames missed (fixed 60Hz)"] = String(lastVrrMissed);
+                                                                        extraMetrics["VRR total stall time"] = lastVrrStallMs.toFixed(1) + " ms";
+                                                                    }
+
+                                                                    localStorage.setItem(
+                                                                        "ls_diag_monitor",
+                                                                        JSON.stringify({
+                                                                            tool: "monitor",
+                                                                            score: monScore,
+                                                                            status: monStatus,
+                                                                            metrics: extraMetrics,
+                                                                            timestamp: Date.now(),
+                                                                            sessionId: getDiagSessionId(),
+                                                                        }),
+                                                                    );
+
+                                                                    // ---- Next-step nudge ----
+                                                                    const nextBanner = document.getElementById("next-step-banner");
+                                                                    const nextText = document.getElementById("next-step-text");
+                                                                    if (nextBanner && nextText) {
+                                                                        const remaining: { label: string; url: string }[] = [];
+                                                                        if (!isFromThisSession("ls_diag_keyboard")) remaining.push({ label: "keyboard", url: "/tools/keyboard-latency-tester/" });
+                                                                        if (!isFromThisSession("ls_diag_mouse")) remaining.push({ label: "mouse", url: "/tools/mouse-rate-test/" });
+
+                                                                        let newHtml: string;
+                                                                        if (remaining.length === 0) {
+                                                                            newHtml = '🎉 All 3 tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:#f59e0b;font-weight:700;">View your Full Diagnostic Report →</a>';
+                                                                        } else if (remaining.length === 1) {
+                                                                            const r = remaining[0];
+                                                                            newHtml = `✅ Monitor done. Next: <a href="${r.url}" data-astro-reload style="color:#f59e0b;font-weight:700;">test your ${r.label} →</a>`;
+                                                                        } else {
+                                                                            newHtml = `✅ Monitor done. Complete these for your full report: ${remaining.map(r => `<a href="${r.url}" data-astro-reload style="color:#f59e0b;font-weight:700;">${r.label}</a>`).join(" &amp; ")}`;
+                                                                        }
+
+                                                                        nextBanner.style.display = "block";
+                                                                        // Sirf tabhi DOM update karo jab content actually badla ho —
+                                                                        // warna baar-baar innerHTML overwrite hone se link click break ho jaata hai
+                                                                        if (nextText.dataset.currentHtml !== newHtml) {
+                                                                            nextText.innerHTML = newHtml;
+                                                                            nextText.dataset.currentHtml = newHtml;
+                                                                        }
+                                                                    }
+                                                                } catch (e) {
+                                                                    // localStorage unavailable — silently skip
+                                                                }
+                                                            }
+
+                                                            function computeMotionBlurAt(hz: number): { slow: string; medium: string; fast: string } {
+                                                                const zone = document.getElementById("motion-zone");
+                                                                const w = zone ? zone.clientWidth - 46 : 600;
+                                                                const cycleMs = 2200;
+                                                                const speed1x = w / (cycleMs / 1000);
+                                                                const speed2x = w / (cycleMs / 2 / 1000);
+                                                                const speed4x = w / (cycleMs / 4 / 1000);
+                                                                const frameDuration = 1 / hz;
+                                                                return {
+                                                                    slow: (speed1x * frameDuration).toFixed(1) + " px",
+                                                                    medium: (speed2x * frameDuration).toFixed(1) + " px",
+                                                                    fast: (speed4x * frameDuration).toFixed(1) + " px",
+                                                                };
+                                                            }
+
+                                                            function updateMotionBlurData() {
                                                 const banner = document.getElementById("motion-data-banner");
                                                 const metrics = document.getElementById("motion-metrics");
                                                 if (lastAvgHz === null) {
@@ -1405,8 +1550,10 @@ const webPageSchema = {
                         if (dt > 20) st.droppedCount++;
 
                         const liveHz = Math.round(1000 / dt);
-                        if (els.current) els.current.textContent = String(liveHz);
-                        if (els.sCurrent) els.sCurrent.textContent = String(liveHz);
+                                                if (els.current) els.current.textContent = String(liveHz);
+                                                if (els.sCurrent) els.sCurrent.textContent = String(liveHz);
+                                                const fpsEl = document.getElementById("s-fps");
+                                                if (fpsEl) fpsEl.textContent = String(liveHz);
                     }
                 }
                 st.lastTs = ts;
@@ -1468,6 +1615,7 @@ const webPageSchema = {
                 drawChart();
                 showToast("Test data reset");
             });
+            document.getElementById("btn-fresh-start")?.addEventListener("click", startFreshDiagSession);
 
             // ---- Export JSON ----
             function downloadBlob(blob: Blob, filename: string) {
@@ -1502,7 +1650,116 @@ const webPageSchema = {
                 downloadBlob(blob, `refresh-rate-test-${Date.now()}.json`);
                 showToast("Exported results as JSON");
             });
+            // ---- Download PDF Report ----
+                        document.getElementById("btn-pdf")?.addEventListener("click", () => {
+                            if (st.allIntervals.length < 5 || lastAvgHz === null || lastStabilityPct === null) {
+                                showToast("Let the test run a couple seconds first");
+                                return;
+                            }
+                            const jsPDFLib = (window as any).jspdf;
+                            if (!jsPDFLib || !jsPDFLib.jsPDF) {
+                                showToast("Report generator still loading — try again");
+                                return;
+                            }
 
+                            const avgHz = lastAvgHz;
+                            const pct = lastStabilityPct;
+                            const { grade } = gradeFromConsistency(pct);
+
+                            let statusLabel = "Good";
+                            let statusNote = "Stable, consistent refresh rate. No issues detected.";
+                            if (grade === "D" || grade === "F") {
+                                statusLabel = "Investigate";
+                                statusNote = "Frame timing is inconsistent — often caused by background load, power-saving mode, or a cable that can't sustain bandwidth.";
+                            } else if (grade === "C") {
+                                statusLabel = "Check";
+                                statusNote = "Moderate stability. Close background apps and re-test to confirm.";
+                            }
+
+                            const { jsPDF } = jsPDFLib;
+                            const doc = new jsPDF({ unit: "pt", format: "a4" });
+                            const pageWidth = doc.internal.pageSize.getWidth();
+                            const margin = 48;
+                            let y = 56;
+
+                            doc.setFillColor(10, 14, 26);
+                            doc.rect(0, 0, pageWidth, 90, "F");
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFont("helvetica", "bold");
+                            doc.setFontSize(18);
+                            doc.text("Laptops Special — Hardware Diagnostic Report", margin, 40);
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(10);
+                            doc.setTextColor(180, 190, 210);
+                            doc.text("Device: Monitor", margin, 60);
+                            doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 75);
+
+                            y = 120;
+                            const statusColor: [number, number, number] =
+                                statusLabel === "Good" ? [34, 197, 94] : statusLabel === "Check" ? [245, 158, 11] : [239, 68, 68];
+                            doc.setFillColor(...statusColor);
+                            doc.roundedRect(margin, y, 90, 22, 4, 4, "F");
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFont("helvetica", "bold");
+                            doc.setFontSize(11);
+                            doc.text(statusLabel, margin + 45, y + 15, { align: "center" });
+
+                            y += 40;
+                            doc.setTextColor(60, 60, 70);
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(10);
+                            const noteLines = doc.splitTextToSize(statusNote, pageWidth - margin * 2);
+                            doc.text(noteLines, margin, y);
+                            y += noteLines.length * 13 + 20;
+
+                            doc.setDrawColor(220, 220, 225);
+                            doc.line(margin, y, pageWidth - margin, y);
+                            y += 22;
+                            doc.setFont("helvetica", "bold");
+                            doc.setFontSize(13);
+                            doc.setTextColor(20, 20, 30);
+                            doc.text("Monitor Test Results", margin, y);
+                            y += 18;
+
+                            const rows: [string, string][] = [
+                                ["Average Refresh Rate", `${Math.round(avgHz)} Hz`],
+                                ["Stability Grade", grade],
+                                ["Frame Consistency", `${pct.toFixed(0)}%`],
+                                ["Dropped Frames", String(st.droppedCount)],
+                                ["Total Frames Sampled", String(st.allIntervals.length + 1)],
+                            ];
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(10.5);
+                            rows.forEach(([label, val]) => {
+                                doc.setTextColor(90, 90, 100);
+                                doc.text(label, margin, y);
+                                doc.setTextColor(20, 20, 30);
+                                doc.setFont("helvetica", "bold");
+                                doc.text(val, pageWidth - margin, y, { align: "right" });
+                                doc.setFont("helvetica", "normal");
+                                y += 18;
+                            });
+
+                            y += 16;
+                            doc.setDrawColor(220, 220, 225);
+                            doc.line(margin, y, pageWidth - margin, y);
+                            y += 18;
+                            doc.setFont("helvetica", "italic");
+                            doc.setFontSize(8.5);
+                            doc.setTextColor(130, 130, 140);
+                            const disclaimer = doc.splitTextToSize(
+                                "This tool measures browser-observed refresh timing via requestAnimationFrame, not direct EDID/hardware readings. See laptopsspecial.com/how-accurate-are-these-tests/ for full methodology.",
+                                pageWidth - margin * 2,
+                            );
+                            doc.text(disclaimer, margin, y);
+                            y += disclaimer.length * 11 + 10;
+                            doc.setFont("helvetica", "normal");
+                            doc.setTextColor(0, 150, 200);
+                            doc.text("laptopsspecial.com/tools/monitor-refresh-rate-test/", margin, y);
+
+                            doc.save(`monitor-diagnostic-report-${Date.now()}.pdf`);
+                            showToast("Diagnostic report downloaded");
+                        });
             // ---- Share card (PNG) ----
             document.getElementById("btn-share")?.addEventListener("click", () => {
                 if (st.allIntervals.length < 5) {
@@ -1651,6 +1908,9 @@ const webPageSchema = {
                                             if (ontimeEl) ontimeEl.textContent = "100%";
                                             if (sampleEl) sampleEl.textContent = `${recentIntervals.length} real frames`;
                                             if (metricsBox) metricsBox.style.display = "grid";
+
+                                            lastVrrMissed = missedCount;
+                                            lastVrrStallMs = totalStallMs;
 
                 // Variable refresh: bar drawn right at each frame's ready time
                 vCtx.clearRect(0, 0, varCvs.width, 90);

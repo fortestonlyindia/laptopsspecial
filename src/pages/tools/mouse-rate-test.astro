@@ -849,8 +849,7 @@ const breadcrumbSchema = {
                                         aria-label="Download diagnostic report as PDF"
                                         >💾 PDF Report</button
                                     >
-                                    <a href="/full-diagnostic-report/" class="btn-sm btn-fulldiag" id="btn-fulldiag" aria-label="Open full diagnostic report page in a new tab" target="_blank" rel="noopener" >🧪 Full Diag Report</a >
-                                                                    </div>
+                                    <a href="/full-diagnostic-report/" class="btn-sm btn-fulldiag" id="btn-fulldiag" aria-label="Open full diagnostic report page in a new tab" target="_blank" rel="noopener" data-astro-reload>🧪 Full Diag Report</a >
                                 </div>
             </div>
 
@@ -923,6 +922,13 @@ const breadcrumbSchema = {
                             <div id="mouse-interpret" style="display:none; margin: 0 1.5rem 1rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.82rem; color: var(--text2);">
                                 <strong style="color: var(--text);">What this means: </strong>
                                 <span id="mouse-interpret-text"></span>
+                            </div>
+                            <div id="next-step-banner" style="display:none; margin: 0 1.5rem 1rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(124,58,237,0.3); background:rgba(124,58,237,0.06); font-size:0.85rem; color:var(--text2); text-align:center;">
+                                <span id="next-step-text"></span>
+                                <br />
+                                <button id="btn-fresh-start" style="margin-top:0.6rem; background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--font-display); font-size:0.72rem; font-weight:600; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer;">
+                                    ↺ Start Fresh Test Session
+                                </button>
                             </div>
 
                             <!-- POLLING HISTORY MINI-CHART -->
@@ -1211,7 +1217,36 @@ const breadcrumbSchema = {
             _lastDt?: number;
             _lastSpd?: number;
         }
+        function getDiagSessionId(): string {
+            let id = sessionStorage.getItem("ls_diag_session");
+            if (!id) {
+                id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                sessionStorage.setItem("ls_diag_session", id);
+            }
+            return id;
+        }
 
+        function isFromThisSession(key: string): boolean {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return false;
+                const parsed = JSON.parse(raw);
+                return parsed.sessionId === getDiagSessionId();
+            } catch {
+                return false;
+            }
+        }
+        function startFreshDiagSession() {
+            try {
+                localStorage.removeItem("ls_diag_monitor");
+                localStorage.removeItem("ls_diag_keyboard");
+                localStorage.removeItem("ls_diag_mouse");
+                sessionStorage.removeItem("ls_diag_session");
+            } catch (e) {
+                // storage unavailable — ignore
+            }
+            location.reload();
+        }
         document.addEventListener("astro:page-load", () => {
             const zone = document.getElementById("zone");
             const heatCvs = document.getElementById(
@@ -1728,6 +1763,7 @@ const breadcrumbSchema = {
                     st.rafId = requestAnimationFrame(rafLoop);
                     showToast("Test data reset");
                 });
+                document.getElementById("btn-fresh-start")?.addEventListener("click", startFreshDiagSession);
 
             // ---- Helper: trigger a browser download for a Blob ----
             function downloadBlob(blob: Blob, filename: string) {
@@ -2075,12 +2111,38 @@ const breadcrumbSchema = {
                                         "Mouse jitter": jitter !== null ? `${jitter.toFixed(1)} ms` : "—",
                                     },
                                     timestamp: Date.now(),
+                                    sessionId: getDiagSessionId(),
                                 };
                                 try {
-                                    localStorage.setItem("ls_diag_mouse", JSON.stringify(result));
-                                } catch (e) {
-                                    // localStorage unavailable — silently skip
-                                }
+                                                                    localStorage.setItem("ls_diag_mouse", JSON.stringify(result));
+
+                                                                    // ---- Next-step nudge ----
+                                                                    const nextBanner = document.getElementById("next-step-banner");
+                                                                    const nextText = document.getElementById("next-step-text");
+                                                                    if (nextBanner && nextText) {
+                                                                        const remaining: { label: string; url: string }[] = [];
+                                                                        if (!isFromThisSession("ls_diag_monitor")) remaining.push({ label: "monitor", url: "/tools/monitor-refresh-rate-test/" });
+                                                                        if (!isFromThisSession("ls_diag_keyboard")) remaining.push({ label: "keyboard", url: "/tools/keyboard-latency-tester/" });
+
+                                                                        let newHtml: string;
+                                                                        if (remaining.length === 0) {
+                                                                            newHtml = '🎉 All 3 tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:#a78bfa;font-weight:700;">View your Full Diagnostic Report →</a>';
+                                                                        } else if (remaining.length === 1) {
+                                                                            const r = remaining[0];
+                                                                            newHtml = `✅ Mouse done. Next: <a href="${r.url}" data-astro-reload style="color:#a78bfa;font-weight:700;">test your ${r.label} →</a>`;
+                                                                        } else {
+                                                                            newHtml = `✅ Mouse done. Complete these for your full report: ${remaining.map(r => `<a href="${r.url}" data-astro-reload style="color:#a78bfa;font-weight:700;">${r.label}</a>`).join(" &amp; ")}`;
+                                                                        }
+
+                                                                        nextBanner.style.display = "block";
+                                                                        if (nextText.dataset.currentHtml !== newHtml) {
+                                                                            nextText.innerHTML = newHtml;
+                                                                            nextText.dataset.currentHtml = newHtml;
+                                                                        }
+                                                                    }
+                                                                } catch (e) {
+                                                                    // localStorage unavailable — silently skip
+                                                                }
                             }
 
                             // Call this whenever we have a meaningful reading — piggyback on the
