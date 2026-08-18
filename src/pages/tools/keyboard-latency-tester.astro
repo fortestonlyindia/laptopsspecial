@@ -283,7 +283,7 @@ const faqSchema = {
     .kb-body {
       display: flex;
       gap: 14px;
-      align-items: flex-start;
+      align-items: stretch;
     }
 
     /* ═══════════════════════════════════
@@ -405,6 +405,9 @@ const faqSchema = {
       flex-direction: column;
       gap: 4px;
     }
+    #nav-section {
+      justify-content: flex-start;
+    }
     .kb-row {
       display: flex;
       gap: 4px;
@@ -452,7 +455,7 @@ const faqSchema = {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      margin-top: 4px;
+      margin-top: auto;
     }
     .arrow-top {
       display: flex;
@@ -826,6 +829,14 @@ const faqSchema = {
       border-color: #22c55e;
       background: rgba(34, 197, 94, 0.08);
     }
+    .layout-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 212, 255, 0.08);
+    }
+    .fn-key {
+      display: none;
+    }
   </style>
   <style is:global>
     .history-feed .hkey {
@@ -973,6 +984,25 @@ const faqSchema = {
       </div>
 
       <div class="kb-area">
+        <div
+          style="display:flex; justify-content:center; gap:0.5rem; margin-bottom:1rem; flex-wrap:wrap;"
+        >
+          <button
+            class="btn-sm layout-btn"
+            data-layout="windows"
+            id="btn-layout-win">🪟 Windows</button
+          >
+          <button
+            class="btn-sm layout-btn"
+            data-layout="mac-full"
+            id="btn-layout-macfull">⌨️ Mac (Full/External)</button
+          >
+          <button
+            class="btn-sm layout-btn"
+            data-layout="mac-laptop"
+            id="btn-layout-maclaptop">💻 Mac (Laptop)</button
+          >
+        </div>
         <p class="kb-prompt" id="kb-prompt">
           Press any key on your keyboard to highlight it on the keyboard below
         </p>
@@ -1093,7 +1123,14 @@ const faqSchema = {
                 <div class="k" data-code="Quote">
                   <span class="sym">"</span><span class="ch">'</span>
                 </div>
-                <div class="k w-225" data-code="Enter">Enter</div>
+                <div
+                  class="k w-225 enter-key"
+                  data-code="Enter"
+                  data-win-label="Enter"
+                  data-mac-label="Return"
+                >
+                  Enter
+                </div>
               </div>
 
               <!-- ZXCV ROW -->
@@ -1119,24 +1156,97 @@ const faqSchema = {
               </div>
 
               <!-- BOTTOM ROW -->
-              <div class="kb-row">
-                <div class="k w-125" data-code="ControlLeft">Ctrl</div>
-                <div class="k w-125" data-code="MetaLeft">Win</div>
-                <div class="k w-125" data-code="AltLeft">Alt</div>
-                <div class="k w-625" data-code="Space"></div>
-                <div class="k w-125" data-code="AltRight">Alt</div>
-                <div class="k w-125" data-code="MetaRight">Win</div>
-                <div class="k w-125" data-code="ContextMenu">Menu</div>
-                <div class="k w-125" data-code="ControlRight">Ctrl</div>
+              <div class="kb-row" id="bottom-mod-row">
+                <div
+                  class="k w-125 mod-key fn-key"
+                  data-code="Fn"
+                  data-mac-label="fn"
+                  data-mac-order="0"
+                >
+                  fn
+                </div>
+                <div
+                  class="k w-125 mod-key"
+                  data-code="ControlLeft"
+                  data-win-label="Ctrl"
+                  data-mac-label="Control"
+                  data-win-order="1"
+                  data-mac-order="1"
+                >
+                  Ctrl
+                </div>
+                <div
+                  class="k w-125 mod-key"
+                  data-code="MetaLeft"
+                  data-win-label="Win"
+                  data-mac-label="Option"
+                  data-win-order="2"
+                  data-mac-order="2"
+                  data-mac-swapcode="AltLeft"
+                >
+                  Win
+                </div>
+                <div
+                  class="k w-125 mod-key"
+                  data-code="AltLeft"
+                  data-win-label="Alt"
+                  data-mac-label="Cmd"
+                  data-win-order="3"
+                  data-mac-order="3"
+                  data-mac-swapcode="MetaLeft"
+                >
+                  Alt
+                </div>
+                <div class="k w-625" data-code="Space" id="space-key"></div>
+                <div
+                  class="k w-125 mod-key"
+                  data-code="AltRight"
+                  data-win-label="Alt"
+                  data-mac-label="Cmd"
+                  data-win-order="5"
+                  data-mac-order="5"
+                  data-mac-swapcode="MetaRight"
+                >
+                  Alt
+                </div>
+                <div
+                  class="k w-125 mod-key"
+                  data-code="MetaRight"
+                  data-win-label="Win"
+                  data-mac-label="Option"
+                  data-win-order="6"
+                  data-mac-order="6"
+                  data-mac-swapcode="AltRight"
+                >
+                  Win
+                </div>
+                <div
+                  class="k w-125 mod-key menu-key"
+                  data-code="ContextMenu"
+                  data-win-order="7"
+                  data-mac-order="7"
+                >
+                  Menu
+                </div>
+                <div
+                  class="k w-125 mod-key"
+                  data-code="ControlRight"
+                  data-win-label="Ctrl"
+                  data-mac-label="Control"
+                  data-win-order="8"
+                  data-mac-order="8"
+                >
+                  Ctrl
+                </div>
               </div>
             </div><!-- /main-section -->
 
             <!-- ══════════════════════════════
                SECTION 2 — NAVIGATION CLUSTER
           ══════════════════════════════ -->
-            <div class="kb-section">
-              <!-- Top row: PrtSc, ScrLk, Pause -->
-              <div class="kb-row fn-row">
+            <div class="kb-section" id="nav-section">
+              <!-- Top row: PrtSc, ScrLk, Pause (not on real Mac keyboards) -->
+              <div class="kb-row fn-row" id="prtsc-row">
                 <div
                   class="k"
                   data-code="PrintScreen"
@@ -1161,8 +1271,8 @@ const faqSchema = {
               </div>
 
               <!-- Ins/Home/PgUp -->
-              <div class="nav-top-row">
-                <div class="k" data-code="Insert">Ins</div>
+              <div class="nav-top-row nav-extra">
+                <div class="k no-mac" data-code="Insert">Ins</div>
                 <div class="k" data-code="Home">Home</div>
                 <div class="k" data-code="PageUp" style="font-size:.52rem;">
                   PgUp
@@ -1170,7 +1280,7 @@ const faqSchema = {
               </div>
 
               <!-- Del/End/PgDn -->
-              <div class="nav-mid-row">
+              <div class="nav-mid-row nav-extra">
                 <div class="k" data-code="Delete">Del</div>
                 <div class="k" data-code="End">End</div>
                 <div class="k" data-code="PageDown" style="font-size:.52rem;">
@@ -1179,7 +1289,7 @@ const faqSchema = {
               </div>
 
               <!-- Spacer (matches 2 main rows height) -->
-              <div style="height:80px;"></div>
+              <div style="height:80px;" class="nav-extra"></div>
 
               <!-- Arrow keys -->
               <div class="arrow-group">
@@ -1197,7 +1307,7 @@ const faqSchema = {
             <!-- ══════════════════════════════
                SECTION 3 — NUMPAD
           ══════════════════════════════ -->
-            <div class="kb-section">
+            <div class="kb-section" id="numpad-section">
               <!-- NumLock / / * - -->
               <div class="kb-row fn-row">
                 <div class="k" data-code="NumLock" style="font-size:.52rem;">
@@ -1598,6 +1708,14 @@ const faqSchema = {
       const pressedCodes = new Set<string>();
       const recentDurations: number[] = [];
 
+      function resolveCode(rawCode: string): string {
+        if (!currentLayout.startsWith("mac")) return rawCode;
+        const el = document.querySelector(
+          `.mod-key[data-code="${rawCode}"]`,
+        ) as HTMLElement | null;
+        return el?.dataset.macSwapcode || rawCode;
+      }
+
       document.addEventListener(
         "keydown",
         (e: KeyboardEvent) => {
@@ -1619,7 +1737,7 @@ const faqSchema = {
           }
 
           // Yahan se purana code shuru hota hai jo keys ko screen par highlight karta hai
-          const el = getKeyEl(e.code);
+          const el = getKeyEl(resolveCode(e.code));
           if (el) el.classList.add("pressed");
 
           if (!keyDownTimes.has(e.code)) {
@@ -1633,7 +1751,7 @@ const faqSchema = {
       document.addEventListener(
         "keyup",
         (e: KeyboardEvent) => {
-          const el = getKeyEl(e.code);
+          const el = getKeyEl(resolveCode(e.code));
           if (el) el.classList.remove("pressed");
 
           const t = keyDownTimes.get(e.code);
@@ -1845,6 +1963,100 @@ const faqSchema = {
       document
         .getElementById("btn-fresh-start")
         ?.addEventListener("click", startFreshDiagSession);
+
+      // ---- Keyboard Layout (Windows / Mac Full / Mac Laptop) ----
+      function detectDefaultLayout(): string {
+        const saved = localStorage.getItem("ls_kb_layout");
+        if (saved) return saved;
+        const ua = navigator.userAgent || "";
+        const platform =
+          (navigator as any).userAgentData?.platform ||
+          navigator.platform ||
+          "";
+        const isMac =
+          /Mac|iPhone|iPad/i.test(platform) || /Macintosh/i.test(ua);
+        return isMac ? "mac-full" : "windows";
+      }
+
+      function applyLayout(layout: string) {
+        const isMac = layout.startsWith("mac");
+        const isMacLaptop = layout === "mac-laptop";
+
+        // fn key — sirf Mac layouts mein dikhti hai
+        const fnKey = document.querySelector<HTMLElement>(".fn-key");
+        if (fnKey) {
+          fnKey.style.display = isMac ? "inline-flex" : "none";
+          fnKey.style.order = "0";
+        }
+
+        // Insert key — kisi bhi Mac keyboard mein exist nahi karti
+        document.querySelectorAll<HTMLElement>(".no-mac").forEach((el) => {
+          el.style.display = isMac ? "none" : "";
+        });
+
+        // Enter key — Mac par "Return" label hota hai
+        const enterKey = document.querySelector<HTMLElement>(".enter-key");
+        if (enterKey) {
+          const label = isMac
+            ? enterKey.dataset.macLabel
+            : enterKey.dataset.winLabel;
+          if (label) enterKey.textContent = label;
+        }
+
+        // Home/PgUp/Del/End/PgDn — MacBook laptop mein nahi hoti
+        document.querySelectorAll<HTMLElement>(".nav-extra").forEach((el) => {
+          el.style.display = isMacLaptop ? "none" : "";
+        });
+
+        // Relabel + reorder bottom modifier row
+        document.querySelectorAll<HTMLElement>(".mod-key").forEach((el) => {
+          const winLabel = el.dataset.winLabel;
+          const macLabel = el.dataset.macLabel;
+          const order = isMac ? el.dataset.macOrder : el.dataset.winOrder;
+          if (order) el.style.order = order;
+
+          if (el.classList.contains("menu-key")) {
+            el.style.display = isMac ? "none" : "";
+            return;
+          }
+          const label = isMac ? macLabel : winLabel;
+          if (label) el.textContent = label;
+        });
+        const bottomRow = document.getElementById("bottom-mod-row");
+        if (bottomRow) bottomRow.style.display = "flex";
+        const spaceKey = document.getElementById("space-key");
+        if (spaceKey) spaceKey.style.order = "4";
+
+        // Numpad — hidden on Mac laptop, shown otherwise
+        const numpad = document.getElementById("numpad-section");
+        if (numpad) numpad.style.display = isMacLaptop ? "none" : "";
+
+        // PrtSc/ScrollLock/Pause row — not on real Mac keyboards
+        const prtscRow = document.getElementById("prtsc-row");
+        if (prtscRow) prtscRow.style.display = isMac ? "none" : "";
+
+        // Toggle button active states
+        document.querySelectorAll<HTMLElement>(".layout-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.layout === layout);
+        });
+
+        localStorage.setItem("ls_kb_layout", layout);
+        currentLayout = layout;
+      }
+
+      let currentLayout = detectDefaultLayout();
+      applyLayout(currentLayout);
+
+      document.querySelectorAll<HTMLElement>(".layout-btn").forEach((btn) => {
+        btn.addEventListener(
+          "click",
+          () => {
+            const layout = btn.dataset.layout;
+            if (layout) applyLayout(layout);
+          },
+          { signal },
+        );
+      });
       // ---- Download PDF Report ----
       document.getElementById("btn-pdf")?.addEventListener("click", () => {
         if (totalKeys < 5) {
