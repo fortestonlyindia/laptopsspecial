@@ -885,14 +885,6 @@ const faqSchema = {
     </p>
   </div>
 
-  <!-- NEXT-STEP BANNER — moved above stats so returning users see it first -->
-  <div
-    id="next-step-banner"
-    style="display:none; max-width:600px; margin:0 auto 1rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(0,212,255,0.3); background:rgba(0,212,255,0.06); font-size:0.85rem; color:var(--text2); text-align:center;"
-  >
-    <span id="next-step-text"></span>
-  </div>
-
   <!-- STATS -->
   <div class="stats-row" aria-label="Test statistics">
     <div class="stat-card">
@@ -927,7 +919,7 @@ const faqSchema = {
       <div class="stat-unit">start fresh</div>
     </div>
   </div>
-  <!-- RESULT INTERPRETATION (NEW) -->
+  <!-- RESULT INTERPRETATION -->
   <div class="tool-container" style="padding-bottom: 0;">
     <div
       id="result-interpret"
@@ -935,6 +927,14 @@ const faqSchema = {
     >
       <strong style="color: var(--text);">What this means: </strong>
       <span id="result-interpret-text"></span>
+    </div>
+
+    <!-- NEXT-STEP BANNER -->
+    <div
+      id="next-step-banner"
+      style="display:none; margin: 0 0 1rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(0,212,255,0.3); background:rgba(0,212,255,0.06); font-size:0.85rem; color:var(--text2); text-align:center;"
+    >
+      <span id="next-step-text"></span>
     </div>
   </div>
 
