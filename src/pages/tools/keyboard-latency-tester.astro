@@ -146,8 +146,11 @@ const faqSchema = {
       gap: 0.75rem;
       flex-wrap: wrap;
       padding: 1.25rem 1.5rem;
-      max-width: 960px;
+      max-width: 1200px;
       margin: 0 auto;
+    }
+    .stat-card {
+      min-width: 0;
     }
     .stat-card {
       background: var(--bg2);
@@ -740,10 +743,10 @@ const faqSchema = {
       gap: 0.5rem;
       font-size: 0.8rem;
       font-weight: 700;
-      padding: 0.45rem 0.9rem;
+      padding: 0.4rem 0.8rem;
       border-radius: 100px;
-      margin: 0.75rem auto 0;
       width: fit-content;
+      flex-shrink: 0;
     }
     .confidence-badge.show {
       display: flex;
@@ -784,8 +787,7 @@ const faqSchema = {
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
-      margin: 0.75rem auto 0;
-      justify-content: center;
+      align-items: center;
     }
     .btn-sm {
       background: none;
@@ -883,6 +885,14 @@ const faqSchema = {
     </p>
   </div>
 
+  <!-- NEXT-STEP BANNER — moved above stats so returning users see it first -->
+  <div
+    id="next-step-banner"
+    style="display:none; max-width:600px; margin:0 auto 1rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(0,212,255,0.3); background:rgba(0,212,255,0.06); font-size:0.85rem; color:var(--text2); text-align:center;"
+  >
+    <span id="next-step-text"></span>
+  </div>
+
   <!-- STATS -->
   <div class="stats-row" aria-label="Test statistics">
     <div class="stat-card">
@@ -905,6 +915,17 @@ const faqSchema = {
       <div class="stat-value" id="s-unique" aria-live="polite">0</div>
       <div class="stat-unit">/ 104</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-label">Session</div>
+      <button
+        id="btn-fresh-start"
+        class="stat-value"
+        style="background:none; border:none; cursor:pointer; padding:0; margin:0; font:inherit; font-family:var(--font-mono); font-size:1.6rem; font-weight:700; color: var(--accent); line-height:inherit; display:block; width:100%; text-align:center;"
+      >
+        ↺ Reset
+      </button>
+      <div class="stat-unit">start fresh</div>
+    </div>
   </div>
   <!-- RESULT INTERPRETATION (NEW) -->
   <div class="tool-container" style="padding-bottom: 0;">
@@ -917,52 +938,38 @@ const faqSchema = {
     </div>
   </div>
 
-  <div
-    class="confidence-badge"
-    id="kb-confidence"
-    style="margin-left:auto;margin-right:auto;"
-  >
-    <span class="confidence-dot" aria-hidden="true"></span>
-    <span id="kb-confidence-text">—</span>
-  </div>
-  <div class="kb-actions">
-    <button
-      class="btn-sm btn-pdf"
-      id="btn-pdf"
-      aria-label="Download diagnostic report as PDF">💾 PDF Report</button
-    >
-    <a
-      href="/full-diagnostic-report/"
-      class="btn-sm btn-fulldiag"
-      id="btn-fulldiag"
-      aria-label="Open full diagnostic report page"
-      target="_blank"
-      rel="noopener"
-      data-astro-reload>🧪 Full Diag Report</a
-    >
-  </div>
-  <div
-    id="next-step-banner"
-    style="display:none; max-width:600px; margin:1rem auto 0; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(0,212,255,0.3); background:rgba(0,212,255,0.06); font-size:0.85rem; color:var(--text2); text-align:center;"
-  >
-    <span id="next-step-text"></span>
-    <br />
-    <button
-      id="btn-fresh-start"
-      style="margin-top:0.6rem; background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--font-display); font-size:0.72rem; font-weight:600; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer;"
-    >
-      ↺ Start Fresh Test Session
-    </button>
-  </div>
   <!-- ═══════ TOOL CARD ═══════ -->
   <div class="tool-container">
     <div class="tool-card">
       <div class="tool-header">
         <span class="tool-title">⌨️ Full 104-Key Keyboard Tester</span>
-        <span class="tool-status">
-          <span class="status-dot" aria-hidden="true"></span>
-          Ready — press any key
+
+        <span class="confidence-badge" id="kb-confidence" style="margin:0;">
+          <span class="confidence-dot" aria-hidden="true"></span>
+          <span id="kb-confidence-text">—</span>
         </span>
+
+        <div class="kb-actions" style="align-items:center;">
+          <button
+            class="btn-sm btn-pdf"
+            id="btn-pdf"
+            aria-label="Download diagnostic report as PDF">💾 PDF Report</button
+          >
+          <a
+            href="/full-diagnostic-report/"
+            class="btn-sm btn-fulldiag"
+            id="btn-fulldiag"
+            aria-label="Open full diagnostic report page"
+            target="_blank"
+            rel="noopener"
+            data-astro-reload
+            >🧪 Full Diag Report
+          </a>
+          <span class="tool-status">
+            <span class="status-dot" aria-hidden="true"></span>
+            Ready — press any key
+          </span>
+        </div>
       </div>
 
       <div class="kb-area">
@@ -1797,7 +1804,9 @@ const faqSchema = {
                 const r = remaining[0];
                 newHtml = `✅ Keyboard done. Next: <a href="${r.url}" data-astro-reload style="color:var(--accent);font-weight:700;">test your ${r.label} →</a>`;
               } else {
-                newHtml = `✅ Keyboard done. Complete these for your full report: ${remaining.map((r) => `<a href="${r.url}" data-astro-reload style="color:var(--accent);font-weight:700;">${r.label}</a>`).join(" &amp; ")}`;
+                const last = remaining[remaining.length - 1];
+                const rest = remaining.slice(0, -1);
+                newHtml = `✅ Keyboard done. Complete these for your full report: ${rest.map((r) => `<a href="${r.url}" data-astro-reload style="color:var(--accent);font-weight:700;">${r.label}</a>`).join(", ")} &amp; <a href="${last.url}" data-astro-reload style="color:var(--accent);font-weight:700;">${last.label}</a>`;
               }
 
               nextBanner.style.display = "block";
