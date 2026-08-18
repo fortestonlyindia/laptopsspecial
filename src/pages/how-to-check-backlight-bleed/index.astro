@@ -1,0 +1,341 @@
+---
+import Base from "@layouts/Base.astro";
+
+const pageUrl = "https://laptopsspecial.com/how-to-check-backlight-bleed/";
+const siteUrl = "https://laptopsspecial.com/";
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": `${pageUrl}#breadcrumb`,
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Backlight Bleed & Dead Pixel Guide",
+      item: pageUrl,
+    },
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": `${pageUrl}#faq`,
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What causes backlight bleed?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Backlight bleed happens when light from the LED backlight leaks past the LCD panel's edges or clips, usually due to slightly uneven panel mounting pressure. It is a manufacturing tolerance issue, not damage, and is common on IPS panels in particular.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is backlight bleed a manufacturing defect I can return?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Some backlight bleed is normal on almost every LCD panel. Whether it qualifies for a return depends on severity and the retailer's policy — check in a fully dark room at full brightness before deciding, since bleed looks worse in the dark than during normal use.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can backlight bleed get worse over time?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "It can shift slightly with temperature and physical stress on the chassis, but it typically does not worsen dramatically over normal use unless the panel or frame is physically damaged.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How many dead pixels are acceptable on a new screen?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "This depends on the manufacturer's pixel policy, which varies widely. Many brands classify a display as within spec with a handful of dead or stuck subpixels; check your manufacturer's specific ISO 9241-307 class or warranty terms.",
+      },
+    },
+  ],
+};
+---
+
+<Base
+  title="How to Check for Backlight Bleed & Dead Pixels — Full Guide"
+  description="Step-by-step guide to spotting backlight bleed, dead pixels, and stuck pixels on any laptop or monitor screen, plus what counts as normal vs a returnable defect."
+  canonical={pageUrl}
+  noWebAppSchema={true}
+>
+  <style>
+    .guide-hero {
+      text-align: center;
+      padding: 3rem 1.5rem 1.5rem;
+    }
+    .guide-hero h1 {
+      font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .guide-hero p {
+      color: var(--text2);
+      font-size: 0.95rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    .guide-content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem 3rem;
+    }
+    .guide-content h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 2rem 0 0.75rem;
+    }
+    .guide-content p {
+      color: var(--text2);
+      font-size: 0.88rem;
+      line-height: 1.8;
+      margin-bottom: 0.9rem;
+    }
+    .guide-content ol,
+    .guide-content ul {
+      color: var(--text2);
+      font-size: 0.88rem;
+      line-height: 1.9;
+      margin: 0.5rem 0 1rem 1.3rem;
+    }
+    .guide-cta {
+      background: linear-gradient(
+        135deg,
+        rgba(20, 184, 166, 0.1),
+        rgba(0, 212, 255, 0.08)
+      );
+      border: 1px solid rgba(20, 184, 166, 0.25);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+      margin: 1.5rem 0;
+    }
+    .guide-cta p {
+      font-size: 0.88rem;
+      color: var(--text2);
+      margin-bottom: 0.8rem;
+    }
+    .guide-cta a {
+      background: #2dd4bf;
+      color: #04231f;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.6rem 1.3rem;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+    .faq-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.95rem;
+    }
+    .faq-q {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .faq-a {
+      font-size: 0.8rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+  </style>
+
+  <div class="guide-hero">
+    <h1>How to Check for Backlight Bleed & Dead Pixels</h1>
+    <p>
+      A practical, step-by-step method to inspect any laptop or monitor screen
+      for backlight bleed, dead pixels, and stuck pixels — before you buy, or
+      before a return window closes.
+    </p>
+  </div>
+
+  <div class="guide-content">
+    <h2>Before You Start</h2>
+    <ul>
+      <li>
+        Set brightness to 100% and turn off any auto-brightness / adaptive
+        brightness setting.
+      </li>
+      <li>
+        Disable night light, blue light filters, or True Tone — these shift
+        colors.
+      </li>
+      <li>
+        Test in a dark or dimly lit room. Backlight bleed is far more visible in
+        the dark than under normal lighting.
+      </li>
+      <li>
+        Clean the screen first — dust and smudges are easy to mistake for stuck
+        pixels.
+      </li>
+    </ul>
+
+    <h2>Step 1: Check for Backlight Bleed</h2>
+    <p>
+      Backlight bleed shows up as light leaking near the edges or corners of the
+      panel on a full black screen. It's most visible in a dark room.
+    </p>
+    <ol>
+      <li>Dim your room lights as much as possible.</li>
+      <li>
+        Open a full black screen (our <a href="/tools/screen-test/"
+          >Screen Test tool</a
+        > has a one-click Black Screen swatch).
+      </li>
+      <li>
+        Look closely at all four edges and corners for a soft glow or patchy
+        brightness.
+      </li>
+      <li>
+        Some faint bleed near the corners is normal on almost every LCD panel —
+        heavy, uneven glowing patches are the ones worth flagging.
+      </li>
+    </ol>
+
+    <h2>Step 2: Check for Dead Pixels</h2>
+    <p>
+      A dead pixel stays permanently black regardless of what color the rest of
+      the screen shows, since it isn't receiving power.
+    </p>
+    <ol>
+      <li>
+        Run the White, Red, Green, and Blue full-screen swatches one at a time.
+      </li>
+      <li>
+        On each color, scan the whole screen slowly for a small dark dot that
+        doesn't match the background color.
+      </li>
+      <li>
+        A dead pixel will show up as a dark dot on every single color — not just
+        one.
+      </li>
+    </ol>
+
+    <h2>Step 3: Check for Stuck Pixels</h2>
+    <p>
+      A stuck pixel is the opposite of a dead one — it stays fixed on a single
+      color, usually red, green, or blue, because one subpixel is stuck on.
+    </p>
+    <ol>
+      <li>Run the Black screen swatch.</li>
+      <li>
+        Look for a small bright colored dot against the black background — this
+        is the clearest way to spot a stuck pixel.
+      </li>
+      <li>
+        If you find one, gently note its exact position; some stuck pixels can
+        be fixed with pressure or flicker-based methods, though results vary and
+        there's some risk of making it worse.
+      </li>
+    </ol>
+
+    <h2>Step 4: Check Uniformity and Viewing Angle</h2>
+    <p>
+      Even without dead pixels or bleed, a panel can have patchy brightness or
+      noticeable color shift.
+    </p>
+    <ol>
+      <li>
+        Run the 50% Gray (Uniformity) swatch and look for blotchy brightness or
+        a color tint across the panel.
+      </li>
+      <li>
+        While on that screen, tilt your laptop lid slightly forward and back. TN
+        panels shift contrast and color sharply off-angle; IPS panels stay
+        comparatively stable — this tells you what panel type you likely have.
+      </li>
+    </ol>
+
+    <div class="guide-cta">
+      <p>
+        Run all of these checks automatically with one click, including a timed
+        sequence and exportable PDF/CSV report.
+      </p>
+      <a href="/tools/screen-test/" data-astro-reload
+        >🖥️ Open the Screen Test Tool →</a
+      >
+    </div>
+
+    <h2>What Counts as Normal vs a Real Defect</h2>
+    <p>
+      Some backlight bleed is present on nearly every LCD panel — it's a
+      byproduct of manufacturing tolerances, not necessarily a fault. What
+      matters is severity: faint, even glow confined to the corners is normal;
+      bright, uneven patches spreading toward the center of the screen are worth
+      raising with the seller or manufacturer. For dead and stuck pixels, most
+      manufacturers publish a specific pixel policy (often tied to ISO 9241-307
+      classes) defining how many are acceptable before a unit qualifies for
+      replacement — check your manufacturer's policy directly, since thresholds
+      vary significantly between brands.
+    </p>
+
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">What causes backlight bleed?</div>
+        <div class="faq-a">
+          Backlight bleed happens when light from the LED backlight leaks past
+          the LCD panel's edges or clips, usually due to slightly uneven panel
+          mounting pressure. It's a manufacturing tolerance issue, not damage,
+          and is common on IPS panels in particular.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          Is backlight bleed a manufacturing defect I can return?
+        </div>
+        <div class="faq-a">
+          Some backlight bleed is normal on almost every LCD panel. Whether it
+          qualifies for a return depends on severity and the retailer's policy —
+          check in a fully dark room at full brightness before deciding, since
+          bleed looks worse in the dark than during normal use.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can backlight bleed get worse over time?</div>
+        <div class="faq-a">
+          It can shift slightly with temperature and physical stress on the
+          chassis, but it typically doesn't worsen dramatically over normal use
+          unless the panel or frame is physically damaged.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          How many dead pixels are acceptable on a new screen?
+        </div>
+        <div class="faq-a">
+          This depends on the manufacturer's pixel policy, which varies widely.
+          Many brands classify a display as within spec with a handful of dead
+          or stuck subpixels — check your manufacturer's specific ISO 9241-307
+          class or warranty terms.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbSchema)}
+  />
+</Base>

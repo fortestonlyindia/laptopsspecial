@@ -1252,6 +1252,21 @@ const webPageSchema = {
     </div>
   </div>
 
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your screen!</strong> Check for dead pixels, backlight bleed,
+        color accuracy and motion blur with our Screen Test.
+      </p>
+      <a
+        href="/tools/screen-test/"
+        class="cta-btn"
+        aria-label="Open Screen Test tool"
+        data-astro-reload>🖼️ Screen Test →</a
+      >
+    </div>
+  </div>
+
   <!-- CONTENT -->
   <div class="content-section">
     <h2>What Is Monitor Refresh Rate?</h2>
@@ -1466,6 +1481,9 @@ const webPageSchema = {
       rafId: number | null;
       startTime: number | null;
       droppedCount: number;
+      // Rolling window of recent frame timestamps used to compute a
+      // SMOOTHED live Hz reading instead of a single-frame 1000/dt value.
+      hzWindow: number[];
     }
 
     function gradeFromConsistency(pct: number): { grade: string; cls: string } {
@@ -1514,6 +1532,7 @@ const webPageSchema = {
         localStorage.removeItem("ls_diag_monitor");
         localStorage.removeItem("ls_diag_keyboard");
         localStorage.removeItem("ls_diag_mouse");
+        localStorage.removeItem("ls_diag_screen");
         sessionStorage.removeItem("ls_diag_session");
       } catch (e) {
         // storage unavailable — ignore
@@ -1563,6 +1582,7 @@ const webPageSchema = {
         rafId: null,
         startTime: null,
         droppedCount: 0,
+        hzWindow: [],
       };
       let lastAvgHz: number | null = null;
       let lastStabilityPct: number | null = null;
@@ -1759,11 +1779,16 @@ const webPageSchema = {
                 label: "mouse",
                 url: "/tools/mouse-rate-test/",
               });
+            if (!isFromThisSession("ls_diag_screen"))
+              remaining.push({
+                label: "screen",
+                url: "/tools/screen-test/",
+              });
 
             let newHtml: string;
             if (remaining.length === 0) {
               newHtml =
-                '🎉 All 3 tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:#f59e0b;font-weight:700;">View your Full Diagnostic Report →</a>';
+                '🎉 All tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:#f59e0b;font-weight:700;">View your Full Diagnostic Report →</a>';
             } else if (remaining.length === 1) {
               const r = remaining[0];
               newHtml = `✅ Monitor done. Next: <a href="${r.url}" data-astro-reload style="color:#f59e0b;font-weight:700;">test your ${r.label} →</a>`;
@@ -1839,6 +1864,36 @@ const webPageSchema = {
         if (basis) basis.textContent = `${Math.round(lastAvgHz)}Hz measured`;
       }
 
+      // ---- FIX: smoothed live Hz reading ----
+      // Previously the "Current Hz" display used a raw single-frame
+      // Math.round(1000/dt) value, which is extremely noisy: normal
+      // scheduling jitter of a couple of milliseconds swings the
+      // displayed number between e.g. 55Hz and 90Hz even on a rock
+      // solid 60Hz panel. We now keep a short rolling window of recent
+      // frame durations and average over it, which matches the
+      // approach already used successfully on the mouse-rate-test tool.
+      const HZ_SMOOTHING_WINDOW = 12; // number of recent frames to average
+      function pushSmoothedHz(dt: number) {
+        st.hzWindow.push(dt);
+        if (st.hzWindow.length > HZ_SMOOTHING_WINDOW) st.hzWindow.shift();
+        const avgDt =
+          st.hzWindow.reduce((a, b) => a + b, 0) / st.hzWindow.length;
+        return Math.round(1000 / avgDt);
+      }
+
+      // ---- FIX: adaptive dropped-frame threshold ----
+      // A fixed 20ms cutoff assumes a ~50Hz baseline. On a 120Hz/144Hz
+      // panel that's far too generous (frames should land every
+      // ~7-8ms), and on a genuinely 60Hz panel normal jitter can trip
+      // it unnecessarily. We derive the threshold from the panel's own
+      // observed median frame interval once we have enough samples.
+      function droppedFrameThreshold(): number {
+        if (st.allIntervals.length < 10) return 20; // sensible default before we know the real rate
+        const sorted = [...st.allIntervals].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        return Math.max(median * 1.5, 8);
+      }
+
       function loop(ts: number) {
         st.rafId = requestAnimationFrame(loop);
         if (st.lastTs !== null) {
@@ -1848,9 +1903,9 @@ const webPageSchema = {
             if (st.allIntervals.length > 2000) st.allIntervals.shift();
             st.frameTimes.push(dt);
             if (st.frameTimes.length > 150) st.frameTimes.shift();
-            if (dt > 20) st.droppedCount++;
+            if (dt > droppedFrameThreshold()) st.droppedCount++;
 
-            const liveHz = Math.round(1000 / dt);
+            const liveHz = pushSmoothedHz(dt);
             if (els.current) els.current.textContent = String(liveHz);
             if (els.sCurrent) els.sCurrent.textContent = String(liveHz);
             const fpsEl = document.getElementById("s-fps");
@@ -1906,6 +1961,7 @@ const webPageSchema = {
         st.frameTimes = [];
         st.allIntervals = [];
         st.droppedCount = 0;
+        st.hzWindow = [];
         st.startTime = performance.now();
         if (els.sAvg) els.sAvg.textContent = "0";
         if (els.sMinMax) els.sMinMax.textContent = "—";

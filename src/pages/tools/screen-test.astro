@@ -1,0 +1,2572 @@
+---
+import Base from "@layouts/Base.astro";
+
+const pageUrl = "https://laptopsspecial.com/tools/screen-test/";
+const siteUrl = "https://laptopsspecial.com/";
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": `${pageUrl}#breadcrumb`,
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+    { "@type": "ListItem", position: 2, name: "Screen Test", item: pageUrl },
+  ],
+};
+
+const howToSchema = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "@id": `${pageUrl}#howto-pwm`,
+  name: "How to Check for PWM Flicker on Your Laptop Screen",
+  description:
+    "Two manual methods to detect PWM (Pulse-Width Modulation) backlight flicker, since browsers cannot measure it directly.",
+  step: [
+    {
+      "@type": "HowToStep",
+      name: "Camera Slow-Motion Method",
+      text: "Open your phone camera, switch to slow-motion video mode, set this tool's brightness swatch to Gray, dim your laptop brightness to around 30-50%, and film the screen. Horizontal dark bands scrolling through the recording indicate PWM flicker.",
+    },
+    {
+      "@type": "HowToStep",
+      name: "Quick Wave Test",
+      text: "With the Gray swatch open, wave a pen or your finger quickly in front of the screen at low brightness. A smooth blur means no visible flicker; a stuttering, strobing trail suggests PWM at low brightness levels.",
+    },
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": `${pageUrl}#faq`,
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is a dead pixel vs a stuck pixel?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "A dead pixel stays permanently black — it receives no power at all. A stuck pixel stays fixed on one color (usually red, green, or blue) because one sub-pixel is stuck on while others are off. Stuck pixels can sometimes be fixed with pressure or flickering methods; dead pixels usually cannot.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can a browser detect dead pixels automatically?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. A browser has no way to read back what your screen is physically displaying — it can only show you solid colors to look at. Detecting a dead or stuck pixel still requires your eyes; this tool's job is to give you clean, full-screen reference colors to check against.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is backlight bleed and how do I check for it?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Backlight bleed is light leaking around the edges or corners of an LCD panel, most visible on a full black screen in a dark room. Run the black screen test, dim your room lights, and look for uneven glowing patches near the bezel.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Why does my screen look slightly different in this test than in real use?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Browser color rendering depends on your display's color profile, OS color management, and any blue-light/night-mode filters running. For the most accurate test, disable night light mode and run this test at 100% brightness in a dim room.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is this the same as a hardware dead pixel checker?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "It follows the same principle as dedicated hardware checkers — full-screen solid colors — but runs entirely in your browser with no download. For panels you suspect have an issue, testing in a dark room at full brightness gives the most reliable result.",
+      },
+    },
+  ],
+};
+---
+
+<Base
+  title="Screen Test Online — Dead Pixel, Color & Refresh Rate Checker"
+  description="Free browser-based screen test: dead pixel checker, stuck pixel test, backlight bleed check, color/grayscale/gradient screens, brightness, contrast, motion blur and a one-click Full Screen Health Check. No download needed."
+  canonical={pageUrl}
+  datePublished="2026-08-18"
+  dateModified="2026-08-18"
+>
+  <style>
+    .hero {
+      text-align: center;
+      padding: 3rem 1.5rem 1.5rem;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(20, 184, 166, 0.12);
+      border: 1px solid rgba(20, 184, 166, 0.3);
+      color: #2dd4bf;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      margin-bottom: 1.25rem;
+    }
+    [data-theme="light"] .hero-badge {
+      color: #0d9488;
+      border-color: rgba(13, 148, 136, 0.35);
+    }
+    .hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .hero h1 span {
+      color: #2dd4bf;
+    }
+    [data-theme="light"] .hero h1 span {
+      color: #0d9488;
+    }
+    .hero p {
+      color: var(--text2);
+      font-size: 1rem;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .healthcheck-banner {
+      max-width: 1080px;
+      margin: 0 auto 1.5rem;
+      padding: 0 1.5rem;
+    }
+    .healthcheck-inner {
+      background: linear-gradient(
+        135deg,
+        rgba(20, 184, 166, 0.12),
+        rgba(0, 212, 255, 0.08)
+      );
+      border: 1px solid rgba(20, 184, 166, 0.3);
+      border-radius: 14px;
+      padding: 1.4rem 1.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .healthcheck-text h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .healthcheck-text p {
+      font-size: 0.85rem;
+      color: var(--text2);
+      max-width: 480px;
+    }
+    .btn-healthcheck {
+      background: #2dd4bf;
+      color: #04231f;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .btn-healthcheck:hover {
+      opacity: 0.85;
+    }
+
+    .confidence-badge {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.45rem 0.9rem;
+      border-radius: 100px;
+      margin: 0 auto 1rem;
+      width: fit-content;
+    }
+    .confidence-badge.show {
+      display: flex;
+    }
+    .confidence-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .confidence-badge.status-good {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+    .confidence-badge.status-good .confidence-dot {
+      background: #22c55e;
+    }
+    .confidence-badge.status-check {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+    .confidence-badge.status-check .confidence-dot {
+      background: #f59e0b;
+    }
+    .confidence-badge.status-investigate {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+    .confidence-badge.status-investigate .confidence-dot {
+      background: #ef4444;
+    }
+
+    .tool-container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 1.5rem 1.5rem;
+    }
+    .tool-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .tool-header {
+      padding: 0.9rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .tool-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .tool-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .btn-sm {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-sm:hover {
+      border-color: var(--muted);
+      color: var(--text);
+    }
+    .btn-teal {
+      border-color: rgba(20, 184, 166, 0.4);
+      color: #2dd4bf;
+    }
+    [data-theme="light"] .btn-teal {
+      color: #0d9488;
+      border-color: rgba(13, 148, 136, 0.4);
+    }
+    .btn-teal:hover {
+      background: rgba(20, 184, 166, 0.1);
+    }
+    .btn-pdf {
+      border-color: rgba(0, 212, 255, 0.4);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .btn-pdf:hover {
+      border-color: var(--accent);
+      background: rgba(0, 212, 255, 0.08);
+    }
+    .btn-fulldiag {
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      font-weight: 700;
+    }
+    .btn-fulldiag:hover {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    /* SWATCH GRID */
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+      padding: 1.5rem;
+    }
+    .swatch {
+      position: relative;
+      height: 90px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      padding: 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      transition: transform 0.15s;
+      overflow: hidden;
+    }
+    .swatch:hover {
+      transform: translateY(-2px);
+    }
+    .swatch span {
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+    }
+    .sw-black {
+      background: #000;
+    }
+    .sw-white {
+      background: #fff;
+    }
+    .sw-red {
+      background: #ff0000;
+    }
+    .sw-green {
+      background: #00ff00;
+    }
+    .sw-blue {
+      background: #0000ff;
+    }
+    .sw-rgb {
+      background: linear-gradient(
+        90deg,
+        #ff0000 0%,
+        #ff0000 33%,
+        #00ff00 33%,
+        #00ff00 66%,
+        #0000ff 66%,
+        #0000ff 100%
+      );
+    }
+    .sw-gradient {
+      background: linear-gradient(90deg, #000, #fff);
+    }
+    .sw-grayscale {
+      background: repeating-linear-gradient(90deg, #000, #fff 100%);
+    }
+    .sw-checker {
+      background-image:
+        linear-gradient(45deg, #000 25%, transparent 25%),
+        linear-gradient(-45deg, #000 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #000 75%),
+        linear-gradient(-45deg, transparent 75%, #000 75%);
+      background-size: 20px 20px;
+      background-position:
+        0 0,
+        0 10px,
+        10px -10px,
+        -10px 0px;
+      background-color: #fff;
+    }
+    .sw-uniformity {
+      background: #808080;
+    }
+    .sw-banding {
+      background: linear-gradient(
+        90deg,
+        #1a1a1a,
+        #2a2a2a,
+        #3a3a3a,
+        #4a4a4a,
+        #5a5a5a,
+        #6a6a6a
+      );
+    }
+
+    .fullscreen-hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 0 1.5rem 1.25rem;
+    }
+
+    /* MOTION TEST */
+    .motion-section {
+      padding: 0 1.5rem 1.5rem;
+    }
+    .motion-zone {
+      position: relative;
+      height: 180px;
+      background: #05070d;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+    }
+    [data-theme="light"] .motion-zone {
+      background: #dbe2ec;
+    }
+    .motion-track {
+      position: relative;
+      height: 40px;
+    }
+    .motion-block {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      top: 3px;
+      left: 0;
+      will-change: transform;
+    }
+    .mb-1 {
+      background: #2dd4bf;
+    }
+    .mb-2 {
+      background: #f59e0b;
+    }
+    .mb-3 {
+      background: #a78bfa;
+    }
+
+    /* TEXT SHARPNESS */
+    .sharpness-box {
+      margin: 0 1.5rem 1.5rem;
+      padding: 1.5rem;
+      background: #fff;
+      color: #000;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .sharpness-box small {
+      display: block;
+      font-size: 0.6rem;
+      margin-top: 0.5rem;
+      color: #333;
+    }
+
+    /* FULLSCREEN OVERLAY */
+    #fs-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+    }
+    #fs-overlay.active {
+      display: flex;
+    }
+    #fs-color-layer {
+      position: absolute;
+      inset: 0;
+    }
+    .fs-hud {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      flex-wrap: wrap;
+    }
+    .fs-hud-label {
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+    }
+    .fs-hud-sub {
+      color: #b8c5d6;
+      font-size: 0.72rem;
+    }
+    .fs-hud-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .fs-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .fs-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .fs-btn.issue {
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #fca5a5;
+    }
+    .fs-progress-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .fs-progress-fill {
+      height: 100%;
+      background: #2dd4bf;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+    .fs-refresh-display {
+      position: absolute;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #fff;
+    }
+    .fs-refresh-hz {
+      font-family: var(--font-mono);
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #2dd4bf;
+    }
+    .fs-refresh-sub {
+      font-size: 0.75rem;
+      color: #b8c5d6;
+    }
+
+    /* SUMMARY MODAL */
+    #summary-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 1.5rem;
+    }
+    #summary-modal.active {
+      display: flex;
+    }
+    .summary-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      max-width: 480px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .summary-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg3);
+      border-radius: 8px;
+      color: var(--text2);
+    }
+    .summary-row.flagged {
+      color: #ef4444;
+      font-weight: 700;
+    }
+    .summary-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+    }
+    .summary-actions button {
+      flex: 1;
+      min-width: 120px;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .summary-actions .primary {
+      background: #2dd4bf;
+      color: #04231f;
+      border: none;
+    }
+    .summary-actions .secondary {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    /* CTA + CONTENT (shared pattern) */
+    .cta-banner {
+      max-width: 1080px;
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .cta-inner {
+      background: linear-gradient(
+        135deg,
+        rgba(20, 184, 166, 0.1),
+        rgba(0, 212, 255, 0.08)
+      );
+      border: 1px solid rgba(20, 184, 166, 0.25);
+      border-radius: 12px;
+      padding: 1.1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .cta-text {
+      font-size: 0.88rem;
+      color: var(--text2);
+    }
+    .cta-text strong {
+      color: var(--text);
+    }
+    .cta-btn {
+      background: #2dd4bf;
+      color: #04231f;
+      font-family: var(--font-display);
+      font-size: 0.83rem;
+      font-weight: 700;
+      padding: 0.55rem 1.2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .cta-btn:hover {
+      opacity: 0.85;
+    }
+
+    .content-section {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    .content-section h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.7rem;
+      color: var(--text);
+    }
+    .content-section p {
+      color: var(--text2);
+      line-height: 1.75;
+      font-size: 0.88rem;
+      margin-bottom: 0.75rem;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .info-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .info-card-icon {
+      font-size: 1.2rem;
+      margin-bottom: 0.45rem;
+    }
+    .info-card-title {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .info-card-desc {
+      font-size: 0.78rem;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .faq-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .faq-q {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .faq-a {
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.65rem 1.1rem;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+      z-index: 10001;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .ppi-calc {
+      margin: 0 1.5rem 1.5rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+    }
+    .ppi-calc-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .ppi-calc-body {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .ppi-calc-body label {
+      font-size: 0.78rem;
+      color: var(--text2);
+      width: 100%;
+    }
+    .ppi-calc-body input {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 0.45rem 0.7rem;
+      font-size: 0.85rem;
+      width: 120px;
+      font-family: var(--font-mono);
+    }
+    .ppi-result {
+      width: 100%;
+      margin-top: 0.9rem;
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .ppi-result-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text2);
+    }
+    .ppi-result-row span:last-child {
+      color: var(--text);
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .ppi-note {
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+      line-height: 1.5;
+    }
+
+    .sw-banding-red {
+      background: linear-gradient(
+        90deg,
+        #1a0000,
+        #2a0000,
+        #3a0000,
+        #4a0000,
+        #5a0000,
+        #6a0000
+      );
+    }
+    .sw-banding-green {
+      background: linear-gradient(
+        90deg,
+        #001a00,
+        #002a00,
+        #003a00,
+        #004a00,
+        #005a00,
+        #006a00
+      );
+    }
+    .sw-banding-blue {
+      background: linear-gradient(
+        90deg,
+        #00001a,
+        #00002a,
+        #00003a,
+        #00004a,
+        #00005a,
+        #00006a
+      );
+    }
+    .sw-viewingangle {
+      background: linear-gradient(
+        180deg,
+        #1a1a1a 0%,
+        #1a1a1a 20%,
+        #ff0000 20%,
+        #ff0000 40%,
+        #808080 40%,
+        #808080 60%,
+        #0000ff 60%,
+        #0000ff 80%,
+        #333 80%,
+        #333 100%
+      );
+    }
+    .sw-gamma {
+      background: linear-gradient(
+        90deg,
+        #000 0%,
+        #000 50%,
+        #808080 50%,
+        #808080 100%
+      );
+    }
+
+    .contrast-calc {
+      margin: 0 1.5rem 1.5rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+    }
+    .contrast-calc-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .contrast-calc-sub {
+      font-size: 0.78rem;
+      color: var(--text2);
+      margin-bottom: 0.9rem;
+      line-height: 1.5;
+    }
+    .contrast-swatch-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .contrast-swatch {
+      flex: 1;
+      min-width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #888;
+      padding-bottom: 4px;
+      transition: border-color 0.15s;
+    }
+    .contrast-swatch:hover,
+    .contrast-swatch.selected {
+      border-color: #2dd4bf;
+    }
+    .contrast-result {
+      margin-top: 0.9rem;
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--text2);
+      display: none;
+    }
+    .contrast-result.show {
+      display: block;
+    }
+    .contrast-result strong {
+      color: var(--text);
+    }
+
+    .zoom-loupe {
+      position: fixed;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 3px solid #2dd4bf;
+      pointer-events: none;
+      display: none;
+      z-index: 10002;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    .zoom-loupe.active {
+      display: block;
+    }
+    .zoom-loupe-inner {
+      position: absolute;
+    }
+  </style>
+
+  <div class="hero">
+    <div class="hero-badge">🟦 Dead Pixel · Color · Motion · Refresh Rate</div>
+    <h1>Screen <span>Health Test</span></h1>
+    <p>
+      Check for dead/stuck pixels, backlight bleed, color accuracy, motion blur
+      and refresh rate — all free, in your browser, no download needed.
+    </p>
+  </div>
+
+  <div class="healthcheck-banner">
+    <div class="healthcheck-inner">
+      <div class="healthcheck-text">
+        <h3>⚡ Full Screen Health Check</h3>
+        <p>
+          One button runs the complete sequence automatically: Dead Pixel →
+          Colors → Grayscale → Brightness → Contrast → Uniformity → Banding
+          (Gray/Red/Green/Blue) → Gamma → Viewing Angle → Motion → Refresh Rate.
+        </p>
+      </div>
+      <button class="btn-healthcheck" id="btn-start-healthcheck"
+        >▶ Start Complete Screen Test</button
+      >
+    </div>
+  </div>
+
+  <div class="confidence-badge" id="screen-confidence">
+    <span class="confidence-dot" aria-hidden="true"></span>
+    <span id="screen-confidence-text">—</span>
+  </div>
+
+  <div class="tool-container">
+    <div class="tool-card">
+      <div class="tool-header">
+        <span class="tool-title"
+          >🖥️ Individual Screen Tests — click any swatch to go fullscreen</span
+        >
+        <div class="tool-actions">
+          <button
+            class="btn-sm"
+            id="btn-reset"
+            aria-label="Reset screen test results">Reset</button
+          >
+          <button
+            class="btn-sm btn-teal"
+            id="btn-pdf"
+            aria-label="Download screen test report as PDF"
+            >💾 PDF Report</button
+          >
+          <button
+            class="btn-sm btn-teal"
+            id="btn-json"
+            aria-label="Export screen test results as JSON">Export JSON</button
+          >
+          <button
+            class="btn-sm btn-teal"
+            id="btn-export"
+            aria-label="Export screen test results as CSV">📤 Export CSV</button
+          >
+          <a
+            href="/full-diagnostic-report/"
+            class="btn-sm btn-fulldiag"
+            id="btn-fulldiag"
+            target="_blank"
+            rel="noopener"
+            data-astro-reload>🧪 Full Diag Report</a
+          >
+        </div>
+      </div>
+
+      <div class="swatch-grid" id="swatch-grid">
+        <div
+          class="swatch sw-black"
+          data-mode="color"
+          data-color="#000000"
+          data-label="Black Screen"
+        >
+          <span>Black</span>
+        </div>
+        <div
+          class="swatch sw-white"
+          data-mode="color"
+          data-color="#ffffff"
+          data-label="White Screen"
+        >
+          <span style="color:#000;background:rgba(255,255,255,.6);">White</span>
+        </div>
+        <div
+          class="swatch sw-red"
+          data-mode="color"
+          data-color="#ff0000"
+          data-label="Red Screen"
+        >
+          <span>Red</span>
+        </div>
+        <div
+          class="swatch sw-green"
+          data-mode="color"
+          data-color="#00ff00"
+          data-label="Green Screen"
+        >
+          <span>Green</span>
+        </div>
+        <div
+          class="swatch sw-blue"
+          data-mode="color"
+          data-color="#0000ff"
+          data-label="Blue Screen"
+        >
+          <span>Blue</span>
+        </div>
+        <div
+          class="swatch sw-rgb"
+          data-mode="static"
+          data-kind="rgb"
+          data-label="RGB Bars"
+        >
+          <span>RGB</span>
+        </div>
+        <div
+          class="swatch sw-gradient"
+          data-mode="static"
+          data-kind="gradient"
+          data-label="Gradient (Black→White)"
+        >
+          <span style="color:#000;">Gradient</span>
+        </div>
+        <div
+          class="swatch sw-grayscale"
+          data-mode="static"
+          data-kind="grayscale"
+          data-label="Grayscale Ramp"
+        >
+          <span style="color:#000;">Grayscale</span>
+        </div>
+        <div
+          class="swatch sw-checker"
+          data-mode="static"
+          data-kind="checker"
+          data-label="Contrast Checkerboard"
+        >
+          <span style="color:#000;">Contrast</span>
+        </div>
+        <div
+          class="swatch sw-uniformity"
+          data-mode="color"
+          data-color="#808080"
+          data-label="Uniformity (50% Gray)"
+        >
+          <span>Uniformity</span>
+        </div>
+        <div
+          class="swatch sw-banding"
+          data-mode="static"
+          data-kind="banding"
+          data-label="Color Banding Ramp"
+        >
+          <span>Banding</span>
+        </div>
+        <div
+          class="swatch sw-banding-red"
+          data-mode="static"
+          data-kind="banding-red"
+          data-label="Color Banding — Red Channel"
+        >
+          <span>Banding R</span>
+        </div>
+        <div
+          class="swatch sw-banding-green"
+          data-mode="static"
+          data-kind="banding-green"
+          data-label="Color Banding — Green Channel"
+        >
+          <span>Banding G</span>
+        </div>
+        <div
+          class="swatch sw-banding-blue"
+          data-mode="static"
+          data-kind="banding-blue"
+          data-label="Color Banding — Blue Channel"
+        >
+          <span>Banding B</span>
+        </div>
+        <div
+          class="swatch sw-viewingangle"
+          data-mode="static"
+          data-kind="viewingangle"
+          data-label="Viewing Angle Test"
+        >
+          <span>View Angle</span>
+        </div>
+        <div
+          class="swatch sw-gamma"
+          data-mode="static"
+          data-kind="gamma"
+          data-label="Gamma Test (2.2)"
+        >
+          <span>Gamma</span>
+        </div>
+      </div>
+      <div class="ppi-calc" id="ppi-calc">
+        <div class="ppi-calc-header">📐 Screen Size & PPI Calculator</div>
+        <div class="ppi-calc-body">
+          <label for="ppi-diagonal">Screen diagonal size (inches)</label>
+          <input
+            type="number"
+            id="ppi-diagonal"
+            placeholder="e.g. 15.6"
+            step="0.1"
+            min="1"
+            max="100"
+          />
+          <button class="btn-sm btn-teal" id="ppi-calc-btn"
+            >Calculate PPI</button
+          >
+          <div class="ppi-result" id="ppi-result" style="display:none;">
+            <div class="ppi-result-row">
+              <span>Resolution</span><span id="ppi-res">—</span>
+            </div>
+            <div class="ppi-result-row">
+              <span>Pixel Density</span><span id="ppi-value">—</span>
+            </div>
+            <div class="ppi-result-row">
+              <span>Device Pixel Ratio</span><span id="ppi-dpr">—</span>
+            </div>
+            <div class="ppi-note" id="ppi-note"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contrast-calc" id="contrast-calc">
+        <div class="contrast-calc-header">
+          ⬛ Contrast Ratio Estimator (Subjective Step Test)
+        </div>
+        <div class="contrast-calc-sub">
+          Dim your room, set brightness to 100%, then click the darkest square
+          below that you can still tell apart from pure black. This gives an
+          approximate contrast class for your panel — browsers cannot measure
+          true luminance, so treat this as a rough estimate, not a lab
+          measurement.
+        </div>
+        <div class="contrast-swatch-row" id="contrast-swatch-row">
+          <div
+            class="contrast-swatch"
+            data-level="1"
+            style="background:#000000;"
+          >
+            1
+          </div>
+          <div
+            class="contrast-swatch"
+            data-level="2"
+            style="background:#050505;"
+          >
+            2
+          </div>
+          <div
+            class="contrast-swatch"
+            data-level="3"
+            style="background:#0a0a0a;"
+          >
+            3
+          </div>
+          <div
+            class="contrast-swatch"
+            data-level="4"
+            style="background:#101010;"
+          >
+            4
+          </div>
+          <div
+            class="contrast-swatch"
+            data-level="5"
+            style="background:#161616;"
+          >
+            5
+          </div>
+          <div
+            class="contrast-swatch"
+            data-level="6"
+            style="background:#1c1c1c;"
+          >
+            6
+          </div>
+          <div
+            class="contrast-swatch"
+            data-level="7"
+            style="background:#242424;"
+          >
+            7
+          </div>
+        </div>
+        <div class="contrast-result" id="contrast-result"></div>
+      </div>
+
+      <p class="fullscreen-hint">
+        Tip: dim your room and set brightness to 100% before checking for dead
+        pixels or backlight bleed. Tap/click or press Esc to exit any fullscreen
+        test.
+      </p>
+
+      <!-- MOTION -->
+      <div class="motion-section">
+        <div
+          class="chart-label"
+          style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.6rem;"
+        >
+          Motion Blur Test — watch the blocks while your eyes stay still
+        </div>
+        <div class="motion-zone" id="motion-zone">
+          <div class="motion-track">
+            <div class="motion-block mb-1" id="mb-1"></div>
+          </div>
+          <div class="motion-track">
+            <div class="motion-block mb-2" id="mb-2"></div>
+          </div>
+          <div class="motion-track">
+            <div class="motion-block mb-3" id="mb-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEXT SHARPNESS -->
+      <div class="sharpness-box">
+        Text Sharpness Test — The quick brown fox jumps over the lazy dog
+        0123456789
+        <small
+          >Small text at typical reading size — check for blur, fringing, or
+          fuzzy edges at your normal viewing distance.</small
+        >
+      </div>
+
+      <div
+        id="next-step-banner"
+        style="display:none; margin: 0 1.5rem 1.25rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(20,184,166,0.3); background:rgba(20,184,166,0.06); font-size:0.85rem; color:var(--text2); text-align:center;"
+      >
+        <span id="next-step-text"></span>
+        <br />
+        <button
+          id="btn-fresh-start"
+          style="margin-top:0.6rem; background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--font-display); font-size:0.72rem; font-weight:600; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer;"
+        >
+          ↺ Start Fresh Test Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your monitor's refresh rate!</strong> Get live Hz, stability
+        grade and a VRR simulator.
+      </p>
+      <a
+        href="/tools/monitor-refresh-rate-test/"
+        class="cta-btn"
+        data-astro-reload>🖥️ Monitor Test →</a
+      >
+    </div>
+  </div>
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your keyboard & mouse!</strong> Full 104-key tester and
+        polling rate checker up to 8000Hz.
+      </p>
+      <a
+        href="/tools/keyboard-latency-tester/"
+        class="cta-btn"
+        data-astro-reload>⌨️ Keyboard Tester →</a
+      >
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your mouse!</strong> Check polling rate, click latency and
+        movement speed with our free Mouse Rate Test.
+      </p>
+      <a
+        href="/tools/mouse-rate-test/"
+        class="cta-btn"
+        aria-label="Open Mouse Rate Test tool"
+        data-astro-reload>🖱 Mouse Rate Test →</a
+      >
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-section">
+    <p style="font-size:0.82rem;">
+      New to checking your screen? Read the
+      <a
+        href="/how-to-check-backlight-bleed/"
+        style="color:#2dd4bf;font-weight:600;">step-by-step guide</a
+      >
+      first, or dive straight into the tests below.
+    </p>
+    <h2>What This Screen Test Actually Checks</h2>
+    <p>
+      This tool shows your display clean, full-screen reference colors and
+      patterns — the same principle used by dedicated dead pixel checkers. A
+      browser cannot read back what your screen is physically displaying, so
+      spotting a dead pixel, stuck pixel, or backlight bleed still requires your
+      own eyes; this tool's job is to give you the cleanest possible reference
+      to check against.
+    </p>
+    <h2 style="margin-top:2rem;">What Makes This Different</h2>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-icon">🎯</div>
+        <div class="info-card-title">One-click full sequence</div>
+        <div class="info-card-desc">
+          Most dead pixel checkers make you click through colors manually. Our
+          Full Screen Health Check runs all 11 steps automatically and times
+          each one for you.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">📤</div>
+        <div class="info-card-title">Exportable results</div>
+        <div class="info-card-desc">
+          Export your results as PDF, CSV, or JSON to compare panels or share
+          with a seller before buying used hardware.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">🔒</div>
+        <div class="info-card-title">Nothing leaves your device</div>
+        <div class="info-card-desc">
+          Every test runs fully client-side. No signup, no accounts, no data
+          sent anywhere.
+        </div>
+      </div>
+    </div>
+    <h2 style="margin-top:2rem;">Dead Pixel vs Stuck Pixel</h2>
+    <p>
+      A <strong>dead pixel</strong> stays permanently black on every color — it isn't
+      receiving any power. A <strong>stuck pixel</strong> stays fixed on one color
+      (often red, green, or blue) because a single sub-pixel is stuck on. Run the
+      black, white, red, green, and blue screens above one at a time — a dead pixel
+      shows as a dark dot on white/color screens; a stuck pixel shows as a colored
+      dot on the black screen.
+    </p>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-icon">⚫</div>
+        <div class="info-card-title">Backlight Bleed</div>
+        <div class="info-card-desc">
+          Run the black screen in a dark room at full brightness. Look for
+          glowing patches near the edges or corners.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">🌈</div>
+        <div class="info-card-title">Color Banding — 6-bit vs 8-bit</div>
+        <div class="info-card-desc">
+          The banding ramp reveals visible steps instead of a smooth gradient.
+          Cheaper laptop panels are often true 6-bit (or 6-bit + FRC dithering)
+          rather than true 8-bit — this shows up as harder edges in the
+          gradient, especially in dark grays. Heavy banding here often means a
+          lower bit-depth panel or GPU dithering turned off.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">📐</div>
+        <div class="info-card-title">Screen Uniformity</div>
+        <div class="info-card-desc">
+          The 50% gray screen reveals patchy brightness or a color tint across
+          the panel that's invisible on regular content.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">🎞️</div>
+        <div class="info-card-title">Motion Blur</div>
+        <div class="info-card-desc">
+          Watch the moving blocks without following them with your eyes —
+          trailing/ghosting is more visible on slower-response panels.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">📐</div>
+        <div class="info-card-title">Viewing Angle Shift</div>
+        <div class="info-card-desc">
+          TN panels shift color and contrast sharply off-angle; IPS panels stay
+          stable. Tilt your screen slightly while on the Uniformity test to
+          check which type you have.
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:2rem;">Checking for PWM Flicker</h2>
+    <p>
+      Browsers cannot detect PWM (Pulse-Width Modulation) flicker directly — it
+      happens at the hardware backlight level, faster than any web API can
+      measure. But you can check for it yourself in under a minute:
+    </p>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-icon">📱</div>
+        <div class="info-card-title">Camera Slow-Motion Method</div>
+        <div class="info-card-desc">
+          Open your phone camera, switch to slow-motion video mode, set this
+          tool's brightness swatch to Gray, dim your laptop brightness to around
+          30–50%, and film the screen. Horizontal dark bands scrolling through
+          the recording indicate PWM flicker.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">✋</div>
+        <div class="info-card-title">Quick Wave Test</div>
+        <div class="info-card-desc">
+          With the Gray swatch open, wave a pen or your finger quickly in front
+          of the screen at low brightness. A smooth blur means no visible
+          flicker; a stuttering, strobing trail suggests PWM at low brightness
+          levels.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">👁️</div>
+        <div class="info-card-title">Why It Matters</div>
+        <div class="info-card-desc">
+          PWM flicker is usually invisible to the naked eye but can contribute
+          to eye strain or headaches for sensitive users, especially at lower
+          brightness settings where flicker frequency often drops.
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:2rem;">Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">What is a dead pixel vs a stuck pixel?</div>
+        <div class="faq-a">
+          A dead pixel stays permanently black — it receives no power at all. A
+          stuck pixel stays fixed on one color (usually red, green, or blue)
+          because one sub-pixel is stuck on while others are off. Stuck pixels
+          can sometimes be fixed with pressure or flickering methods; dead
+          pixels usually cannot.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can a browser detect dead pixels automatically?</div>
+        <div class="faq-a">
+          No. A browser has no way to read back what your screen is physically
+          displaying — it can only show you solid colors to look at. Detecting a
+          dead or stuck pixel still requires your eyes; this tool's job is to
+          give you clean, full-screen reference colors to check against.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          What is backlight bleed and how do I check for it?
+        </div>
+        <div class="faq-a">
+          Backlight bleed is light leaking around the edges or corners of an LCD
+          panel, most visible on a full black screen in a dark room. Run the
+          black screen test, dim your room lights, and look for uneven glowing
+          patches near the bezel.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          Why does my screen look slightly different in this test than in real
+          use?
+        </div>
+        <div class="faq-a">
+          Browser color rendering depends on your display's color profile, OS
+          color management, and any blue-light/night-mode filters running. For
+          the most accurate test, disable night light mode and run this test at
+          100% brightness in a dim room.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          Is this the same as a hardware dead pixel checker?
+        </div>
+        <div class="faq-a">
+          It follows the same principle as dedicated hardware checkers —
+          full-screen solid colors — but runs entirely in your browser with no
+          download. For panels you suspect have an issue, testing in a dark room
+          at full brightness gives the most reliable result.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULLSCREEN OVERLAY -->
+  <div id="fs-overlay">
+    <div class="fs-progress-track">
+      <div class="fs-progress-fill" id="fs-progress-fill"></div>
+    </div>
+    <div id="fs-color-layer"></div>
+    <button
+      id="fs-zoom-toggle"
+      class="fs-btn"
+      style="position:absolute; top:1.25rem; right:1.25rem; z-index:5;"
+      >🔍 Zoom: Off</button
+    >
+    <div
+      class="fs-refresh-display"
+      id="fs-refresh-display"
+      style="display:none;"
+    >
+      <div class="fs-refresh-hz" id="fs-refresh-hz">—</div>
+      <div class="fs-refresh-sub">Hz — live via requestAnimationFrame</div>
+    </div>
+    <div
+      id="fs-motion-zone"
+      style="display:none; position:absolute; inset:0; flex-direction:column; justify-content:space-evenly; padding: 0 3rem;"
+    >
+      <div style="position:relative; height:50px;">
+        <div
+          id="fs-mb-1"
+          style="position:absolute; width:34px; height:34px; border-radius:6px; top:8px; left:0; background:#2dd4bf; will-change:transform;"
+        >
+        </div>
+      </div>
+      <div style="position:relative; height:50px;">
+        <div
+          id="fs-mb-2"
+          style="position:absolute; width:34px; height:34px; border-radius:6px; top:8px; left:0; background:#f59e0b; will-change:transform;"
+        >
+        </div>
+      </div>
+      <div style="position:relative; height:50px;">
+        <div
+          id="fs-mb-3"
+          style="position:absolute; width:34px; height:34px; border-radius:6px; top:8px; left:0; background:#a78bfa; will-change:transform;"
+        >
+        </div>
+      </div>
+    </div>
+    <div class="fs-hud">
+      <div>
+        <div class="fs-hud-label" id="fs-hud-label">Black Screen</div>
+        <div class="fs-hud-sub" id="fs-hud-sub">
+          Tap anywhere or press Esc to exit
+        </div>
+      </div>
+      <div class="fs-hud-actions" id="fs-hud-actions">
+        <button class="fs-btn issue" id="fs-btn-issue">⚠ Mark Issue Here</button
+        >
+        <button class="fs-btn" id="fs-btn-prev">◀ Prev</button>
+        <button class="fs-btn" id="fs-btn-next">Next ▶</button>
+        <button class="fs-btn" id="fs-btn-exit">✕ Exit</button>
+      </div>
+    </div>
+    <div class="zoom-loupe" id="zoom-loupe">
+      <div class="zoom-loupe-inner" id="zoom-loupe-inner"></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY MODAL -->
+  <div id="summary-modal">
+    <div class="summary-card">
+      <h3 id="summary-title">Screen Health Check Complete</h3>
+      <p style="font-size:0.82rem;color:var(--text2);" id="summary-desc"></p>
+      <div class="summary-list" id="summary-list"></div>
+      <div class="summary-actions">
+        <button class="primary" id="summary-close">Done</button>
+        <button class="secondary" id="summary-restart">Run Again</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    interface SeqStep {
+      key: string;
+      label: string;
+      sub: string;
+      mode: "color" | "static" | "grayscale" | "motion" | "refresh";
+      color?: string;
+      durationMs: number;
+    }
+
+    document.addEventListener("astro:page-load", () => {
+      const overlay = document.getElementById(
+        "fs-overlay",
+      ) as HTMLElement | null;
+      const colorLayer = document.getElementById(
+        "fs-color-layer",
+      ) as HTMLElement | null;
+      const hudLabel = document.getElementById("fs-hud-label");
+      const hudSub = document.getElementById("fs-hud-sub");
+      const progressFill = document.getElementById(
+        "fs-progress-fill",
+      ) as HTMLElement | null;
+      const refreshDisplay = document.getElementById(
+        "fs-refresh-display",
+      ) as HTMLElement | null;
+      const refreshHz = document.getElementById("fs-refresh-hz");
+      const toastEl = document.getElementById("toast");
+      const summaryModal = document.getElementById("summary-modal");
+
+      if (!overlay || !colorLayer) return;
+
+      let toastTimer: number | null = null;
+      function showToast(msg: string) {
+        if (!toastEl) return;
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        if (toastTimer !== null) clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(
+          () => toastEl.classList.remove("show"),
+          2000,
+        );
+      }
+
+      function getDiagSessionId(): string {
+        let id = sessionStorage.getItem("ls_diag_session");
+        if (!id) {
+          id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          sessionStorage.setItem("ls_diag_session", id);
+        }
+        return id;
+      }
+
+      function isFromThisSession(key: string): boolean {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return false;
+          const parsed = JSON.parse(raw);
+          return parsed.sessionId === getDiagSessionId();
+        } catch {
+          return false;
+        }
+      }
+
+      function startFreshDiagSession() {
+        try {
+          localStorage.removeItem("ls_diag_monitor");
+          localStorage.removeItem("ls_diag_keyboard");
+          localStorage.removeItem("ls_diag_mouse");
+          localStorage.removeItem("ls_diag_screen");
+          sessionStorage.removeItem("ls_diag_session");
+        } catch (e) {
+          // storage unavailable — ignore
+        }
+        location.reload();
+      }
+
+      // ---------- Individual swatch click -> single-color fullscreen ----------
+      const swatches = document.querySelectorAll<HTMLElement>(".swatch");
+      let autoTimer: number | null = null;
+      let sequence: SeqStep[] = [];
+      let seqIndex = 0;
+      let issues: string[] = [];
+      let refreshRaf: number | null = null;
+      let refreshLastTs: number | null = null;
+      let refreshSamples: number[] = [];
+      let isSequenceMode = false;
+      let lastResult: any = null;
+      let fsMotionRaf: number | null = null;
+      let zoomModeActive = false;
+
+      function renderStatic(kind: string) {
+        colorLayer!.style.background = "";
+        colorLayer!.className = "";
+        if (kind === "rgb") {
+          colorLayer!.style.background =
+            "linear-gradient(90deg,#ff0000 0%,#ff0000 33%,#00ff00 33%,#00ff00 66%,#0000ff 66%,#0000ff 100%)";
+        } else if (kind === "gradient") {
+          colorLayer!.style.background = "linear-gradient(90deg,#000,#fff)";
+        } else if (kind === "grayscale") {
+          colorLayer!.style.background =
+            "linear-gradient(90deg, #000 0%,#000 10%, #1a1a1a 10%,#1a1a1a 20%, #333 20%,#333 30%, #4d4d4d 30%,#4d4d4d 40%, #666 40%,#666 50%, #808080 50%,#808080 60%, #999 60%,#999 70%, #b3b3b3 70%,#b3b3b3 80%, #ccc 80%,#ccc 90%, #fff 90%,#fff 100%)";
+        } else if (kind === "checker") {
+          colorLayer!.style.backgroundColor = "#fff";
+          colorLayer!.style.backgroundImage =
+            "linear-gradient(45deg,#000 25%,transparent 25%),linear-gradient(-45deg,#000 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#000 75%),linear-gradient(-45deg,transparent 75%,#000 75%)";
+          colorLayer!.style.backgroundSize = "40px 40px";
+          colorLayer!.style.backgroundPosition =
+            "0 0,0 20px,20px -20px,-20px 0";
+        } else if (kind === "banding") {
+          colorLayer!.style.background =
+            "linear-gradient(90deg,#1a1a1a,#2a2a2a,#3a3a3a,#4a4a4a,#5a5a5a,#6a6a6a)";
+        } else if (kind === "banding-red") {
+          colorLayer!.style.background =
+            "linear-gradient(90deg,#1a0000,#2a0000,#3a0000,#4a0000,#5a0000,#6a0000)";
+        } else if (kind === "banding-green") {
+          colorLayer!.style.background =
+            "linear-gradient(90deg,#001a00,#002a00,#003a00,#004a00,#005a00,#006a00)";
+        } else if (kind === "banding-blue") {
+          colorLayer!.style.background =
+            "linear-gradient(90deg,#00001a,#00002a,#00003a,#00004a,#00005a,#00006a)";
+        } else if (kind === "viewingangle") {
+          colorLayer!.style.background =
+            "linear-gradient(180deg,#1a1a1a 0%,#1a1a1a 20%,#ff0000 20%,#ff0000 40%,#808080 40%,#808080 60%,#0000ff 60%,#0000ff 80%,#333 80%,#333 100%)";
+        } else if (kind === "gamma") {
+          colorLayer!.style.backgroundImage =
+            "linear-gradient(to right, transparent 50%, #808080 50%), repeating-linear-gradient(to bottom, #000 0px, #000 1px, #fff 1px, #fff 2px)";
+          colorLayer!.style.backgroundSize = "100% 100%, 100% 2px";
+        }
+      }
+
+      function openOverlay() {
+        overlay!.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+      function closeOverlay() {
+        overlay!.classList.remove("active");
+        document.body.style.overflow = "";
+        if (autoTimer !== null) {
+          clearTimeout(autoTimer);
+          autoTimer = null;
+        }
+        if (refreshRaf !== null) {
+          cancelAnimationFrame(refreshRaf);
+          refreshRaf = null;
+        }
+        refreshDisplay!.style.display = "none";
+        stopFsMotion();
+        isSequenceMode = false;
+        zoomModeActive = false;
+        document.getElementById("zoom-loupe")?.classList.remove("active");
+        const zoomBtn = document.getElementById("fs-zoom-toggle");
+        if (zoomBtn) zoomBtn.textContent = "🔍 Zoom: Off";
+      }
+
+      swatches.forEach((sw) => {
+        sw.addEventListener("click", () => {
+          const mode = sw.dataset.mode;
+          const label = sw.dataset.label || "Screen Test";
+          const kind = sw.dataset.kind || "";
+          hudLabel!.textContent = label;
+          hudSub!.textContent =
+            kind === "viewingangle"
+              ? "Tilt your screen forward/back slowly, watch for color or contrast shift"
+              : kind === "gamma"
+                ? "Step back ~1-2m and squint — the stripes should blend to match the gray"
+                : "Tap anywhere or press Esc to exit";
+          progressFill!.style.width = "0%";
+          document.getElementById("fs-hud-actions")!.style.display = "none";
+          if (mode === "color") {
+            colorLayer!.style.background = sw.dataset.color || "#000";
+            colorLayer!.style.backgroundImage = "";
+            colorLayer!.className = "";
+          } else {
+            renderStatic(kind);
+          }
+          openOverlay();
+        });
+      });
+
+      colorLayer.addEventListener("click", () => {
+        if (!isSequenceMode) closeOverlay();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay!.classList.contains("active")) {
+          closeOverlay();
+        }
+      });
+
+      // ---------- Sub-pixel zoom / loupe ----------
+      const zoomToggleBtn = document.getElementById("fs-zoom-toggle");
+      const zoomLoupe = document.getElementById("zoom-loupe");
+      const zoomLoupeInner = document.getElementById("zoom-loupe-inner");
+
+      zoomToggleBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        zoomModeActive = !zoomModeActive;
+        zoomToggleBtn.textContent = zoomModeActive
+          ? "🔍 Zoom: On"
+          : "🔍 Zoom: Off";
+        if (!zoomModeActive && zoomLoupe) {
+          zoomLoupe.classList.remove("active");
+        }
+      });
+
+      overlay?.addEventListener("mousemove", (e) => {
+        if (!zoomModeActive || !zoomLoupe || !zoomLoupeInner || !colorLayer)
+          return;
+        const scale = 5;
+        const loupeSize = 160;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        zoomLoupe.classList.add("active");
+        zoomLoupe.style.left = `${e.clientX - loupeSize / 2}px`;
+        zoomLoupe.style.top = `${e.clientY - loupeSize / 2}px`;
+
+        zoomLoupeInner.style.width = `${vw * scale}px`;
+        zoomLoupeInner.style.height = `${vh * scale}px`;
+        zoomLoupeInner.style.background = colorLayer.style.background || "#000";
+        zoomLoupeInner.style.backgroundImage =
+          colorLayer.style.backgroundImage || "none";
+        zoomLoupeInner.style.backgroundSize = `${vw * scale}px ${vh * scale}px`;
+        zoomLoupeInner.style.left = `${-(e.clientX * scale - loupeSize / 2)}px`;
+        zoomLoupeInner.style.top = `${-(e.clientY * scale - loupeSize / 2)}px`;
+      });
+
+      overlay?.addEventListener("mouseleave", () => {
+        zoomLoupe?.classList.remove("active");
+      });
+
+      // ---------- Full Screen Health Check sequence ----------
+      function buildSequence(): SeqStep[] {
+        return [
+          {
+            key: "black",
+            label: "Dead Pixel — Black Screen",
+            sub: "Look for any glowing colored dot",
+            mode: "color",
+            color: "#000000",
+            durationMs: 3500,
+          },
+          {
+            key: "white",
+            label: "Dead Pixel — White Screen",
+            sub: "Look for any dark dot",
+            mode: "color",
+            color: "#ffffff",
+            durationMs: 3500,
+          },
+          {
+            key: "red",
+            label: "Stuck Pixel — Red Screen",
+            sub: "Look for any non-red dot",
+            mode: "color",
+            color: "#ff0000",
+            durationMs: 2800,
+          },
+          {
+            key: "green",
+            label: "Stuck Pixel — Green Screen",
+            sub: "Look for any non-green dot",
+            mode: "color",
+            color: "#00ff00",
+            durationMs: 2800,
+          },
+          {
+            key: "blue",
+            label: "Stuck Pixel — Blue Screen",
+            sub: "Look for any non-blue dot",
+            mode: "color",
+            color: "#0000ff",
+            durationMs: 2800,
+          },
+          {
+            key: "rgb",
+            label: "Colors — RGB Bars",
+            sub: "Check color accuracy and saturation",
+            mode: "static",
+            durationMs: 2800,
+          },
+          {
+            key: "grayscale",
+            label: "Grayscale Ramp",
+            sub: "Check for smooth steps, no tint",
+            mode: "grayscale",
+            durationMs: 2800,
+          },
+          {
+            key: "brightness",
+            label: "Brightness — Gradient",
+            sub: "Check visibility across full dark-to-light range",
+            mode: "static",
+            durationMs: 2800,
+          },
+          {
+            key: "contrast",
+            label: "Contrast — Checkerboard",
+            sub: "Check edges stay sharp and black stays black",
+            mode: "static",
+            durationMs: 2800,
+          },
+          {
+            key: "uniformity",
+            label: "Uniformity — 50% Gray",
+            sub: "Look for patchy brightness or color tint",
+            mode: "color",
+            color: "#808080",
+            durationMs: 2800,
+          },
+          {
+            key: "banding",
+            label: "Color Banding — Dark Gradient Ramp",
+            sub: "Look for visible steps instead of smooth gradient",
+            mode: "static",
+            durationMs: 2800,
+          },
+          {
+            key: "banding-red",
+            label: "Color Banding — Red Channel",
+            sub: "Look for visible steps in the red gradient",
+            mode: "static",
+            durationMs: 2400,
+          },
+          {
+            key: "banding-green",
+            label: "Color Banding — Green Channel",
+            sub: "Look for visible steps in the green gradient",
+            mode: "static",
+            durationMs: 2400,
+          },
+          {
+            key: "banding-blue",
+            label: "Color Banding — Blue Channel",
+            sub: "Look for visible steps in the blue gradient",
+            mode: "static",
+            durationMs: 2400,
+          },
+          {
+            key: "gamma",
+            label: "Gamma Test (2.2)",
+            sub: "Step back and squint — stripes should blend to match the gray",
+            mode: "static",
+            durationMs: 3200,
+          },
+          {
+            key: "viewingangle",
+            label: "Viewing Angle Test",
+            sub: "Tilt your screen forward/back, watch for color or contrast shift",
+            mode: "static",
+            durationMs: 3200,
+          },
+          {
+            key: "motion",
+            label: "Motion Clarity",
+            sub: "Watch the moving blocks below (return here after)",
+            mode: "motion",
+            durationMs: 3200,
+          },
+          {
+            key: "refresh",
+            label: "Refresh Rate — Live Hz",
+            sub: "Measuring via requestAnimationFrame...",
+            mode: "refresh",
+            durationMs: 4000,
+          },
+        ];
+      }
+
+      function runRefreshMeasure() {
+        refreshDisplay!.style.display = "block";
+        refreshSamples = [];
+        refreshLastTs = null;
+        function loop(ts: number) {
+          refreshRaf = requestAnimationFrame(loop);
+          if (refreshLastTs !== null) {
+            const dt = ts - refreshLastTs;
+            if (dt > 0 && dt < 200) {
+              refreshSamples.push(dt);
+              if (refreshSamples.length > 90) refreshSamples.shift();
+              const avg =
+                refreshSamples.reduce((a, b) => a + b, 0) /
+                refreshSamples.length;
+              refreshHz!.textContent = String(Math.round(1000 / avg));
+            }
+          }
+          refreshLastTs = ts;
+        }
+        refreshRaf = requestAnimationFrame(loop);
+      }
+
+      function stopRefreshMeasure() {
+        if (refreshRaf !== null) {
+          cancelAnimationFrame(refreshRaf);
+          refreshRaf = null;
+        }
+      }
+
+      function startFsMotion() {
+        const zone = document.getElementById("fs-motion-zone");
+        if (!zone) return;
+        zone.style.display = "flex";
+        function loop(ts: number) {
+          fsMotionRaf = requestAnimationFrame(loop);
+          const w = zone.clientWidth - 34;
+          const cycle = 2000;
+          const b1 = document.getElementById("fs-mb-1");
+          const b2 = document.getElementById("fs-mb-2");
+          const b3 = document.getElementById("fs-mb-3");
+          if (b1)
+            b1.style.transform = `translateX(${((ts % cycle) / cycle) * w}px)`;
+          if (b2)
+            b2.style.transform = `translateX(${((ts % (cycle / 2)) / (cycle / 2)) * w}px)`;
+          if (b3)
+            b3.style.transform = `translateX(${((ts % (cycle / 4)) / (cycle / 4)) * w}px)`;
+        }
+        fsMotionRaf = requestAnimationFrame(loop);
+      }
+
+      function stopFsMotion() {
+        if (fsMotionRaf !== null) {
+          cancelAnimationFrame(fsMotionRaf);
+          fsMotionRaf = null;
+        }
+        const zone = document.getElementById("fs-motion-zone");
+        if (zone) zone.style.display = "none";
+      }
+
+      function renderStep(step: SeqStep) {
+        refreshDisplay!.style.display = "none";
+        stopRefreshMeasure();
+        stopFsMotion();
+        hudLabel!.textContent = step.label;
+        hudSub!.textContent = step.sub;
+        colorLayer!.style.background = "";
+        colorLayer!.style.backgroundImage = "";
+
+        if (step.mode === "color") {
+          colorLayer!.style.background = step.color || "#000";
+        } else if (step.mode === "static" && step.key === "rgb") {
+          renderStatic("rgb");
+        } else if (step.mode === "static" && step.key === "brightness") {
+          renderStatic("gradient");
+        } else if (step.mode === "static" && step.key === "contrast") {
+          renderStatic("checker");
+        } else if (step.mode === "static" && step.key === "banding") {
+          renderStatic("banding");
+        } else if (step.mode === "static" && step.key === "banding-red") {
+          renderStatic("banding-red");
+        } else if (step.mode === "static" && step.key === "banding-green") {
+          renderStatic("banding-green");
+        } else if (step.mode === "static" && step.key === "banding-blue") {
+          renderStatic("banding-blue");
+        } else if (step.mode === "static" && step.key === "gamma") {
+          renderStatic("gamma");
+        } else if (step.mode === "static" && step.key === "viewingangle") {
+          renderStatic("viewingangle");
+        } else if (step.mode === "grayscale") {
+          renderStatic("grayscale");
+        } else if (step.mode === "motion") {
+          colorLayer!.style.background = "#05070d";
+          startFsMotion();
+        } else if (step.mode === "refresh") {
+          colorLayer!.style.background = "#000";
+          runRefreshMeasure();
+        }
+      }
+
+      function goToStep(i: number) {
+        if (i < 0) i = 0;
+        if (i >= sequence.length) {
+          finishSequence();
+          return;
+        }
+        seqIndex = i;
+        renderStep(sequence[i]);
+        progressFill!.style.width = `${((i + 1) / sequence.length) * 100}%`;
+        if (autoTimer !== null) clearTimeout(autoTimer);
+        autoTimer = window.setTimeout(
+          () => goToStep(seqIndex + 1),
+          sequence[i].durationMs,
+        );
+      }
+
+      function finishSequence() {
+        stopRefreshMeasure();
+        closeOverlay();
+        showSummary();
+      }
+
+      document
+        .getElementById("fs-btn-next")
+        ?.addEventListener("click", () => goToStep(seqIndex + 1));
+      document
+        .getElementById("fs-btn-prev")
+        ?.addEventListener("click", () => goToStep(seqIndex - 1));
+      document
+        .getElementById("fs-btn-exit")
+        ?.addEventListener("click", finishSequence);
+      document.getElementById("fs-btn-issue")?.addEventListener("click", () => {
+        const step = sequence[seqIndex];
+        if (step && !issues.includes(step.label)) {
+          issues.push(step.label);
+          showToast(`Flagged: ${step.label}`);
+        }
+      });
+
+      function startHealthCheck() {
+        sequence = buildSequence();
+        issues = [];
+        seqIndex = 0;
+        isSequenceMode = true;
+        document.getElementById("fs-hud-actions")!.style.display = "flex";
+        openOverlay();
+        goToStep(0);
+      }
+      document
+        .getElementById("btn-start-healthcheck")
+        ?.addEventListener("click", startHealthCheck);
+
+      // ---------- Summary + save result ----------
+      function showSummary() {
+        const list = document.getElementById("summary-list");
+        const desc = document.getElementById("summary-desc");
+        if (!list || !desc) return;
+
+        const status: "good" | "check" | "investigate" =
+          issues.length === 0
+            ? "good"
+            : issues.length <= 2
+              ? "check"
+              : "investigate";
+        const score = status === "good" ? 95 : status === "check" ? 70 : 45;
+
+        desc.textContent =
+          status === "good"
+            ? "No issues flagged during the sequence. Screen looks healthy across all checks."
+            : `${issues.length} step(s) were flagged during the test — review below.`;
+
+        list.innerHTML =
+          issues.length === 0
+            ? `<div class="summary-row">✅ No issues flagged</div>`
+            : issues
+                .map((i) => `<div class="summary-row flagged">⚠ ${i}</div>`)
+                .join("");
+
+        const avgHz = refreshSamples.length
+          ? Math.round(
+              1000 /
+                (refreshSamples.reduce((a, b) => a + b, 0) /
+                  refreshSamples.length),
+            )
+          : null;
+
+        const badge = document.getElementById("screen-confidence");
+        const badgeText = document.getElementById("screen-confidence-text");
+        if (badge && badgeText) {
+          badge.classList.add("show");
+          badge.classList.remove(
+            "status-good",
+            "status-check",
+            "status-investigate",
+          );
+          badge.classList.add(`status-${status}`);
+          badgeText.textContent =
+            status === "good"
+              ? "Good — no issues flagged"
+              : status === "check"
+                ? `Check — ${issues.length} item(s) flagged`
+                : `Investigate — ${issues.length} item(s) flagged`;
+        }
+
+        const result = {
+          tool: "screen",
+          score,
+          status,
+          metrics: {
+            "Issues flagged": String(issues.length),
+            "Refresh rate (during check)": avgHz ? `${avgHz} Hz` : "—",
+            "Steps completed": `${sequence.length} / ${sequence.length}`,
+          },
+          timestamp: Date.now(),
+          sessionId: getDiagSessionId(),
+        };
+        lastResult = result;
+
+        try {
+          localStorage.setItem("ls_diag_screen", JSON.stringify(result));
+        } catch (e) {
+          // localStorage unavailable
+        }
+
+        refreshNextBanner();
+        summaryModal?.classList.add("active");
+      }
+
+      document
+        .getElementById("summary-close")
+        ?.addEventListener("click", () => {
+          summaryModal?.classList.remove("active");
+        });
+      document
+        .getElementById("summary-restart")
+        ?.addEventListener("click", () => {
+          summaryModal?.classList.remove("active");
+          startHealthCheck();
+        });
+
+      // ---------- Reset ----------
+      document.getElementById("btn-reset")?.addEventListener("click", () => {
+        issues = [];
+        seqIndex = 0;
+        refreshSamples = [];
+        lastResult = null;
+        try {
+          localStorage.removeItem("ls_diag_screen");
+        } catch (e) {
+          // storage unavailable
+        }
+        const badge = document.getElementById("screen-confidence");
+        if (badge) {
+          badge.classList.remove(
+            "show",
+            "status-good",
+            "status-check",
+            "status-investigate",
+          );
+        }
+        const nextBanner = document.getElementById("next-step-banner");
+        if (nextBanner) nextBanner.style.display = "none";
+        showToast("Screen test results reset");
+      });
+
+      // ---------- Motion blur demo (inline, always running) ----------
+      let motionRaf: number | null = null;
+      function animateMotion(ts: number) {
+        motionRaf = requestAnimationFrame(animateMotion);
+        const zone = document.getElementById("motion-zone");
+        const w = zone ? zone.clientWidth - 34 : 500;
+        const cycle = 2000;
+        const pos1 = ((ts % cycle) / cycle) * w;
+        const pos2 = ((ts % (cycle / 2)) / (cycle / 2)) * w;
+        const pos3 = ((ts % (cycle / 4)) / (cycle / 4)) * w;
+        const b1 = document.getElementById("mb-1");
+        const b2 = document.getElementById("mb-2");
+        const b3 = document.getElementById("mb-3");
+        if (b1) b1.style.transform = `translateX(${pos1}px)`;
+        if (b2) b2.style.transform = `translateX(${pos2}px)`;
+        if (b3) b3.style.transform = `translateX(${pos3}px)`;
+      }
+      motionRaf = requestAnimationFrame(animateMotion);
+
+      document.getElementById("ppi-calc-btn")?.addEventListener("click", () => {
+        const input = document.getElementById(
+          "ppi-diagonal",
+        ) as HTMLInputElement;
+        const diagonal = parseFloat(input.value);
+        if (!diagonal || diagonal <= 0) {
+          showToast("Enter a valid screen size in inches");
+          return;
+        }
+
+        const dpr = window.devicePixelRatio || 1;
+        const widthPx = window.screen.width * dpr;
+        const heightPx = window.screen.height * dpr;
+        const diagonalPx = Math.sqrt(widthPx ** 2 + heightPx ** 2);
+        const ppi = diagonalPx / diagonal;
+
+        const resEl = document.getElementById("ppi-res");
+        const valEl = document.getElementById("ppi-value");
+        const dprEl = document.getElementById("ppi-dpr");
+        const noteEl = document.getElementById("ppi-note");
+        const resultBox = document.getElementById("ppi-result");
+
+        if (resEl) resEl.textContent = `${widthPx} × ${heightPx}`;
+        if (valEl) valEl.textContent = `${Math.round(ppi)} PPI`;
+        if (dprEl) dprEl.textContent = `${dpr}x`;
+        if (noteEl) {
+          noteEl.textContent =
+            ppi > 200
+              ? "This is a high-density (Retina-class) display — text and images will look very sharp."
+              : ppi > 120
+                ? "This is a standard modern display density — sharp for typical viewing distances."
+                : "This is a lower-density display — text may look less sharp up close, common on older or budget monitors.";
+        }
+        if (resultBox) resultBox.style.display = "flex";
+      });
+
+      // ---------- Contrast Ratio Estimator ----------
+      const contrastSwatches =
+        document.querySelectorAll<HTMLElement>(".contrast-swatch");
+      const contrastResult = document.getElementById("contrast-result");
+      contrastSwatches.forEach((sw) => {
+        sw.addEventListener("click", () => {
+          contrastSwatches.forEach((s) => s.classList.remove("selected"));
+          sw.classList.add("selected");
+          const level = parseInt(sw.dataset.level || "1", 10);
+          let label = "";
+          let ratio = "";
+          if (level <= 2) {
+            label = "Excellent";
+            ratio = "3000:1+";
+          } else if (level <= 3) {
+            label = "Very Good";
+            ratio = "~1000–1500:1";
+          } else if (level <= 5) {
+            label = "Good";
+            ratio = "~600–900:1";
+          } else {
+            label = "Average / Low";
+            ratio = "~300–500:1";
+          }
+          if (contrastResult) {
+            contrastResult.classList.add("show");
+            contrastResult.innerHTML = `<strong>${label}</strong> — estimated contrast ${ratio}. This is a subjective approximation based on how many dark steps you could distinguish, not a measured value.`;
+          }
+        });
+      });
+
+      // ---------- Next-step nudge (links to other diag tools) ----------
+      const nextBanner = document.getElementById("next-step-banner");
+      const nextText = document.getElementById("next-step-text");
+      function refreshNextBanner() {
+        if (!nextBanner || !nextText) return;
+        if (!isFromThisSession("ls_diag_screen")) return;
+        const remaining: { label: string; url: string }[] = [];
+        if (!isFromThisSession("ls_diag_monitor"))
+          remaining.push({
+            label: "monitor",
+            url: "/tools/monitor-refresh-rate-test/",
+          });
+        if (!isFromThisSession("ls_diag_keyboard"))
+          remaining.push({
+            label: "keyboard",
+            url: "/tools/keyboard-latency-tester/",
+          });
+        if (!isFromThisSession("ls_diag_mouse"))
+          remaining.push({ label: "mouse", url: "/tools/mouse-rate-test/" });
+
+        let html: string;
+        if (remaining.length === 0) {
+          html =
+            '🎉 Screen test done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:#2dd4bf;font-weight:700;">View your Full Diagnostic Report →</a>';
+        } else {
+          html = `✅ Screen done. Also worth testing: ${remaining.map((r) => `<a href="${r.url}" data-astro-reload style="color:#2dd4bf;font-weight:700;">${r.label}</a>`).join(" &amp; ")}`;
+        }
+        nextBanner.style.display = "block";
+        nextText.innerHTML = html;
+      }
+      document
+        .getElementById("btn-fresh-start")
+        ?.addEventListener("click", startFreshDiagSession);
+
+      // ---------- PDF report ----------
+      document.getElementById("btn-pdf")?.addEventListener("click", () => {
+        const raw = localStorage.getItem("ls_diag_screen");
+        if (!raw) {
+          showToast("Run the Full Screen Health Check first");
+          return;
+        }
+        const jsPDFLib = (window as any).jspdf;
+        if (!jsPDFLib || !jsPDFLib.jsPDF) {
+          showToast("Report generator still loading — try again");
+          return;
+        }
+        const result = JSON.parse(raw);
+        const { jsPDF } = jsPDFLib;
+        const doc = new jsPDF({ unit: "pt", format: "a4" });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 48;
+        let y = 56;
+
+        doc.setFillColor(10, 14, 26);
+        doc.rect(0, 0, pageWidth, 90, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text("Laptops Special — Hardware Diagnostic Report", margin, 40);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(180, 190, 210);
+        doc.text("Device: Screen", margin, 60);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 75);
+
+        y = 120;
+        const statusLabel =
+          result.status === "good"
+            ? "Good"
+            : result.status === "check"
+              ? "Check"
+              : "Investigate";
+        const statusColor: [number, number, number] =
+          result.status === "good"
+            ? [34, 197, 94]
+            : result.status === "check"
+              ? [245, 158, 11]
+              : [239, 68, 68];
+        doc.setFillColor(...statusColor);
+        doc.roundedRect(margin, y, 90, 22, 4, 4, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text(statusLabel, margin + 45, y + 15, { align: "center" });
+
+        y += 45;
+        doc.setDrawColor(220, 220, 225);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 22;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(20, 20, 30);
+        doc.text("Screen Test Results", margin, y);
+        y += 18;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10.5);
+        Object.entries(result.metrics as Record<string, string>).forEach(
+          ([label, val]) => {
+            doc.setTextColor(90, 90, 100);
+            doc.text(label, margin, y);
+            doc.setTextColor(20, 20, 30);
+            doc.setFont("helvetica", "bold");
+            doc.text(String(val), pageWidth - margin, y, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            y += 18;
+          },
+        );
+
+        y += 16;
+        doc.setDrawColor(220, 220, 225);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 18;
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.5);
+        doc.setTextColor(130, 130, 140);
+        const disclaimer = doc.splitTextToSize(
+          "Dead/stuck pixel and backlight bleed detection require visual inspection by the user — a browser cannot read back what the display physically shows. See laptopsspecial.com/how-accurate-are-these-tests/ for full methodology.",
+          pageWidth - margin * 2,
+        );
+        doc.text(disclaimer, margin, y);
+        y += disclaimer.length * 11 + 10;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0, 150, 200);
+        doc.text("laptopsspecial.com/tools/screen-test/", margin, y);
+
+        doc.save(`screen-diagnostic-report-${Date.now()}.pdf`);
+        showToast("Diagnostic report downloaded");
+      });
+
+      // ---------- CSV export ----------
+      document.getElementById("btn-export")?.addEventListener("click", () => {
+        const raw = localStorage.getItem("ls_diag_screen");
+        if (!raw) {
+          showToast("Run the Full Screen Health Check first");
+          return;
+        }
+        const result = JSON.parse(raw);
+        const rows = [["Metric", "Value"]];
+        rows.push(["Status", result.status]);
+        rows.push(["Score", String(result.score)]);
+        Object.entries(result.metrics as Record<string, string>).forEach(
+          ([k, v]) => rows.push([k, v]),
+        );
+        const csv = rows
+          .map((r) => r.map((c) => `"${c}"`).join(","))
+          .join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `screen-test-${Date.now()}.csv`;
+        a.click();
+        showToast("Results exported as CSV");
+      });
+
+      // ---------- JSON export (dedicated button) ----------
+      document.getElementById("btn-json")?.addEventListener("click", () => {
+        const raw = localStorage.getItem("ls_diag_screen");
+        if (!raw) {
+          showToast("Run the Full Screen Health Check first");
+          return;
+        }
+        const result = JSON.parse(raw);
+        const blob = new Blob([JSON.stringify(result, null, 2)], {
+          type: "application/json",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `screen-test-${Date.now()}.json`;
+        a.click();
+        showToast("Results exported as JSON");
+      });
+
+      // Restore badge if a result already exists this session
+      (function restoreBadge() {
+        try {
+          const raw = localStorage.getItem("ls_diag_screen");
+          if (!raw) return;
+          const r = JSON.parse(raw);
+          lastResult = r;
+          const badge = document.getElementById("screen-confidence");
+          const badgeText = document.getElementById("screen-confidence-text");
+          if (badge && badgeText) {
+            badge.classList.add("show", `status-${r.status}`);
+            badgeText.textContent =
+              r.status === "good"
+                ? "Good — no issues flagged"
+                : r.status === "check"
+                  ? "Check — issues flagged"
+                  : "Investigate — issues flagged";
+          }
+          refreshNextBanner();
+        } catch (e) {}
+      })();
+
+      document.addEventListener(
+        "astro:before-swap",
+        () => {
+          if (autoTimer !== null) clearTimeout(autoTimer);
+          if (refreshRaf !== null) cancelAnimationFrame(refreshRaf);
+          if (motionRaf !== null) cancelAnimationFrame(motionRaf);
+          document.body.style.overflow = "";
+        },
+        { once: true },
+      );
+    });
+  </script>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbSchema)}
+  />
+  <script type="application/ld+json" set:html={JSON.stringify(howToSchema)} />
+</Base>

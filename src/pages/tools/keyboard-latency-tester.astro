@@ -1311,6 +1311,21 @@ const faqSchema = {
     </div>
   </div>
 
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your screen!</strong> Check for dead pixels, backlight bleed,
+        color accuracy and motion blur with our Screen Test.
+      </p>
+      <a
+        href="/tools/screen-test/"
+        class="cta-btn"
+        aria-label="Open Screen Test tool"
+        data-astro-reload>🖼️ Screen Test →</a
+      >
+    </div>
+  </div>
+
   <!-- CONTENT -->
   <div
     class="callout"
@@ -1545,6 +1560,7 @@ const faqSchema = {
         localStorage.removeItem("ls_diag_monitor");
         localStorage.removeItem("ls_diag_keyboard");
         localStorage.removeItem("ls_diag_mouse");
+        localStorage.removeItem("ls_diag_screen");
         sessionStorage.removeItem("ls_diag_session");
       } catch (e) {
         // storage unavailable — ignore
@@ -1767,11 +1783,16 @@ const faqSchema = {
                   label: "monitor",
                   url: "/tools/monitor-refresh-rate-test/",
                 });
+              if (!isFromThisSession("ls_diag_screen"))
+                remaining.push({
+                  label: "screen",
+                  url: "/tools/screen-test/",
+                });
 
               let newHtml: string;
               if (remaining.length === 0) {
                 newHtml =
-                  '🎉 All 3 tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:var(--accent);font-weight:700;">View your Full Diagnostic Report →</a>';
+                  '🎉 All tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:var(--accent);font-weight:700;">View your Full Diagnostic Report →</a>';
               } else if (remaining.length === 1) {
                 const r = remaining[0];
                 newHtml = `✅ Keyboard done. Next: <a href="${r.url}" data-astro-reload style="color:var(--accent);font-weight:700;">test your ${r.label} →</a>`;

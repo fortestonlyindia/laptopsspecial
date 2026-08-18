@@ -1060,6 +1060,21 @@ const faqSchema = {
     </div>
   </div>
 
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your screen!</strong> Check for dead pixels, backlight bleed,
+        color accuracy and motion blur with our Screen Test.
+      </p>
+      <a
+        href="/tools/screen-test/"
+        class="cta-btn"
+        aria-label="Open Screen Test tool"
+        data-astro-reload>🖼️ Screen Test →</a
+      >
+    </div>
+  </div>
+
   <!-- CONTENT -->
   <div class="content-section">
     <h2 style="margin-top:2rem;">
@@ -1266,6 +1281,7 @@ const faqSchema = {
         localStorage.removeItem("ls_diag_monitor");
         localStorage.removeItem("ls_diag_keyboard");
         localStorage.removeItem("ls_diag_mouse");
+        localStorage.removeItem("ls_diag_screen");
         sessionStorage.removeItem("ls_diag_session");
       } catch (e) {
         // storage unavailable — ignore
@@ -2101,16 +2117,23 @@ const faqSchema = {
                 label: "keyboard",
                 url: "/tools/keyboard-latency-tester/",
               });
+            if (!isFromThisSession("ls_diag_screen"))
+              remaining.push({
+                label: "screen",
+                url: "/tools/screen-test/",
+              });
 
             let newHtml: string;
             if (remaining.length === 0) {
               newHtml =
-                '🎉 All 3 tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:#a78bfa;font-weight:700;">View your Full Diagnostic Report →</a>';
+                '🎉 All 4 tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:#a78bfa;font-weight:700;">View your Full Diagnostic Report →</a>';
             } else if (remaining.length === 1) {
               const r = remaining[0];
               newHtml = `✅ Mouse done. Next: <a href="${r.url}" data-astro-reload style="color:#a78bfa;font-weight:700;">test your ${r.label} →</a>`;
             } else {
-              newHtml = `✅ Mouse done. Complete these for your full report: ${remaining.map((r) => `<a href="${r.url}" data-astro-reload style="color:#a78bfa;font-weight:700;">${r.label}</a>`).join(" &amp; ")}`;
+              const last = remaining[remaining.length - 1];
+              const rest = remaining.slice(0, -1);
+              newHtml = `✅ Mouse done. Complete these for your full report: ${rest.map((r) => `<a href="${r.url}" data-astro-reload style="color:#a78bfa;font-weight:700;">${r.label}</a>`).join(", ")} &amp; <a href="${last.url}" data-astro-reload style="color:#a78bfa;font-weight:700;">${last.label}</a>`;
             }
 
             nextBanner.style.display = "block";
