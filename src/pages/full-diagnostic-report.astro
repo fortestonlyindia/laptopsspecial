@@ -6,7 +6,7 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
 
 <Base
   title="Full PC Diagnostic Report | Laptops Special"
-  description="A combined keyboard, mouse, monitor and screen diagnostic report — run all four tests to see your full PC health score."
+  description="A combined keyboard, mouse, monitor, screen, webcam and microphone diagnostic report — run all tests to see your full PC health score."
   canonical={pageUrl}
   noWebAppSchema={true}
 >
@@ -419,6 +419,9 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
         return status === "good" ? "🟢" : status === "check" ? "🟡" : "🔴";
       }
 
+      // NOTE: webcam + mic results are produced by
+      // /tools/webcam-mic-speaker-test/ and stored under ls_diag_webcam / ls_diag_mic.
+      // Both point users back to the same tool page since it's a single combined tool.
       const toolMeta: Record<
         string,
         { name: string; icon: string; url: string }
@@ -435,14 +438,33 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
           url: "/tools/monitor-refresh-rate-test/",
         },
         screen: { name: "Screen", icon: "🖼️", url: "/tools/screen-test/" },
+        webcam: {
+          name: "Webcam",
+          icon: "📷",
+          url: "/tools/webcam-mic-speaker-test/",
+        },
+        mic: {
+          name: "Microphone",
+          icon: "🎤",
+          url: "/tools/webcam-mic-speaker-test/",
+        },
       };
 
-      const allTools = ["keyboard", "mouse", "monitor", "screen"];
+      const allTools = [
+        "keyboard",
+        "mouse",
+        "monitor",
+        "screen",
+        "webcam",
+        "mic",
+      ];
       const resultMap: Record<string, ToolResult | null> = {
         keyboard: loadResult("ls_diag_keyboard"),
         mouse: loadResult("ls_diag_mouse"),
         monitor: loadResult("ls_diag_monitor"),
         screen: loadResult("ls_diag_screen"),
+        webcam: loadResult("ls_diag_webcam"),
+        mic: loadResult("ls_diag_mic"),
       };
       const results = allTools
         .map((t) => resultMap[t])
@@ -464,12 +486,13 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
                     <div class="progress-track">${progressHtml}</div>
                     <div class="report-empty">
                         <h1>No Test Results Yet</h1>
-                        <p>Run any of the four diagnostic tools and your results will automatically appear here. Test all four for a complete PC health report.</p>
+                        <p>Run any of the diagnostic tools and your results will automatically appear here. Test all six for a complete PC health report.</p>
                         <div class="empty-links">
                             <a href="/tools/keyboard-latency-tester/" data-astro-reload>⌨️ Keyboard Tester</a>
                             <a href="/tools/mouse-rate-test/" data-astro-reload>🖱 Mouse Rate Test</a>
                             <a href="/tools/monitor-refresh-rate-test/" data-astro-reload>🖥️ Monitor Test</a>
                             <a href="/tools/screen-test/" data-astro-reload>🖼️ Screen Test</a>
+                            <a href="/tools/webcam-mic-speaker-test/" data-astro-reload>📷 Webcam/Mic/Speaker Test</a>
                         </div>
                     </div>
                 `;
@@ -581,7 +604,7 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
                 <div class="progress-track">${progressHtml}</div>
                 <div class="report-header">
                     <h1>Full PC Diagnostic Report</h1>
-                    <div class="report-meta">Generated ${new Date().toLocaleString()} · Report ID ${reportId} · ${results.length}/4 tests completed</div>
+                    <div class="report-meta">Generated ${new Date().toLocaleString()} · Report ID ${reportId} · ${results.length}/${allTools.length} tests completed</div>
                 </div>
                 <div class="score-card">
                     <div class="gauge-wrap">
@@ -651,6 +674,8 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
           localStorage.removeItem("ls_diag_mouse");
           localStorage.removeItem("ls_diag_monitor");
           localStorage.removeItem("ls_diag_screen");
+          localStorage.removeItem("ls_diag_webcam");
+          localStorage.removeItem("ls_diag_mic");
           window.location.href = "/tools/keyboard-latency-tester/";
         });
 
@@ -720,7 +745,11 @@ const pageUrl = "https://laptopsspecial.com/full-diagnostic-report/";
           doc.setTextColor(180, 190, 210);
           doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 58);
           doc.text(`Report ID: ${reportId}`, margin, 73);
-          doc.text(`${results.length}/4 tests completed`, margin, 88);
+          doc.text(
+            `${results.length}/${allTools.length} tests completed`,
+            margin,
+            88,
+          );
 
           // ---- OVERALL SCORE ----
           y = 130;

@@ -1,0 +1,3624 @@
+---
+import Base from "@layouts/Base.astro";
+
+const pageUrl = "https://laptopsspecial.com/tools/webcam-mic-speaker-test/";
+const siteUrl = "https://laptopsspecial.com/";
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": `${pageUrl}#breadcrumb`,
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Webcam, Mic & Speaker Test",
+      item: pageUrl,
+    },
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": `${pageUrl}#faq`,
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Can a browser tell me if my webcam or mic is 'good'?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Not with a single score. This tool reads the real settings your camera and microphone negotiated with the browser — resolution, live FPS, sample rate, noise floor, clipping — and gives you a live waveform and video feed so you can judge quality with your own eyes and ears, the same way a video call would use them.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Why does my mic level meter show a percentage instead of decibels?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Browsers cannot report a calibrated, absolute decibel (SPL) reading because that depends on microphone sensitivity and OS gain — hardware details the Web Audio API does not expose. The meter shows real relative signal strength (RMS amplitude), which is accurate for spotting clipping, silence, and inconsistency, but not for absolute loudness comparisons across different devices.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Why did the Left Only speaker test play from my right speaker?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "That means your channels are swapped somewhere in the audio chain — usually a wiring issue on external speakers, or a Windows/macOS audio balance setting. Since this test plays a real hard-panned tone, what you hear is exactly what's being sent to each channel; it is a genuine channel-routing issue, not a bug in the test.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Does the output device selector work in every browser?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. The setSinkId API, which lets a webpage route audio to a specific output device, is currently supported only in Chromium-based browsers (Chrome, Edge, Opera). In Firefox and Safari, audio always plays through your operating system's default output device.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is my camera feed or recorded audio uploaded anywhere?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. The camera preview, microphone analysis, and the short test recording all run entirely inside your browser using local Web APIs (getUserMedia, Web Audio API, MediaRecorder). Nothing is sent to any server.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What does the Electrical Hum reading mean?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "It checks for elevated energy specifically at mains frequency (50Hz or 60Hz depending on your region) and its harmonics, which is a strong signature of ground loops, unshielded USB cables, or a mic placed too close to a power adapter. Try a different USB port or move the mic away from chargers if hum is detected.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is AGC noise pumping and why does it matter?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Many drivers and cheap mics apply Automatic Gain Control, which boosts gain during quiet moments and reduces it during loud ones. This shows up as the background noise floor rising right after you stop talking, then settling back down — a pattern that can make quiet moments sound 'breathy' to others on a call.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How accurate is the speaker distortion (THD) test?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "It's a loopback estimate, not a lab measurement — it plays a test tone and listens back through your own microphone, so the mic's own harmonic response and room acoustics are baked into the number. Use it to compare volume levels or speaker positions on your own setup rather than against a manufacturer's published spec.",
+      },
+    },
+  ],
+};
+---
+
+<Base
+  title="Webcam, Mic & Speaker Test — Check Camera, Microphone & Audio Free"
+  description="Free browser-based webcam test, microphone test, and speaker test. Real live FPS, light-level and focus checks, mic waveform with clipping/noise-floor detection, record & playback, and a full left/right/sweep speaker test. No download needed."
+  canonical={pageUrl}
+  ogImage="https://laptopsspecial.com/og/webcam-mic-speaker-test.png"
+>
+  <style>
+    .hero {
+      text-align: center;
+      padding: 3rem 1.5rem 1.5rem;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(0, 212, 255, 0.12);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .hero h1 span {
+      color: var(--accent);
+    }
+    .hero p {
+      color: var(--text2);
+      font-size: 1rem;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .section-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 1.5rem 1.5rem;
+    }
+    .tool-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .tool-header {
+      padding: 0.9rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .tool-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .tool-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .btn-sm {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sm:hover {
+      border-color: var(--muted);
+      color: var(--text);
+    }
+    .btn-sm:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .btn-export {
+      border-color: rgba(124, 58, 237, 0.4);
+      color: #a78bfa;
+    }
+    .btn-csv {
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+    .btn-pdf {
+      border-color: rgba(0, 212, 255, 0.4);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .btn-fulldiag {
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #22c55e;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+    }
+
+    .body-pad {
+      padding: 1.25rem 1.5rem;
+    }
+
+    /* WEBCAM */
+    .cam-layout {
+      display: grid;
+      grid-template-columns: minmax(240px, 380px) 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 640px) {
+      .cam-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .video-wrap {
+      position: relative;
+      background: #0a1020;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    canvas.hidden-canvas {
+      display: none;
+    }
+    .overlay-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.65rem;
+      align-content: start;
+    }
+    .stat-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+    }
+    .stat-item .label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    .stat-item .value {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* MIC */
+    .meter-wrap {
+      margin: 0.75rem 0;
+    }
+    #mic-waveform {
+      width: 100%;
+      height: 90px;
+      border-radius: 8px;
+      background: #0a1020;
+      display: block;
+    }
+    #mic-spectrum {
+      width: 100%;
+      height: 60px;
+      border-radius: 8px;
+      background: #0a1020;
+      display: block;
+      margin-top: 0.5rem;
+    }
+    .meter-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+    .record-block {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    audio {
+      max-width: 260px;
+    }
+
+    /* SPEAKER */
+    .speaker-buttons {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .spk-btn {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .spk-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .spk-btn.stop {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+    }
+    .freq-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .freq-row input[type="range"] {
+      flex: 1;
+      min-width: 160px;
+    }
+    .balance-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    /* CONFIDENCE BADGE */
+    .confidence-badge {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.4rem 0.85rem;
+      border-radius: 100px;
+      margin-top: 0.75rem;
+      width: fit-content;
+    }
+    .confidence-badge.show {
+      display: flex;
+    }
+    .confidence-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .confidence-badge.status-good {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+    .confidence-badge.status-good .confidence-dot {
+      background: #22c55e;
+    }
+    .confidence-badge.status-check {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+    .confidence-badge.status-check .confidence-dot {
+      background: #f59e0b;
+    }
+    .confidence-badge.status-investigate {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+    .confidence-badge.status-investigate .confidence-dot {
+      background: #ef4444;
+    }
+
+    .honesty-box {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg3);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .honesty-box code {
+      background: rgba(0, 212, 255, 0.08);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    #next-step-banner {
+      display: none;
+      max-width: 1050px;
+      margin: 0 auto 1.25rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      background: rgba(124, 58, 237, 0.06);
+      font-size: 0.85rem;
+      color: var(--text2);
+      text-align: center;
+    }
+
+    .cta-banner {
+      max-width: 1080px;
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .cta-inner {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 212, 255, 0.08),
+        rgba(124, 58, 237, 0.1)
+      );
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 12px;
+      padding: 1.2rem 1.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .cta-text {
+      font-size: 0.9rem;
+      color: var(--text2);
+    }
+    .cta-text strong {
+      color: var(--text);
+    }
+    .cta-btn {
+      background: var(--accent);
+      color: #001018;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+
+    .content-section {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    .content-section h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.7rem;
+      color: var(--text);
+    }
+    .content-section p {
+      color: var(--text2);
+      line-height: 1.75;
+      font-size: 0.88rem;
+      margin-bottom: 0.75rem;
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .faq-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .faq-q {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .faq-a {
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.65rem 1.1rem;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+
+  <div class="hero">
+    <div class="hero-badge">🎙️ Camera + Mic + Speakers</div>
+    <h1>Webcam, Mic <span>&amp; Speaker Test</span></h1>
+    <p>
+      Check your camera, microphone, and speakers the same way a video call
+      would use them — real live readings, no fake scores.
+    </p>
+    <p style="font-size:0.85rem; margin-top:0.75rem;">
+      New here? Read the <a
+        href="/webcam-mic-speaker-test-guide/"
+        data-astro-reload
+        style="color:var(--accent); font-weight:600;">step-by-step guide</a
+      > first, or dive straight into the tests below.
+    </p>
+  </div>
+
+  <div class="section-wrap">
+    <!-- ============ WEBCAM ============ -->
+    <div class="tool-card" id="webcam-card">
+      <div class="tool-header">
+        <span class="tool-title">📷 Webcam Test</span>
+        <div class="tool-actions">
+          <select id="camSelect" aria-label="Select camera"></select>
+          <button class="btn-sm" id="camStart">▶ Start</button>
+          <button class="btn-sm" id="camStop" disabled>■ Stop</button>
+        </div>
+      </div>
+      <div class="body-pad cam-layout">
+        <div class="video-wrap">
+          <video id="camPreview" autoplay playsinline muted></video>
+          <canvas id="camAnalysisCanvas" class="hidden-canvas"></canvas>
+          <div class="overlay-badge" id="camOverlay">Camera off</div>
+        </div>
+        <div>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="label">Resolution</span><span
+                class="value"
+                id="camRes">—</span
+              >
+            </div>
+            <div class="stat-item">
+              <span class="label">Live FPS</span><span class="value" id="camFps"
+                >—</span
+              >
+            </div>
+            <div class="stat-item">
+              <span class="label">Dropped Frames</span><span
+                class="value"
+                id="camDrops">—</span
+              >
+            </div>
+            <div class="stat-item">
+              <span class="label">Light Level</span><span
+                class="value"
+                id="camLight">—</span
+              >
+            </div>
+            <div class="stat-item">
+              <span class="label">Sharpness (rel.)</span><span
+                class="value"
+                id="camSharp">—</span
+              >
+            </div>
+            <div class="stat-item">
+              <span class="label">Device</span><span
+                class="value"
+                id="camLabel"
+                style="font-size:0.8rem;">—</span
+              >
+            </div>
+            <div class="stat-item">
+              <span class="label">Focus/Exposure Stability</span><span
+                class="value"
+                id="camHunting">—</span
+              >
+            </div>
+          </div>
+          <div class="confidence-badge" id="cam-confidence">
+            <span class="confidence-dot"></span>
+            <span id="cam-confidence-text">—</span>
+          </div>
+        </div>
+      </div>
+      <div class="body-pad" style="padding-top:0;">
+        <div class="honesty-box">
+          ℹ️ Resolution/FPS come from <code>track.getSettings()</code> plus a live
+          frame counter — not a guess. Light level and sharpness are relative measurements
+          (average brightness and edge-contrast of the visible frame) meant to flag
+          "too dark" or "clearly out of focus," not a lab-grade camera score. Focus/Exposure
+          Stability watches those same readings over ~8 seconds — if they keep swinging
+          even while you sit still, your camera is likely "hunting" (continuously
+          re-focusing/re-exposing) instead of settling on a stable image.
+        </div>
+
+        <div
+          style="margin-top:1.25rem; padding-top:1.1rem; border-top:1px solid var(--border);"
+        >
+          <div
+            style="font-size:0.85rem; font-weight:700; color:var(--text); margin-bottom:0.5rem;"
+          >
+            ⏱ Capture Latency Test
+          </div>
+          <p
+            style="font-size:0.78rem; color:var(--text2); margin-bottom:0.75rem; line-height:1.6;"
+          >
+            Point your camera at the flashing box below. It measures the time
+            from when the box actually flashes white on your screen to when your
+            camera captures that change — a real end-to-end pipeline latency
+            test, not a spec-sheet number.
+          </p>
+          <div
+            id="latencyFlashBox"
+            style="width:100%; max-width:220px; height:120px; background:#000; border-radius:8px; border:2px solid var(--border); margin-bottom:0.75rem; display:flex; align-items:center; justify-content:center; color:#555; font-size:0.75rem; font-weight:700;"
+          >
+            Point camera here
+          </div>
+          <button class="btn-sm" id="btnCaptureLatency" disabled
+            >🎯 Run Capture Latency Test (5 flashes)</button
+          >
+          <div
+            id="latencyTestStatus"
+            style="font-size:0.78rem; color:var(--muted); margin-top:0.5rem;"
+          >
+          </div>
+          <div
+            id="latencyTestResult"
+            style="display:none; margin-top:0.75rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem;"
+          >
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span class="label">Avg Capture Latency</span><span
+                  class="value"
+                  id="latencyAvg">—</span
+                >
+              </div>
+              <div class="stat-item">
+                <span class="label">Min / Max</span><span
+                  class="value"
+                  id="latencyMinMax"
+                  style="font-size:0.9rem;">—</span
+                >
+              </div>
+              <div class="stat-item">
+                <span class="label">Samples</span><span
+                  class="value"
+                  id="latencySamples">—</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="honesty-box" style="margin-top:0.75rem;">
+            ⚠️ This measures the <strong>full pipeline</strong> — your monitor's response
+            time, the camera sensor/USB capture delay, and browser processing — all
+            combined, not the webcam sensor in isolation. Works best in a dim room
+            with the camera held steady a few inches from the screen.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MICROPHONE ============ -->
+    <div class="tool-card" id="mic-card">
+      <div class="tool-header">
+        <span class="tool-title">🎤 Microphone Test</span>
+        <div class="tool-actions">
+          <select id="micSelect" aria-label="Select microphone"></select>
+          <button class="btn-sm" id="micStart">▶ Start</button>
+          <button class="btn-sm" id="micStop" disabled>■ Stop</button>
+        </div>
+      </div>
+      <div class="body-pad">
+        <div class="meter-wrap">
+          <canvas id="mic-waveform"></canvas>
+          <div class="meter-labels">
+            <span>Waveform (live signal)</span><span id="micLevelNow">0%</span>
+          </div>
+          <canvas id="mic-spectrum"></canvas>
+          <div class="meter-labels">
+            <span>Bass</span><span>Mid</span><span>Treble</span>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-item">
+            <span class="label">Peak Level</span><span
+              class="value"
+              id="micPeak">—</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">Noise Floor</span><span
+              class="value"
+              id="micNoiseFloor">—</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">Clipping Events</span><span
+              class="value"
+              id="micClip">0</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">Plosives/Pops</span><span
+              class="value"
+              id="micPlosive">0</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">Sample Rate</span><span
+              class="value"
+              id="micRate">—</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">Echo Cancel</span><span
+              class="value"
+              id="micEcho">—</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">Noise Suppress</span><span
+              class="value"
+              id="micNoiseSetting">—</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">Electrical Hum</span><span
+              class="value"
+              id="micHum">—</span
+            >
+          </div>
+          <div class="stat-item">
+            <span class="label">AGC / Noise Pumping</span><span
+              class="value"
+              id="micAgc">—</span
+            >
+          </div>
+        </div>
+        <div class="confidence-badge" id="mic-confidence">
+          <span class="confidence-dot"></span>
+          <span id="mic-confidence-text">—</span>
+        </div>
+        <div class="record-block">
+          <button class="btn-sm" id="micNoiseCheck" disabled
+            >🔇 Measure Noise Floor (2s silence)</button
+          >
+          <button class="btn-sm" id="micRecord" disabled
+            >⏺ Record 3s &amp; Play Back</button
+          >
+          <span
+            id="micRecordStatus"
+            style="font-size:0.78rem; color:var(--muted);"></span>
+        </div>
+        <audio
+          id="micPlayback"
+          controls
+          style="display:none; margin-top:0.75rem;"></audio>
+        <div class="honesty-box">
+          ℹ️ The waveform and spectrum are your actual live signal via the Web
+          Audio API — real amplitude and frequency content, not simulated.
+          Browsers can't give a calibrated decibel (SPL) reading, so treat the
+          level as relative loudness. Clipping events count moments the signal
+          hits the input ceiling — frequent clipping means your mic gain is too
+          high and audio will sound distorted to others. Electrical Hum checks
+          for elevated energy at 50Hz/60Hz (and their harmonics) — a strong
+          signature of ground loops, unshielded USB cables, or nearby power
+          adapters, distinct from general room noise. AGC / Noise Pumping
+          watches for the background noise floor rising right after loud speech
+          then settling back down — a classic sign your OS or driver is
+          auto-adjusting mic gain, which can make quiet moments sound "breathy"
+          to others on a call. Plosives/Pops counts sharp bursts of
+          low-frequency energy — the thump you hear on P/B/T sounds when talking
+          directly into the mic. Frequent pops usually mean you're too close to
+          the mic or need a pop filter/foam windscreen.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SPEAKER ============ -->
+    <div class="tool-card" id="speaker-card">
+      <div class="tool-header">
+        <span class="tool-title">🔊 Speaker Test</span>
+        <div class="tool-actions" id="outputSelectRow" style="display:none;">
+          <select id="outSelect" aria-label="Select output device"></select>
+          <span style="font-size:0.7rem; color:var(--muted);"
+            >Chromium only</span
+          >
+        </div>
+      </div>
+      <div class="body-pad">
+        <div class="speaker-buttons">
+          <button class="spk-btn" id="btnLeft">◀ Left Only</button>
+          <button class="spk-btn" id="btnBoth">🔊 Both</button>
+          <button class="spk-btn" id="btnRight">Right Only ▶</button>
+          <button class="spk-btn" id="btnSweep">〰 Frequency Sweep</button>
+          <button class="spk-btn stop" id="btnStopTone">■ Stop</button>
+        </div>
+        <div class="freq-row">
+          <label for="freqSlider" style="font-size:0.8rem; color:var(--text2);"
+            >Tone: <span id="freqVal">440</span> Hz</label
+          >
+          <input type="range" id="freqSlider" min="60" max="8000" value="440" />
+        </div>
+        <div class="balance-row">
+          <button class="btn-sm" id="btnBalance"
+            >⚖ Stereo Balance Check (alternating L/R)</button
+          >
+          <button class="btn-sm" id="btnLatency" disabled
+            >⏱ Round-Trip Check (needs mic started)</button
+          >
+          <span id="latencyResult" style="font-size:0.8rem; color:var(--text2);"
+          ></span>
+        </div>
+        <div class="honesty-box">
+          ℹ️ Every tone here is a real oscillator routed through a <code
+            >StereoPannerNode</code
+          >
+          — what plays is exactly what's sent to that channel. Output-device switching
+          (<code>setSinkId</code>) only works in Chromium browsers;
+          Firefox/Safari always use your OS default output, and we don't hide
+          that limitation.
+        </div>
+
+        <div
+          style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border);"
+        >
+          <div
+            style="font-size:0.85rem; font-weight:700; color:var(--text); margin-bottom:0.5rem;"
+          >
+            📈 Frequency Response (via mic loopback)
+          </div>
+          <p
+            style="font-size:0.78rem; color:var(--text2); margin-bottom:0.75rem; line-height:1.6;"
+          >
+            Plays a slow sweep from 60Hz–8000Hz and listens back through your
+            microphone to plot how your speaker output actually sounds in this
+            room — useful for spotting weak bass, rattling frequencies, or a
+            blown driver. Requires the microphone to be started above.
+          </p>
+          <button class="btn-sm" id="btnFreqResponse" disabled
+            >📈 Run Frequency Response Sweep (~8s)</button
+          >
+          <canvas
+            id="freqResponseCanvas"
+            style="width:100%; height:120px; display:block; margin-top:0.75rem; border-radius:8px; background:#0a1020;"
+          ></canvas>
+          <div
+            id="freqResponseStatus"
+            style="font-size:0.78rem; color:var(--muted); margin-top:0.4rem;"
+          >
+          </div>
+          <div class="honesty-box" style="margin-top:0.75rem;">
+            ⚠️ This measures your <strong
+              >speaker + microphone + room acoustics combined</strong
+            > — not the speaker in isolation. A dip or peak could come from any of
+            the three. Treat it as a comparative/diagnostic tool (e.g. "did this dip
+            appear after I moved my speaker"), not a lab-grade speaker measurement.
+          </div>
+        </div>
+
+        <div
+          style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border);"
+        >
+          <div
+            style="font-size:0.85rem; font-weight:700; color:var(--text); margin-bottom:0.5rem;"
+          >
+            🌀 Distortion Estimate (THD)
+          </div>
+          <p
+            style="font-size:0.78rem; color:var(--text2); margin-bottom:0.75rem; line-height:1.6;"
+          >
+            Plays a steady 300Hz test tone and listens back through your
+            microphone, comparing the energy at that frequency against its
+            harmonics (600Hz, 900Hz, 1200Hz, 1500Hz) — a lower percentage means
+            cleaner reproduction. Requires the microphone to be started above.
+          </p>
+          <div
+            style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin-bottom:0.6rem;"
+          >
+            <label
+              for="thdFreqSelect"
+              style="font-size:0.78rem; color:var(--text2);"
+              >Test frequency:</label
+            >
+            <select
+              id="thdFreqSelect"
+              style="background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-family: var(--font-display); font-size: 0.78rem; padding: 0.35rem 0.6rem; border-radius: 6px;"
+            >
+              <option value="100"
+                >Bass (100Hz) — subwoofers, big speakers</option
+              >
+              <option value="1000" selected
+                >Mid (1000Hz) — standard, most speakers</option
+              >
+              <option value="6000">Treble (6000Hz) — tweeters</option>
+            </select>
+          </div>
+          <button class="btn-sm" id="btnThdTest" disabled
+            >🌀 Run Distortion Test (~3s)</button
+          >
+          <div
+            id="thdStatus"
+            style="font-size:0.78rem; color:var(--muted); margin-top:0.5rem;"
+          >
+          </div>
+          <div
+            id="thdResult"
+            style="display:none; margin-top:0.75rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem;"
+          >
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span class="label">Estimated THD</span><span
+                  class="value"
+                  id="thdValue">—</span
+                >
+              </div>
+              <div class="stat-item">
+                <span class="label">Rating</span><span
+                  class="value"
+                  id="thdRating">—</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="honesty-box" style="margin-top:0.75rem;">
+            ⚠️ This is a <strong>loopback estimate</strong>, not a lab THD
+            measurement — your microphone's own harmonic response and room
+            reflections are baked into the number. Use it to compare volume
+            levels or speaker positions on the same setup, not to compare
+            against a manufacturer's published THD spec. Pick Bass if you're
+            testing a subwoofer or large speaker's low-end, or Treble for
+            tweeters — a small laptop speaker will usually show its weakest
+            (highest) reading at Bass since tiny drivers can't reproduce low
+            frequencies cleanly regardless of health.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tool-card" id="readiness-card">
+      <div class="tool-header">
+        <span class="tool-title">📞 Video Call Readiness</span>
+      </div>
+      <div
+        class="body-pad"
+        style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;"
+      >
+        <div style="text-align:center; min-width:110px;">
+          <div
+            id="readinessScore"
+            style="font-family:var(--font-mono); font-size:2.4rem; font-weight:700; color:var(--muted); line-height:1;"
+          >
+            —
+          </div>
+          <div style="font-size:0.7rem; color:var(--muted); margin-top:0.2rem;">
+            / 100
+          </div>
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <div
+            id="readinessLabel"
+            style="font-size:1rem; font-weight:700; color:var(--text); margin-bottom:0.4rem;"
+          >
+            Run the tests above to see your score
+          </div>
+          <div
+            id="readinessChecklist"
+            style="display:flex; flex-direction:column; gap:0.3rem; font-size:0.8rem; color:var(--text2);"
+          >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card" id="history-card">
+      <div class="tool-header">
+        <span class="tool-title">📈 Trend History (this browser)</span>
+        <div class="tool-actions">
+          <button class="btn-sm" id="btn-clear-history">🗑 Clear History</button>
+        </div>
+      </div>
+      <div class="body-pad">
+        <p
+          style="font-size:0.78rem; color:var(--text2); margin-bottom:0.75rem;"
+        >
+          Automatically saves a snapshot each time you run the camera or mic
+          test, so you can spot trends over time — e.g. "did my mic peak level
+          drop after I changed USB ports." Stored only in this browser, never
+          uploaded.
+        </p>
+        <canvas
+          id="historySparkline"
+          style="width:100%; height:60px; display:block; background:#0a1020; border-radius:8px;"
+        ></canvas>
+        <div
+          id="historyEmpty"
+          style="font-size:0.8rem; color:var(--muted); padding:1rem 0; text-align:center;"
+        >
+          No history yet — run the camera or mic test to start building a trend.
+        </div>
+        <div style="overflow-x:auto; margin-top:0.75rem;">
+          <table
+            id="historyTable"
+            style="width:100%; border-collapse:collapse; font-size:0.78rem; display:none;"
+          >
+            <thead>
+              <tr style="background:var(--bg3);">
+                <th
+                  style="padding:0.5rem 0.7rem; text-align:left; color:var(--muted); font-size:0.68rem; text-transform:uppercase;"
+                  >When</th
+                >
+                <th
+                  style="padding:0.5rem 0.7rem; text-align:left; color:var(--muted); font-size:0.68rem; text-transform:uppercase;"
+                  >Mic Peak</th
+                >
+                <th
+                  style="padding:0.5rem 0.7rem; text-align:left; color:var(--muted); font-size:0.68rem; text-transform:uppercase;"
+                  >Clipping</th
+                >
+                <th
+                  style="padding:0.5rem 0.7rem; text-align:left; color:var(--muted); font-size:0.68rem; text-transform:uppercase;"
+                  >Hum</th
+                >
+                <th
+                  style="padding:0.5rem 0.7rem; text-align:left; color:var(--muted); font-size:0.68rem; text-transform:uppercase;"
+                  >THD</th
+                >
+                <th
+                  style="padding:0.5rem 0.7rem; text-align:left; color:var(--muted); font-size:0.68rem; text-transform:uppercase;"
+                  >Cam Light</th
+                >
+                <th
+                  style="padding:0.5rem 0.7rem; text-align:left; color:var(--muted); font-size:0.68rem; text-transform:uppercase;"
+                  >Cam Sharp</th
+                >
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card" id="export-card">
+      <div class="tool-header">
+        <span class="tool-title">📊 Test Summary &amp; Export</span>
+        <div class="tool-actions">
+          <button class="btn-sm" id="btn-fresh-start">↺ Start Fresh</button>
+          <button class="btn-sm btn-export" id="btn-share"
+            >📤 Share Result</button
+          >
+          <button class="btn-sm btn-export" id="btn-export">Export JSON</button>
+          <button class="btn-sm btn-csv" id="btn-csv">Export CSV</button>
+          <button class="btn-sm btn-pdf" id="btn-pdf">💾 PDF Report</button>
+
+          <a
+            href="/full-diagnostic-report/"
+            class="btn-sm btn-fulldiag"
+            id="btn-fulldiag"
+            target="_blank"
+            rel="noopener"
+            data-astro-reload
+            >🧪 Full Diag Report
+          </a>
+        </div>
+      </div>
+      <div class="body-pad">
+        <p style="font-size:0.82rem; color:var(--text2); margin:0;">
+          Run the camera and/or microphone test above first, then export a
+          snapshot of your readings — or open the combined Full Diagnostic
+          Report once you've run multiple tools.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="next-step-banner">
+    <span id="next-step-text"></span>
+  </div>
+
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your keyboard!</strong> Full 104-key tester with live latency
+        measurement.
+      </p>
+      <a
+        href="/tools/keyboard-latency-tester/"
+        class="cta-btn"
+        data-astro-reload>⌨️ Keyboard Tester →</a
+      >
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your mouse!</strong> Polling rate up to 8000Hz, jitter,
+        and click latency.
+      </p>
+      <a href="/tools/mouse-rate-test/" class="cta-btn" data-astro-reload
+        >🖱 Mouse Rate Test →</a
+      >
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your monitor!</strong> Real refresh rate, frame consistency,
+        and a VRR simulator.
+      </p>
+      <a
+        href="/tools/monitor-refresh-rate-test/"
+        class="cta-btn"
+        data-astro-reload>🖥️ Monitor Test →</a
+      >
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also check your screen!</strong> Dead pixels, backlight bleed, color
+        accuracy and motion blur.
+      </p>
+      <a href="/tools/screen-test/" class="cta-btn" data-astro-reload
+        >🟦 Screen Test →</a
+      >
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-section">
+    <h2>Why This Goes Beyond a Basic Camera/Mic Checker</h2>
+    <p>
+      Most online webcam/mic testers just show a preview and a volume bar. This
+      tool reads your camera's real negotiated resolution and a live measured
+      FPS (not the value your driver claims), flags low light and blur, tracks
+      your mic's live waveform and frequency spectrum, detects clipping and
+      measures your actual noise floor, and runs real hard-panned speaker tones
+      plus a frequency sweep — so you're diagnosing with real signals, not a
+      single made-up score.
+    </p>
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">
+          Can a browser tell me if my webcam or mic is "good"?
+        </div>
+        <div class="faq-a">
+          Not with a single score. This tool reads the real settings your camera
+          and microphone negotiated with the browser — resolution, live FPS,
+          sample rate, noise floor, clipping — and gives you a live waveform and
+          video feed so you can judge quality with your own eyes and ears, the
+          same way a video call would use them.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          Why does my mic level meter show a percentage instead of decibels?
+        </div>
+        <div class="faq-a">
+          Browsers cannot report a calibrated, absolute decibel (SPL) reading
+          because that depends on microphone sensitivity and OS gain — hardware
+          details the Web Audio API does not expose. The meter shows real
+          relative signal strength (RMS amplitude), accurate for spotting
+          clipping, silence, and inconsistency, but not for absolute loudness
+          comparisons across devices.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          Why did the Left Only speaker test play from my right speaker?
+        </div>
+        <div class="faq-a">
+          That means your channels are swapped somewhere in the audio chain —
+          usually a wiring issue on external speakers, or an OS audio balance
+          setting. This test plays a real hard-panned tone, so what you hear is
+          exactly what's being sent to each channel.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          Does the output device selector work in every browser?
+        </div>
+        <div class="faq-a">
+          No. The setSinkId API is currently supported only in Chromium-based
+          browsers (Chrome, Edge, Opera). In Firefox and Safari, audio always
+          plays through your operating system's default output device.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          Is my camera feed or recorded audio uploaded anywhere?
+        </div>
+        <div class="faq-a">
+          No. The camera preview, microphone analysis, and the short test
+          recording all run entirely inside your browser using local Web APIs.
+          Nothing is sent to any server.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What does the Electrical Hum reading mean?</div>
+        <div class="faq-a">
+          It checks for elevated energy specifically at mains frequency (50Hz or
+          60Hz depending on your region) and its harmonics — a strong signature
+          of ground loops, unshielded USB cables, or a mic placed too close to a
+          power adapter. Try a different USB port or move the mic away from
+          chargers if hum is detected.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          What is AGC noise pumping and why does it matter?
+        </div>
+        <div class="faq-a">
+          Many drivers and cheap mics apply Automatic Gain Control, which boosts
+          gain during quiet moments and reduces it during loud ones. This shows
+          up as the background noise floor rising right after you stop talking,
+          then settling back down — a pattern that can make quiet moments sound
+          "breathy" to others on a call.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">
+          How accurate is the speaker distortion (THD) test?
+        </div>
+        <div class="faq-a">
+          It's a loopback estimate, not a lab measurement — it plays a test tone
+          and listens back through your own microphone, so the mic's own
+          harmonic response and room acoustics are baked into the number. Use it
+          to compare volume levels or speaker positions on your own setup rather
+          than against a manufacturer's published spec.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    function getDiagSessionId(): string {
+      let id = sessionStorage.getItem("ls_diag_session");
+      if (!id) {
+        id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        sessionStorage.setItem("ls_diag_session", id);
+      }
+      return id;
+    }
+
+    function startFreshDiagSession() {
+      try {
+        localStorage.removeItem("ls_diag_monitor");
+        localStorage.removeItem("ls_diag_keyboard");
+        localStorage.removeItem("ls_diag_mouse");
+        localStorage.removeItem("ls_diag_screen");
+        localStorage.removeItem("ls_diag_webcam");
+        localStorage.removeItem("ls_diag_mic");
+        sessionStorage.removeItem("ls_diag_session");
+      } catch (e) {
+        // storage unavailable — ignore
+      }
+      location.reload();
+    }
+
+    document.addEventListener("astro:page-load", () => {
+      const toastEl = document.getElementById("toast");
+      let toastTimer: number | null = null;
+      function showToast(msg: string) {
+        if (!toastEl) return;
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        if (toastTimer !== null) clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(
+          () => toastEl.classList.remove("show"),
+          2200,
+        );
+      }
+
+      // ===================== DEVICE LISTS =====================
+      const camSelect = document.getElementById(
+        "camSelect",
+      ) as HTMLSelectElement;
+      const micSelect = document.getElementById(
+        "micSelect",
+      ) as HTMLSelectElement;
+      const outSelect = document.getElementById(
+        "outSelect",
+      ) as HTMLSelectElement;
+      const outputRow = document.getElementById(
+        "outputSelectRow",
+      ) as HTMLElement;
+
+      async function refreshDeviceLists() {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const cams = devices.filter((d) => d.kind === "videoinput");
+          const mics = devices.filter((d) => d.kind === "audioinput");
+          const outs = devices.filter((d) => d.kind === "audiooutput");
+          camSelect.innerHTML = cams
+            .map(
+              (d, i) =>
+                `<option value="${d.deviceId}">${d.label || "Camera " + (i + 1)}</option>`,
+            )
+            .join("");
+          micSelect.innerHTML = mics
+            .map(
+              (d, i) =>
+                `<option value="${d.deviceId}">${d.label || "Microphone " + (i + 1)}</option>`,
+            )
+            .join("");
+          if (outs.length && (HTMLMediaElement.prototype as any).setSinkId) {
+            outputRow.style.display = "flex";
+            outSelect.innerHTML = outs
+              .map(
+                (d, i) =>
+                  `<option value="${d.deviceId}">${d.label || "Speaker " + (i + 1)}</option>`,
+              )
+              .join("");
+          }
+        } catch (e) {}
+      }
+      refreshDeviceLists();
+
+      // ===================== WEBCAM =====================
+      const camStart = document.getElementById("camStart") as HTMLButtonElement;
+      const camStop = document.getElementById("camStop") as HTMLButtonElement;
+      const camPreview = document.getElementById(
+        "camPreview",
+      ) as HTMLVideoElement;
+      const camOverlay = document.getElementById("camOverlay") as HTMLElement;
+      const camRes = document.getElementById("camRes") as HTMLElement;
+      const camFps = document.getElementById("camFps") as HTMLElement;
+      const camDrops = document.getElementById("camDrops") as HTMLElement;
+      const camLight = document.getElementById("camLight") as HTMLElement;
+      const camSharp = document.getElementById("camSharp") as HTMLElement;
+      const camLabel = document.getElementById("camLabel") as HTMLElement;
+      const camCanvas = document.getElementById(
+        "camAnalysisCanvas",
+      ) as HTMLCanvasElement;
+      const camCtx = camCanvas.getContext("2d", { willReadFrequently: true });
+      const camConfBadge = document.getElementById(
+        "cam-confidence",
+      ) as HTMLElement;
+      const camConfText = document.getElementById(
+        "cam-confidence-text",
+      ) as HTMLElement;
+
+      let camStream: MediaStream | null = null;
+      let camFrameTimes: number[] = [];
+      let camVfcHandle: number | null = null;
+      let camAnalysisTimer: number | null = null;
+      let camTotalDrops = 0;
+      let latencyTestRunning = false;
+
+      // ---- Auto-focus / exposure "hunting" detector ----
+      // A camera that's continuously re-focusing or re-exposing (rather
+      // than settling on a stable reading) shows its light/sharpness
+      // values oscillating over time even when pointed at a static scene.
+      // We track recent history of both and measure how much they swing
+      // relative to their own average — high relative swing = hunting.
+      let huntingLumHistory: number[] = [];
+      let huntingEdgeHistory: number[] = [];
+      const HUNTING_HISTORY_SIZE = 16; // ~8s at 500ms/sample
+
+      function stdDev(arr: number[]): number {
+        if (arr.length < 2) return 0;
+        const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+        const variance =
+          arr.reduce((a, b) => a + (b - mean) ** 2, 0) / arr.length;
+        return Math.sqrt(variance);
+      }
+
+      function checkFocusExposureHunting(avgLum: number, avgEdge: number) {
+        huntingLumHistory.push(avgLum);
+        if (huntingLumHistory.length > HUNTING_HISTORY_SIZE)
+          huntingLumHistory.shift();
+        huntingEdgeHistory.push(avgEdge);
+        if (huntingEdgeHistory.length > HUNTING_HISTORY_SIZE)
+          huntingEdgeHistory.shift();
+
+        const huntEl = document.getElementById("camHunting");
+        if (huntingLumHistory.length < 8) {
+          if (huntEl) huntEl.textContent = "Checking...";
+          return;
+        }
+
+        const lumMean =
+          huntingLumHistory.reduce((a, b) => a + b, 0) /
+          huntingLumHistory.length;
+        const edgeMean =
+          huntingEdgeHistory.reduce((a, b) => a + b, 0) /
+          huntingEdgeHistory.length;
+
+        // Coefficient of variation (stddev / mean) — normalizes swing
+        // relative to the signal's own scale, so a bright vs dark room
+        // doesn't skew the comparison.
+        const lumCV = lumMean > 5 ? stdDev(huntingLumHistory) / lumMean : 0;
+        const edgeCV = edgeMean > 1 ? stdDev(huntingEdgeHistory) / edgeMean : 0;
+
+        // Empirically, a genuinely settled camera has CV well under ~0.06;
+        // continuous hunting pushes this noticeably higher.
+        const isHunting = lumCV > 0.09 || edgeCV > 0.14;
+
+        if (huntEl) {
+          huntEl.textContent = isHunting ? "⚠ Hunting detected" : "Stable";
+        }
+      }
+
+      function onVideoFrame(_now: number, meta: any) {
+        camFrameTimes.push(performance.now());
+        if (camFrameTimes.length > 60) camFrameTimes.shift();
+        if (
+          meta &&
+          typeof meta.presentedFrames === "number" &&
+          typeof meta.processingDuration === "number"
+        ) {
+          // presentedFrames vs expected can hint at drops; browsers vary in support
+        }
+        if ((camPreview as any).requestVideoFrameCallback) {
+          camVfcHandle = (camPreview as any).requestVideoFrameCallback(
+            onVideoFrame,
+          );
+        }
+      }
+
+      function analyzeFrame() {
+        if (!camStream || !camCtx) return;
+        const w = 160,
+          h = 120;
+        camCanvas.width = w;
+        camCanvas.height = h;
+        try {
+          camCtx.drawImage(camPreview, 0, 0, w, h);
+          const frame = camCtx.getImageData(0, 0, w, h).data;
+          let sum = 0;
+          let edgeSum = 0;
+          for (let y = 1; y < h - 1; y++) {
+            for (let x = 1; x < w - 1; x++) {
+              const i = (y * w + x) * 4;
+              const lum =
+                0.299 * frame[i] + 0.587 * frame[i + 1] + 0.114 * frame[i + 2];
+              sum += lum;
+              const iRight = (y * w + (x + 1)) * 4;
+              const iDown = ((y + 1) * w + x) * 4;
+              const lumR =
+                0.299 * frame[iRight] +
+                0.587 * frame[iRight + 1] +
+                0.114 * frame[iRight + 2];
+              const lumD =
+                0.299 * frame[iDown] +
+                0.587 * frame[iDown + 1] +
+                0.114 * frame[iDown + 2];
+              edgeSum += Math.abs(lum - lumR) + Math.abs(lum - lumD);
+            }
+          }
+          const avgLum = sum / (w * h);
+          const avgEdge = edgeSum / (w * h);
+
+          let lightLabel = "Good";
+          if (avgLum < 40) lightLabel = "Too Dark";
+          else if (avgLum > 220) lightLabel = "Overexposed";
+          camLight.textContent = `${lightLabel} (${Math.round((avgLum / 255) * 100)}%)`;
+
+          let sharpLabel = "Sharp";
+          if (avgEdge < 4) sharpLabel = "Blurry";
+          else if (avgEdge < 8) sharpLabel = "Soft";
+          camSharp.textContent = `${sharpLabel} (${avgEdge.toFixed(1)})`;
+
+          checkFocusExposureHunting(avgLum, avgEdge);
+
+          // live FPS from frame timestamps
+          if (camFrameTimes.length >= 2) {
+            const span =
+              camFrameTimes[camFrameTimes.length - 1] - camFrameTimes[0];
+            const fps =
+              span > 0
+                ? Math.round(((camFrameTimes.length - 1) / span) * 1000)
+                : 0;
+            camFps.textContent = `${fps} fps`;
+            const track = camStream.getVideoTracks()[0];
+            const targetFps = track?.getSettings().frameRate || 30;
+            if (fps < targetFps * 0.7) camTotalDrops++;
+            camDrops.textContent = String(camTotalDrops);
+          }
+
+          camConfBadge.classList.add("show");
+          camConfBadge.classList.remove(
+            "status-good",
+            "status-check",
+            "status-investigate",
+          );
+          if (lightLabel === "Too Dark" || sharpLabel === "Blurry") {
+            camConfBadge.classList.add("status-check");
+            camConfText.textContent =
+              lightLabel === "Too Dark"
+                ? "Check — low light, try facing a light source"
+                : "Check — image looks soft/out of focus";
+          } else {
+            camConfBadge.classList.add("status-good");
+            camConfText.textContent = "Good — clear, well-lit image";
+          }
+
+          saveWebcamResult(avgLum, avgEdge);
+          updateReadinessScore();
+        } catch (e) {}
+      }
+
+      camStart.addEventListener("click", async () => {
+        try {
+          const deviceId = camSelect.value;
+          camStream = await navigator.mediaDevices.getUserMedia({
+            video: deviceId ? { deviceId: { exact: deviceId } } : true,
+          });
+          camPreview.srcObject = camStream;
+          camOverlay.textContent = "Live";
+          camEverStarted = true;
+          camStart.disabled = true;
+          camStop.disabled = false;
+          camTotalDrops = 0;
+          camFrameTimes = [];
+
+          const track = camStream.getVideoTracks()[0];
+          const settings = track.getSettings();
+          camRes.textContent =
+            settings.width && settings.height
+              ? `${settings.width} × ${settings.height}`
+              : "—";
+          camLabel.textContent = track.label || "—";
+
+          if ((camPreview as any).requestVideoFrameCallback) {
+            camVfcHandle = (camPreview as any).requestVideoFrameCallback(
+              onVideoFrame,
+            );
+          }
+          camAnalysisTimer = window.setInterval(analyzeFrame, 500);
+          const btnCapLatInit = document.getElementById(
+            "btnCaptureLatency",
+          ) as HTMLButtonElement | null;
+          if (btnCapLatInit) btnCapLatInit.disabled = false;
+          await refreshDeviceLists();
+        } catch (e) {
+          camOverlay.textContent = "Camera access denied or unavailable";
+          showToast("Could not access camera");
+        }
+      });
+
+      camStop.addEventListener("click", () => {
+        if (camStream) camStream.getTracks().forEach((t) => t.stop());
+        camStream = null;
+        camPreview.srcObject = null;
+        camOverlay.textContent = "Camera off";
+        camStart.disabled = false;
+        camStop.disabled = true;
+        if (camAnalysisTimer) clearInterval(camAnalysisTimer);
+        if (camVfcHandle && (camPreview as any).cancelVideoFrameCallback)
+          (camPreview as any).cancelVideoFrameCallback(camVfcHandle);
+        [
+          "camRes",
+          "camFps",
+          "camDrops",
+          "camLight",
+          "camSharp",
+          "camLabel",
+          "camHunting",
+        ].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = "—";
+        });
+        huntingLumHistory = [];
+        huntingEdgeHistory = [];
+        camConfBadge.classList.remove("show");
+        const btnCapLatStop = document.getElementById(
+          "btnCaptureLatency",
+        ) as HTMLButtonElement | null;
+        if (btnCapLatStop) btnCapLatStop.disabled = true;
+        recordHistorySnapshot();
+      });
+
+      // ===================== CAPTURE LATENCY TEST =====================
+      const btnCaptureLatency = document.getElementById(
+        "btnCaptureLatency",
+      ) as HTMLButtonElement | null;
+      const latencyFlashBox = document.getElementById(
+        "latencyFlashBox",
+      ) as HTMLElement | null;
+      const latencyTestStatus = document.getElementById("latencyTestStatus");
+      let lastLatencyResults: number[] | null = null;
+
+      function sleep(ms: number) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      // Samples the live camera frame and returns average brightness of a
+      // small central region, using the same downscaled canvas approach as
+      // analyzeFrame() (fast — 160x120).
+      function sampleCameraBrightness(): number {
+        if (!camStream || !camCtx) return 0;
+        const w = 160,
+          h = 120;
+        camCanvas.width = w;
+        camCanvas.height = h;
+        try {
+          camCtx.drawImage(camPreview, 0, 0, w, h);
+          // sample a central box only — matches where the flash box should
+          // appear if the camera is roughly pointed at the screen
+          const region = camCtx.getImageData(
+            w * 0.25,
+            h * 0.25,
+            w * 0.5,
+            h * 0.5,
+          ).data;
+          let sum = 0;
+          const pxCount = region.length / 4;
+          for (let i = 0; i < region.length; i += 4) {
+            sum +=
+              0.299 * region[i] + 0.587 * region[i + 1] + 0.114 * region[i + 2];
+          }
+          return sum / pxCount;
+        } catch (e) {
+          return 0;
+        }
+      }
+
+      async function runSingleFlashMeasurement(): Promise<number | null> {
+        if (!latencyFlashBox) return null;
+
+        // Ensure box is black and camera sees "dark" before flashing
+        latencyFlashBox.style.background = "#000";
+        await sleep(400);
+        const baseline = sampleCameraBrightness();
+
+        // Flash on the very next animation frame — this is our t0
+        const flashStart: number = await new Promise((resolve) => {
+          requestAnimationFrame((ts) => {
+            latencyFlashBox!.style.background = "#fff";
+            resolve(performance.now());
+          });
+        });
+
+        const threshold = baseline + 35; // require a clear brightness jump
+        const timeoutAt = flashStart + 1200;
+
+        return new Promise((resolve) => {
+          function poll() {
+            const now = performance.now();
+            const brightness = sampleCameraBrightness();
+            if (brightness > threshold) {
+              resolve(now - flashStart);
+              return;
+            }
+            if (now > timeoutAt) {
+              resolve(null); // no detection — camera likely not pointed at box
+              return;
+            }
+            requestAnimationFrame(poll);
+          }
+          requestAnimationFrame(poll);
+        });
+      }
+
+      btnCaptureLatency?.addEventListener("click", async () => {
+        if (!camStream || latencyTestRunning) return;
+        latencyTestRunning = true;
+        btnCaptureLatency.disabled = true;
+        const resultBox = document.getElementById("latencyTestResult");
+        if (resultBox) resultBox.style.display = "none";
+
+        const results: number[] = [];
+        const totalFlashes = 5;
+
+        for (let i = 0; i < totalFlashes; i++) {
+          if (latencyTestStatus)
+            latencyTestStatus.textContent = `Flash ${i + 1}/${totalFlashes}...`;
+          const result = await runSingleFlashMeasurement();
+          if (result !== null) results.push(result);
+
+          if (latencyFlashBox) latencyFlashBox.style.background = "#000";
+          // randomized gap so the camera's own frame timing can't
+          // accidentally sync with our flash cadence
+          await sleep(400 + Math.random() * 400);
+        }
+
+        latencyTestRunning = false;
+        btnCaptureLatency.disabled = false;
+        if (latencyFlashBox) {
+          latencyFlashBox.style.background = "#000";
+        }
+
+        if (results.length === 0) {
+          if (latencyTestStatus)
+            latencyTestStatus.textContent =
+              "No flashes detected — make sure your camera is pointed directly at the box above, a few inches away, in a dim room.";
+          showToast("Couldn't detect the flash — check camera positioning");
+          return;
+        }
+
+        lastLatencyResults = results;
+        const avg = results.reduce((a, b) => a + b, 0) / results.length;
+        const min = Math.min(...results);
+        const max = Math.max(...results);
+
+        const avgEl = document.getElementById("latencyAvg");
+        const minMaxEl = document.getElementById("latencyMinMax");
+        const samplesEl = document.getElementById("latencySamples");
+        if (avgEl) avgEl.textContent = `${avg.toFixed(0)} ms`;
+        if (minMaxEl)
+          minMaxEl.textContent = `${min.toFixed(0)} / ${max.toFixed(0)} ms`;
+        if (samplesEl)
+          samplesEl.textContent = `${results.length} / ${totalFlashes}`;
+        if (resultBox) resultBox.style.display = "block";
+
+        if (latencyTestStatus) {
+          latencyTestStatus.textContent =
+            results.length < totalFlashes
+              ? `Done — ${totalFlashes - results.length} flash(es) missed. Try holding the camera steadier for a cleaner reading.`
+              : "Done — all flashes detected cleanly.";
+        }
+        showToast("Capture latency test complete");
+      });
+
+      // ===================== MICROPHONE =====================
+      const micStart = document.getElementById("micStart") as HTMLButtonElement;
+      const micStop = document.getElementById("micStop") as HTMLButtonElement;
+      const micWave = document.getElementById(
+        "mic-waveform",
+      ) as HTMLCanvasElement;
+      const micSpectrumCvs = document.getElementById(
+        "mic-spectrum",
+      ) as HTMLCanvasElement;
+      const waveCtx = micWave.getContext("2d");
+      const specCtx = micSpectrumCvs.getContext("2d");
+      const micPeakEl = document.getElementById("micPeak") as HTMLElement;
+      const micLevelNow = document.getElementById("micLevelNow") as HTMLElement;
+      const micRateEl = document.getElementById("micRate") as HTMLElement;
+      const micEchoEl = document.getElementById("micEcho") as HTMLElement;
+      const micNoiseSettingEl = document.getElementById(
+        "micNoiseSetting",
+      ) as HTMLElement;
+      const micClipEl = document.getElementById("micClip") as HTMLElement;
+      const micNoiseFloorEl = document.getElementById(
+        "micNoiseFloor",
+      ) as HTMLElement;
+      const micRecordBtn = document.getElementById(
+        "micRecord",
+      ) as HTMLButtonElement;
+      const micNoiseCheckBtn = document.getElementById(
+        "micNoiseCheck",
+      ) as HTMLButtonElement;
+      const micRecordStatus = document.getElementById(
+        "micRecordStatus",
+      ) as HTMLElement;
+      const micPlayback = document.getElementById(
+        "micPlayback",
+      ) as HTMLAudioElement;
+      const micConfBadge = document.getElementById(
+        "mic-confidence",
+      ) as HTMLElement;
+      const micConfText = document.getElementById(
+        "mic-confidence-text",
+      ) as HTMLElement;
+      const btnLatency = document.getElementById(
+        "btnLatency",
+      ) as HTMLButtonElement;
+
+      let micStream: MediaStream | null = null;
+      let audioCtx: AudioContext | null = null;
+      let analyser: AnalyserNode | null = null;
+      let dataArrayTime: Uint8Array | null = null;
+      let dataArrayFreq: Uint8Array | null = null;
+      let micRafId: number | null = null;
+      let peakLevel = 0;
+      let clipCount = 0;
+      let mediaRecorder: MediaRecorder | null = null;
+      let micSourceNode: MediaStreamAudioSourceNode | null = null;
+
+      // ---- Electrical hum detector (50Hz/60Hz mains interference) ----
+      let humAnalyser: AnalyserNode | null = null;
+      let humDataArray: Uint8Array | null = null;
+      let humFrameCounter = 0;
+      let lastHumResult: "none" | "50hz" | "60hz" | "checking" = "checking";
+      let humVotes: ("none" | "50hz" | "60hz")[] = [];
+      const HUM_VOTE_WINDOW = 10; // ~5 seconds of history at 0.5s/check
+
+      // ---- AGC / noise-pumping detector ----
+      // Classic AGC signature: right after a loud passage, the background
+      // noise floor temporarily rises (the AGC boosts gain to compensate
+      // for the sudden silence), then decays back down over 1-2 seconds.
+      // We watch for that rise-then-settle pattern relative to a long-term
+      // "true" floor.
+      let agcRmsWindow: number[] = [];
+      const AGC_LONGTERM_WINDOW = 40; // ~20s of history at 0.5s/check
+      let agcPumpEvents: number[] = [];
+      let lastAgcResult: "checking" | "clean" | "detected" = "checking";
+
+      // ---- Plosive / pop detector ----
+      // P/B/T sounds create a sharp, short burst of low-frequency (bass)
+      // energy with a fast attack — very different from normal speech
+      // which builds more gradually across a wider frequency range. We
+      // track a short rolling average of bass-band energy and flag a
+      // spike whenever the current reading jumps well above it.
+      let plosiveBassHistory: number[] = [];
+      const PLOSIVE_HISTORY_SIZE = 8; // short window — plosives are fast, ~50-150ms
+      let plosiveCount = 0;
+      let plosiveCooldownUntil = 0;
+
+      function checkPlosive(freqData: Uint8Array, binHz: number) {
+        const now = performance.now();
+        const loBin = Math.max(1, Math.round(60 / binHz));
+        const hiBin = Math.min(freqData.length - 1, Math.round(200 / binHz));
+        let bassSum = 0;
+        let bassCount = 0;
+        for (let b = loBin; b <= hiBin; b++) {
+          bassSum += freqData[b];
+          bassCount++;
+        }
+        const bassEnergy = bassCount > 0 ? bassSum / bassCount : 0;
+
+        plosiveBassHistory.push(bassEnergy);
+        if (plosiveBassHistory.length > PLOSIVE_HISTORY_SIZE)
+          plosiveBassHistory.shift();
+
+        if (plosiveBassHistory.length < 4) return;
+
+        // Compare current reading against the average of everything
+        // BEFORE it, so a sustained loud bass note doesn't keep
+        // re-triggering once it's already part of its own baseline.
+        const priorSamples = plosiveBassHistory.slice(0, -1);
+        const priorAvg =
+          priorSamples.reduce((a, b) => a + b, 0) / priorSamples.length;
+
+        const isSpike =
+          bassEnergy > priorAvg * 1.8 &&
+          bassEnergy - priorAvg > 25 &&
+          bassEnergy > 60;
+
+        if (isSpike && now > plosiveCooldownUntil) {
+          plosiveCount++;
+          plosiveCooldownUntil = now + 250; // debounce — one pop shouldn't count multiple times
+          const plosiveEl = document.getElementById("micPlosive");
+          if (plosiveEl) plosiveEl.textContent = String(plosiveCount);
+        }
+      }
+
+      // ---- Video Call Readiness Score ----
+      // Combines webcam + mic + speaker signals into one overall verdict.
+      // Webcam and mic are auto-scored from live readings; speaker can't be
+      // auto-graded (no way to verify sound was actually heard), so it's
+      // scored as "tested / not tested" based on whether the user has run
+      // any speaker button at least once.
+      let speakerTested = false;
+      let camEverStarted = false;
+      let micEverStarted = false;
+
+      function updateReadinessScore() {
+        const scoreEl = document.getElementById("readinessScore");
+        const labelEl = document.getElementById("readinessLabel");
+        const listEl = document.getElementById("readinessChecklist");
+        if (!scoreEl || !labelEl || !listEl) return;
+
+        if (!camEverStarted && !micEverStarted && !speakerTested) {
+          scoreEl.textContent = "—";
+          scoreEl.style.color = "var(--muted)";
+          labelEl.textContent = "Run the tests above to see your score";
+          listEl.innerHTML = "";
+          return;
+        }
+
+        const checks: { label: string; ok: boolean | null; weight: number }[] =
+          [];
+
+        // ---- Webcam checks (40 pts) ----
+        if (camEverStarted) {
+          const lightText = readVal("camLight");
+          const sharpText = readVal("camSharp");
+          const fpsText = readVal("camFps");
+          const huntingText = readVal("camHunting");
+          const lightOk =
+            lightText !== "—" &&
+            !lightText.includes("Too Dark") &&
+            !lightText.includes("Overexposed");
+          const sharpOk = sharpText !== "—" && !sharpText.includes("Blurry");
+          const fpsVal = parseInt(fpsText, 10);
+          const fpsOk = !isNaN(fpsVal) && fpsVal >= 15;
+          const huntingOk = !huntingText.startsWith("⚠");
+          checks.push({ label: "Camera lighting", ok: lightOk, weight: 12 });
+          checks.push({
+            label: "Camera focus/sharpness",
+            ok: sharpOk,
+            weight: 12,
+          });
+          checks.push({ label: "Camera frame rate", ok: fpsOk, weight: 8 });
+          checks.push({
+            label: "Camera focus/exposure stable",
+            ok: huntingOk,
+            weight: 8,
+          });
+        } else {
+          checks.push({ label: "Camera — not tested", ok: null, weight: 40 });
+        }
+
+        // ---- Mic checks (40 pts) ----
+        if (micEverStarted) {
+          const peakText = readVal("micPeak");
+          const peakVal = parseInt(peakText, 10);
+          const peakOk = !isNaN(peakVal) && peakVal >= 5;
+          const clipVal = parseInt(readVal("micClip"), 10) || 0;
+          const clipOk = clipVal <= 10;
+          const humText = readVal("micHum");
+          const humOk = !humText.startsWith("⚠");
+          const agcText = readVal("micAgc");
+          const agcOk = !agcText.startsWith("⚠");
+          checks.push({ label: "Mic signal level", ok: peakOk, weight: 12 });
+          checks.push({
+            label: "Mic clipping/distortion",
+            ok: clipOk,
+            weight: 12,
+          });
+          checks.push({ label: "No electrical hum", ok: humOk, weight: 8 });
+          checks.push({ label: "No AGC noise pumping", ok: agcOk, weight: 8 });
+        } else {
+          checks.push({
+            label: "Microphone — not tested",
+            ok: null,
+            weight: 40,
+          });
+        }
+
+        // ---- Speaker check (20 pts) ----
+        checks.push({
+          label: speakerTested
+            ? "Speaker — tested (confirm audibly by ear)"
+            : "Speaker — not tested yet",
+          ok: speakerTested ? true : null,
+          weight: 20,
+        });
+
+        let earned = 0;
+        let possible = 0;
+        checks.forEach((c) => {
+          possible += c.weight;
+          if (c.ok === true) earned += c.weight;
+          else if (c.ok === null) earned += c.weight * 0.5; // neutral credit for untested
+        });
+        const score = Math.round((earned / possible) * 100);
+
+        scoreEl.textContent = String(score);
+        let color = "#22c55e";
+        let label = "🟢 Ready for your call";
+        if (score < 60) {
+          color = "#ef4444";
+          label = "🔴 Fix issues before your call";
+        } else if (score < 85) {
+          color = "#f59e0b";
+          label = "🟡 Mostly ready — a few things to check";
+        }
+        scoreEl.style.color = color;
+        labelEl.textContent = label;
+
+        listEl.innerHTML = checks
+          .map((c) => {
+            const icon = c.ok === true ? "✅" : c.ok === false ? "❌" : "⚪";
+            return `<div>${icon} ${c.label}</div>`;
+          })
+          .join("");
+      }
+
+      function checkAgcPumping(currentRms: number) {
+        agcRmsWindow.push(currentRms);
+        if (agcRmsWindow.length > AGC_LONGTERM_WINDOW) agcRmsWindow.shift();
+
+        const agcEl = document.getElementById("micAgc");
+        if (agcRmsWindow.length < 8) {
+          if (agcEl) agcEl.textContent = "Checking...";
+          return;
+        }
+
+        const longTermFloor = Math.min(...agcRmsWindow);
+        const recentSlice = agcRmsWindow.slice(-6); // last ~3 seconds
+        const recentPeak = Math.max(...recentSlice);
+        const recentFloor = Math.min(...recentSlice);
+
+        // Only evaluate when there was a genuine loud-then-quiet transition
+        // in the recent window — otherwise a steady-loud or steady-quiet
+        // signal has nothing to "pump" against.
+        const hadLoudMoment =
+          recentPeak > 0.22 && recentPeak > recentFloor * 2.5;
+        const floorRatio =
+          longTermFloor > 0.001 ? recentFloor / longTermFloor : 1;
+
+        if (hadLoudMoment && floorRatio > 1.8) {
+          const now = performance.now();
+          agcPumpEvents.push(now);
+          agcPumpEvents = agcPumpEvents.filter((t) => now - t < 30000);
+        }
+
+        if (agcPumpEvents.length >= 3) {
+          lastAgcResult = "detected";
+          if (agcEl) agcEl.textContent = "⚠ Pumping detected";
+        } else {
+          lastAgcResult = "clean";
+          if (agcEl) agcEl.textContent = "Not detected";
+        }
+      }
+
+      function bandEnergy(
+        freqData: Uint8Array,
+        binHz: number,
+        targetFreq: number,
+        widthBins = 1,
+      ): number {
+        const centerBin = Math.round(targetFreq / binHz);
+        let sum = 0;
+        let count = 0;
+        for (let b = centerBin - widthBins; b <= centerBin + widthBins; b++) {
+          if (b >= 0 && b < freqData.length) {
+            sum += freqData[b];
+            count++;
+          }
+        }
+        return count > 0 ? sum / count : 0;
+      }
+
+      function checkElectricalHum() {
+        if (!humAnalyser || !humDataArray || !audioCtx) return;
+        humAnalyser.getByteFrequencyData(
+          humDataArray as Uint8Array<ArrayBuffer>,
+        );
+        const binHz = audioCtx.sampleRate / humAnalyser.fftSize;
+
+        // Overall baseline: average energy across the low-mid band (20Hz-300Hz),
+        // EXCLUDING bins near the hum candidate frequencies themselves —
+        // otherwise a genuine hum inflates the very baseline used to detect it,
+        // and the threshold rises right along with the signal we're looking for.
+        const loBin = Math.max(1, Math.round(20 / binHz));
+        const hiBin = Math.min(
+          humDataArray.length - 1,
+          Math.round(300 / binHz),
+        );
+        const excludeBins = new Set<number>();
+        [50, 60, 100, 120].forEach((f) => {
+          const c = Math.round(f / binHz);
+          for (let b = c - 2; b <= c + 2; b++) excludeBins.add(b);
+        });
+        let baselineSum = 0;
+        let baselineCount = 0;
+        for (let b = loBin; b <= hiBin; b++) {
+          if (excludeBins.has(b)) continue;
+          baselineSum += humDataArray[b];
+          baselineCount++;
+        }
+        const baseline = baselineCount > 0 ? baselineSum / baselineCount : 0;
+
+        const e50 = bandEnergy(humDataArray, binHz, 50);
+        const e100 = bandEnergy(humDataArray, binHz, 100);
+        const e60 = bandEnergy(humDataArray, binHz, 60);
+        const e120 = bandEnergy(humDataArray, binHz, 120);
+
+        const score50 = e50 + e100 * 0.6;
+        const score60 = e60 + e120 * 0.6;
+
+        const threshold = Math.max(baseline * 1.5, 15);
+
+        let currentVote: "none" | "50hz" | "60hz";
+        if (score50 < threshold && score60 < threshold) {
+          currentVote = "none";
+        } else if (score50 >= score60) {
+          currentVote = "50hz";
+        } else {
+          currentVote = "60hz";
+        }
+
+        // Smooth out single noisy readings — only change the displayed
+        // result once a clear majority of the recent checks agree.
+        humVotes.push(currentVote);
+        if (humVotes.length > HUM_VOTE_WINDOW) humVotes.shift();
+
+        const counts = { none: 0, "50hz": 0, "60hz": 0 };
+        humVotes.forEach((v) => counts[v]++);
+
+        let winner: "none" | "50hz" | "60hz" = "none";
+        let winnerCount = 0;
+        (Object.keys(counts) as Array<keyof typeof counts>).forEach((k) => {
+          if (counts[k] > winnerCount) {
+            winnerCount = counts[k];
+            winner = k;
+          }
+        });
+
+        // Require the winning vote to hold at least 60% of the window
+        // before switching the displayed state — prevents flicker.
+        const micHumEl = document.getElementById("micHum");
+        if (humVotes.length < 6) {
+          if (micHumEl) micHumEl.textContent = "Checking...";
+          return;
+        }
+        if (winnerCount / humVotes.length < 0.75) {
+          // No clear consensus yet — keep showing the last stable result
+          if (lastHumResult === "checking" && micHumEl) {
+            micHumEl.textContent = "Checking...";
+          }
+          return;
+        }
+
+        lastHumResult = winner;
+        if (micHumEl) {
+          micHumEl.textContent =
+            winner === "none"
+              ? "None detected"
+              : winner === "50hz"
+                ? "⚠ 50Hz mains hum"
+                : "⚠ 60Hz mains hum";
+        }
+      }
+
+      micStart.addEventListener("click", async () => {
+        try {
+          const deviceId = micSelect.value;
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: deviceId ? { deviceId: { exact: deviceId } } : true,
+          });
+          micEverStarted = true;
+          const track = micStream.getAudioTracks()[0];
+          const settings = track.getSettings();
+          micRateEl.textContent = settings.sampleRate
+            ? `${settings.sampleRate} Hz`
+            : "—";
+          micEchoEl.textContent =
+            settings.echoCancellation === undefined
+              ? "—"
+              : settings.echoCancellation
+                ? "On"
+                : "Off";
+          micNoiseSettingEl.textContent =
+            settings.noiseSuppression === undefined
+              ? "—"
+              : settings.noiseSuppression
+                ? "On"
+                : "Off";
+
+          audioCtx = new (
+            window.AudioContext || (window as any).webkitAudioContext
+          )();
+          const source = audioCtx.createMediaStreamSource(micStream);
+          micSourceNode = source;
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 2048;
+          dataArrayTime = new Uint8Array(analyser.frequencyBinCount);
+          dataArrayFreq = new Uint8Array(analyser.frequencyBinCount);
+          source.connect(analyser);
+
+          // Separate, higher-resolution analyser just for hum detection —
+          // a bigger fftSize gives finer Hz-per-bin resolution without
+          // affecting the waveform/spectrum visualizers above.
+          humAnalyser = audioCtx.createAnalyser();
+          humAnalyser.fftSize = 8192;
+          humAnalyser.smoothingTimeConstant = 0.8;
+          humDataArray = new Uint8Array(humAnalyser.frequencyBinCount);
+          source.connect(humAnalyser);
+          lastHumResult = "checking";
+          const micHumElInit = document.getElementById("micHum");
+          if (micHumElInit) micHumElInit.textContent = "Checking...";
+
+          peakLevel = 0;
+          clipCount = 0;
+          plosiveCount = 0;
+          plosiveBassHistory = [];
+          plosiveCooldownUntil = 0;
+          const plosiveElInit = document.getElementById("micPlosive");
+          if (plosiveElInit) plosiveElInit.textContent = "0";
+          drawMic();
+
+          micStart.disabled = true;
+          micStop.disabled = false;
+          micRecordBtn.disabled = false;
+          micNoiseCheckBtn.disabled = false;
+          btnLatency.disabled = false;
+          refreshFreqResponseButtonState();
+          refreshThdButtonState();
+          await refreshDeviceLists();
+        } catch (e) {
+          micRecordStatus.textContent = "Mic access denied or unavailable";
+          showToast("Could not access microphone");
+        }
+      });
+
+      function drawMic() {
+        micRafId = requestAnimationFrame(drawMic);
+        if (
+          !analyser ||
+          !dataArrayTime ||
+          !dataArrayFreq ||
+          !waveCtx ||
+          !specCtx
+        )
+          return;
+
+        micWave.width = micWave.clientWidth;
+        micWave.height = 90;
+        micSpectrumCvs.width = micSpectrumCvs.clientWidth;
+        micSpectrumCvs.height = 60;
+
+        analyser.getByteTimeDomainData(
+          dataArrayTime as Uint8Array<ArrayBuffer>,
+        );
+        let sumSquares = 0;
+        let sampleClipped = false;
+        for (let i = 0; i < dataArrayTime.length; i++) {
+          const norm = (dataArrayTime[i] - 128) / 128;
+          sumSquares += norm * norm;
+          if (Math.abs(norm) > 0.98) sampleClipped = true;
+        }
+        const rms = Math.sqrt(sumSquares / dataArrayTime.length);
+        peakLevel = Math.max(peakLevel, rms);
+        if (sampleClipped) {
+          clipCount++;
+          micClipEl.textContent = String(clipCount);
+        }
+        micPeakEl.textContent = `${Math.round(peakLevel * 100)}%`;
+        micLevelNow.textContent = `${Math.round(rms * 100)}%`;
+
+        waveCtx.fillStyle = "#0a1020";
+        waveCtx.fillRect(0, 0, micWave.width, micWave.height);
+        waveCtx.lineWidth = 2;
+        waveCtx.strokeStyle = sampleClipped ? "#ef4444" : "#00d4ff";
+        waveCtx.beginPath();
+        const sliceW = micWave.width / dataArrayTime.length;
+        let x = 0;
+        for (let i = 0; i < dataArrayTime.length; i++) {
+          const v = dataArrayTime[i] / 128.0;
+          const y = (v * micWave.height) / 2;
+          i === 0 ? waveCtx.moveTo(x, y) : waveCtx.lineTo(x, y);
+          x += sliceW;
+        }
+        waveCtx.stroke();
+
+        analyser.getByteFrequencyData(dataArrayFreq as Uint8Array<ArrayBuffer>);
+
+        if (audioCtx) {
+          const specBinHz = audioCtx.sampleRate / analyser.fftSize;
+          checkPlosive(dataArrayFreq, specBinHz);
+        }
+
+        specCtx.fillStyle = "#0a1020";
+        specCtx.fillRect(0, 0, micSpectrumCvs.width, micSpectrumCvs.height);
+        const barCount = 48;
+        const barW = micSpectrumCvs.width / barCount;
+        const step = Math.floor(dataArrayFreq.length / barCount);
+        for (let i = 0; i < barCount; i++) {
+          const v = dataArrayFreq[i * step] / 255;
+          const barH = v * micSpectrumCvs.height;
+          specCtx.fillStyle = `hsl(${190 - v * 100}, 90%, 55%)`;
+          specCtx.fillRect(
+            i * barW,
+            micSpectrumCvs.height - barH,
+            barW - 1,
+            barH,
+          );
+        }
+
+        // Check for electrical hum roughly twice per second (every ~30 frames)
+        humFrameCounter++;
+        if (humFrameCounter >= 30) {
+          humFrameCounter = 0;
+          checkElectricalHum();
+          checkAgcPumping(rms);
+          updateReadinessScore();
+        }
+
+        // confidence badge (throttled visually by natural rAF cadence)
+        micConfBadge.classList.add("show");
+        micConfBadge.classList.remove(
+          "status-good",
+          "status-check",
+          "status-investigate",
+        );
+        if (clipCount > 10) {
+          micConfBadge.classList.add("status-investigate");
+          micConfText.textContent =
+            "Investigate — frequent clipping, lower your mic input volume";
+        } else if (peakLevel < 0.05) {
+          micConfBadge.classList.add("status-check");
+          micConfText.textContent =
+            "Check — very low signal, speak closer or raise input volume";
+        } else {
+          micConfBadge.classList.add("status-good");
+          micConfText.textContent = "Good — clean, usable signal";
+        }
+      }
+
+      micStop.addEventListener("click", () => {
+        if (micRafId) cancelAnimationFrame(micRafId);
+        if (audioCtx) audioCtx.close();
+        if (micStream) micStream.getTracks().forEach((t) => t.stop());
+        if (waveCtx) waveCtx.clearRect(0, 0, micWave.width, micWave.height);
+        if (specCtx)
+          specCtx.clearRect(0, 0, micSpectrumCvs.width, micSpectrumCvs.height);
+        micStart.disabled = false;
+        micStop.disabled = true;
+        micRecordBtn.disabled = true;
+        micNoiseCheckBtn.disabled = true;
+        btnLatency.disabled = true;
+        refreshFreqResponseButtonState();
+        refreshThdButtonState();
+        [
+          "micPeak",
+          "micRate",
+          "micEcho",
+          "micNoiseSetting",
+          "micNoiseFloor",
+          "micHum",
+          "micAgc",
+        ].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = "—";
+        });
+        micClipEl.textContent = "0";
+        const plosiveElReset = document.getElementById("micPlosive");
+        if (plosiveElReset) plosiveElReset.textContent = "0";
+        plosiveBassHistory = [];
+        micConfBadge.classList.remove("show");
+        humAnalyser = null;
+        humDataArray = null;
+        humFrameCounter = 0;
+        humVotes = [];
+        lastHumResult = "checking";
+        agcRmsWindow = [];
+        agcPumpEvents = [];
+        lastAgcResult = "checking";
+        micSourceNode = null;
+        const btnThdStop = document.getElementById(
+          "btnThdTest",
+        ) as HTMLButtonElement | null;
+        if (btnThdStop) btnThdStop.disabled = true;
+        saveMicResult(peakLevel, clipCount);
+        updateReadinessScore();
+        recordHistorySnapshot();
+      });
+
+      micNoiseCheckBtn.addEventListener("click", () => {
+        if (!analyser || !dataArrayTime) return;
+        micNoiseCheckBtn.disabled = true;
+        micRecordStatus.textContent =
+          "Measuring noise floor — stay silent for 2s...";
+        let maxDuringSilence = 0;
+        const start = performance.now();
+        function sample() {
+          if (!analyser || !dataArrayTime) return;
+          analyser.getByteTimeDomainData(
+            dataArrayTime as Uint8Array<ArrayBuffer>,
+          );
+          let sumSquares = 0;
+          for (let i = 0; i < dataArrayTime.length; i++) {
+            const norm = (dataArrayTime[i] - 128) / 128;
+            sumSquares += norm * norm;
+          }
+          const rms = Math.sqrt(sumSquares / dataArrayTime.length);
+          maxDuringSilence = Math.max(maxDuringSilence, rms);
+          if (performance.now() - start < 2000) {
+            requestAnimationFrame(sample);
+          } else {
+            micNoiseFloorEl.textContent = `${Math.round(maxDuringSilence * 100)}%`;
+            micRecordStatus.textContent =
+              maxDuringSilence > 0.08
+                ? "Noticeable background noise detected"
+                : "Quiet background — good";
+            micNoiseCheckBtn.disabled = false;
+          }
+        }
+        requestAnimationFrame(sample);
+      });
+
+      micRecordBtn.addEventListener("click", () => {
+        if (!micStream) return;
+        const chunks: BlobPart[] = [];
+        mediaRecorder = new MediaRecorder(micStream);
+        mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          micPlayback.src = URL.createObjectURL(blob);
+          micPlayback.style.display = "block";
+          micRecordStatus.textContent =
+            "Recorded — press play to hear yourself";
+        };
+        mediaRecorder.start();
+        micRecordStatus.textContent = "Recording... speak now (3s)";
+        micRecordBtn.disabled = true;
+        setTimeout(() => {
+          mediaRecorder?.stop();
+          micRecordBtn.disabled = false;
+        }, 3000);
+      });
+
+      // ===================== SPEAKERS =====================
+      const freqSlider = document.getElementById(
+        "freqSlider",
+      ) as HTMLInputElement;
+      const freqVal = document.getElementById("freqVal") as HTMLElement;
+      const latencyResult = document.getElementById(
+        "latencyResult",
+      ) as HTMLElement;
+      let spkCtx: AudioContext | null = null;
+      let oscillator: OscillatorNode | null = null;
+      let panner: StereoPannerNode | null = null;
+      let sweepTimer: number | null = null;
+      let balanceTimer: number | null = null;
+
+      freqSlider.addEventListener("input", () => {
+        freqVal.textContent = freqSlider.value;
+        if (oscillator && spkCtx)
+          oscillator.frequency.setValueAtTime(
+            Number(freqSlider.value),
+            spkCtx.currentTime,
+          );
+      });
+
+      function ensureSpkCtx() {
+        if (!spkCtx)
+          spkCtx = new (
+            window.AudioContext || (window as any).webkitAudioContext
+          )();
+        if (spkCtx.state === "suspended") spkCtx.resume();
+        return spkCtx;
+      }
+
+      function stopTone() {
+        if (sweepTimer) {
+          clearInterval(sweepTimer);
+          sweepTimer = null;
+        }
+        if (balanceTimer) {
+          clearInterval(balanceTimer);
+          balanceTimer = null;
+        }
+        if (oscillator) {
+          try {
+            oscillator.stop();
+          } catch (e) {}
+          oscillator.disconnect();
+          oscillator = null;
+        }
+      }
+
+      function playTone(pan: number, freq?: number) {
+        stopTone();
+        const ctx = ensureSpkCtx();
+        oscillator = ctx.createOscillator();
+        panner = ctx.createStereoPanner();
+        oscillator.frequency.value = freq ?? Number(freqSlider.value);
+        panner.pan.value = pan;
+        oscillator.connect(panner).connect(ctx.destination);
+        oscillator.start();
+      }
+
+      function markSpeakerTested() {
+        speakerTested = true;
+        updateReadinessScore();
+      }
+
+      document.getElementById("btnLeft")?.addEventListener("click", () => {
+        playTone(-1);
+        markSpeakerTested();
+      });
+      document.getElementById("btnBoth")?.addEventListener("click", () => {
+        playTone(0);
+        markSpeakerTested();
+      });
+      document.getElementById("btnRight")?.addEventListener("click", () => {
+        playTone(1);
+        markSpeakerTested();
+      });
+      document
+        .getElementById("btnStopTone")
+        ?.addEventListener("click", stopTone);
+
+      document.getElementById("btnSweep")?.addEventListener("click", () => {
+        markSpeakerTested();
+        stopTone();
+        const ctx = ensureSpkCtx();
+        oscillator = ctx.createOscillator();
+        panner = ctx.createStereoPanner();
+        panner.pan.value = 0;
+        oscillator.connect(panner).connect(ctx.destination);
+        oscillator.frequency.setValueAtTime(60, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(
+          8000,
+          ctx.currentTime + 6,
+        );
+        oscillator.start();
+        showToast("Sweeping 60Hz → 8000Hz over 6 seconds");
+        sweepTimer = window.setTimeout(
+          () => stopTone(),
+          6200,
+        ) as unknown as number;
+      });
+
+      document.getElementById("btnBalance")?.addEventListener("click", () => {
+        markSpeakerTested();
+        stopTone();
+        showToast("Alternating Left / Right every 800ms");
+        let goingLeft = true;
+        playTone(-1);
+        balanceTimer = window.setInterval(() => {
+          goingLeft = !goingLeft;
+          playTone(goingLeft ? -1 : 1);
+        }, 800);
+        window.setTimeout(() => stopTone(), 4800);
+      });
+
+      btnLatency.addEventListener("click", async () => {
+        if (!analyser || !dataArrayTime || (!spkCtx && !audioCtx)) {
+          showToast("Start the microphone first");
+          return;
+        }
+        latencyResult.textContent = "Listening...";
+        const ctx = ensureSpkCtx();
+        const clickOsc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        clickOsc.frequency.value = 2000;
+        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        clickOsc.connect(gain).connect(ctx.destination);
+        const playStart = performance.now();
+        clickOsc.start();
+        clickOsc.stop(ctx.currentTime + 0.05);
+
+        let detected = false;
+        const detectStart = performance.now();
+        function poll() {
+          if (!analyser || !dataArrayTime || detected) return;
+          analyser.getByteTimeDomainData(
+            dataArrayTime as Uint8Array<ArrayBuffer>,
+          );
+          let sumSquares = 0;
+          for (let i = 0; i < dataArrayTime.length; i++) {
+            const norm = (dataArrayTime[i] - 128) / 128;
+            sumSquares += norm * norm;
+          }
+          const rms = Math.sqrt(sumSquares / dataArrayTime.length);
+          if (rms > 0.15) {
+            detected = true;
+            const rt = Math.round(performance.now() - playStart);
+            latencyResult.textContent = `~${rt} ms round-trip (speaker → mic, includes OS/driver delay)`;
+            return;
+          }
+          if (performance.now() - detectStart < 1500)
+            requestAnimationFrame(poll);
+          else
+            latencyResult.textContent =
+              "No clear echo detected — try raising volume or moving mic closer to speaker";
+        }
+        requestAnimationFrame(poll);
+      });
+
+      outSelect?.addEventListener("change", async () => {
+        if ((micPlayback as any).setSinkId) {
+          try {
+            await (micPlayback as any).setSinkId(outSelect.value);
+          } catch (e) {}
+        }
+      });
+
+      document
+        .getElementById("btn-fresh-start")
+        ?.addEventListener("click", startFreshDiagSession);
+
+      // ===================== TREND HISTORY (localStorage, this browser only) =====================
+      const HISTORY_KEY = "ls_history_webcam_mic";
+      const HISTORY_MAX_ENTRIES = 10;
+
+      interface HistoryEntry {
+        timestamp: number;
+        micPeak: number | null; // 0-100
+        clipCount: number | null;
+        hum: string | null;
+        thdPercent: number | null;
+        camLight: number | null; // 0-100
+        camSharp: number | null;
+      }
+
+      function loadHistory(): HistoryEntry[] {
+        try {
+          const raw = localStorage.getItem(HISTORY_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveHistory(entries: HistoryEntry[]) {
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(entries));
+        } catch (e) {
+          // storage unavailable — ignore
+        }
+      }
+
+      // Called after camera or mic finishes a run — captures whatever
+      // metrics are currently on screen into a rolling history. Multiple
+      // calls within a short window update the same "current session"
+      // entry rather than creating duplicates, so starting cam then mic
+      // in the same sitting produces one combined row, not two.
+      let currentSessionHistoryId: number | null = null;
+
+      function recordHistorySnapshot() {
+        const history = loadHistory();
+
+        const parsePercent = (text: string): number | null => {
+          const m = text.match(/(-?\d+(\.\d+)?)/);
+          return m ? parseFloat(m[1]) : null;
+        };
+
+        const micPeakText = readVal("micPeak");
+        const camLightText = readVal("camLight");
+        const camSharpText = readVal("camSharp");
+        const thdText = readVal("thdValue");
+        const humText = readVal("micHum");
+        const clipText = readVal("micClip");
+
+        const hasMicData = micPeakText !== "—";
+        const hasCamData = camLightText !== "—";
+        if (!hasMicData && !hasCamData) return;
+
+        const now = Date.now();
+        const entry: HistoryEntry = {
+          timestamp: now,
+          micPeak: hasMicData ? parsePercent(micPeakText) : null,
+          clipCount: hasMicData ? parseInt(clipText, 10) || 0 : null,
+          hum: hasMicData ? humText : null,
+          thdPercent: thdText !== "—" ? parsePercent(thdText) : null,
+          camLight: hasCamData ? parsePercent(camLightText) : null,
+          camSharp: hasCamData
+            ? parseFloat((camSharpText.match(/\(([\d.]+)\)/) || [])[1] || "")
+            : null,
+        };
+        if (entry.camSharp !== undefined && isNaN(entry.camSharp as number))
+          entry.camSharp = null;
+
+        // Merge into the same row if we recorded something within the last
+        // 5 minutes (i.e. still the same testing session), so cam+mic tested
+        // back to back land in one row instead of two sparse ones.
+        if (
+          currentSessionHistoryId !== null &&
+          history.length > 0 &&
+          history[history.length - 1].timestamp === currentSessionHistoryId &&
+          now - currentSessionHistoryId < 5 * 60 * 1000
+        ) {
+          const last = history[history.length - 1];
+          history[history.length - 1] = {
+            timestamp: last.timestamp,
+            micPeak: entry.micPeak ?? last.micPeak,
+            clipCount: entry.clipCount ?? last.clipCount,
+            hum: entry.hum ?? last.hum,
+            thdPercent: entry.thdPercent ?? last.thdPercent,
+            camLight: entry.camLight ?? last.camLight,
+            camSharp: entry.camSharp ?? last.camSharp,
+          };
+        } else {
+          history.push(entry);
+          currentSessionHistoryId = entry.timestamp;
+          if (history.length > HISTORY_MAX_ENTRIES) history.shift();
+        }
+
+        saveHistory(history);
+        renderHistory();
+      }
+
+      function formatRelativeTime(ts: number): string {
+        const diffMs = Date.now() - ts;
+        const mins = Math.floor(diffMs / 60000);
+        if (mins < 1) return "Just now";
+        if (mins < 60) return `${mins}m ago`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d ago`;
+        return new Date(ts).toLocaleDateString();
+      }
+
+      function renderHistory() {
+        const history = loadHistory();
+        const emptyEl = document.getElementById("historyEmpty");
+        const tableEl = document.getElementById(
+          "historyTable",
+        ) as HTMLTableElement | null;
+        const tbody = document.getElementById("historyTableBody");
+        const sparkCvs = document.getElementById(
+          "historySparkline",
+        ) as HTMLCanvasElement | null;
+
+        if (history.length === 0) {
+          if (emptyEl) emptyEl.style.display = "block";
+          if (tableEl) tableEl.style.display = "none";
+          if (sparkCvs) {
+            const ctx = sparkCvs.getContext("2d");
+            if (ctx) ctx.clearRect(0, 0, sparkCvs.width, sparkCvs.height);
+          }
+          return;
+        }
+
+        if (emptyEl) emptyEl.style.display = "none";
+        if (tableEl) tableEl.style.display = "table";
+
+        if (tbody) {
+          tbody.innerHTML = [...history]
+            .reverse()
+            .map((e) => {
+              const hum =
+                e.hum && e.hum.startsWith("⚠")
+                  ? `<span style="color:#f59e0b;">${e.hum}</span>`
+                  : e.hum || "—";
+              return `<tr style="border-top:1px solid var(--border);">
+                <td style="padding:0.5rem 0.7rem; color:var(--text2);">${formatRelativeTime(e.timestamp)}</td>
+                <td style="padding:0.5rem 0.7rem; color:var(--text);">${e.micPeak !== null ? e.micPeak + "%" : "—"}</td>
+                <td style="padding:0.5rem 0.7rem; color:var(--text);">${e.clipCount !== null ? e.clipCount : "—"}</td>
+                <td style="padding:0.5rem 0.7rem;">${hum}</td>
+                <td style="padding:0.5rem 0.7rem; color:var(--text);">${e.thdPercent !== null ? e.thdPercent.toFixed(1) + "%" : "—"}</td>
+                <td style="padding:0.5rem 0.7rem; color:var(--text);">${e.camLight !== null ? e.camLight + "%" : "—"}</td>
+                <td style="padding:0.5rem 0.7rem; color:var(--text);">${e.camSharp !== null ? e.camSharp.toFixed(1) : "—"}</td>
+              </tr>`;
+            })
+            .join("");
+        }
+
+        // Sparkline: mic peak level trend across sessions
+        if (sparkCvs) {
+          const ctx = sparkCvs.getContext("2d");
+          if (ctx) {
+            sparkCvs.width = sparkCvs.clientWidth;
+            sparkCvs.height = 60;
+            const w = sparkCvs.width,
+              h = sparkCvs.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const points = history
+              .map((e) => e.micPeak)
+              .filter((v): v is number => v !== null);
+
+            if (points.length >= 2) {
+              const max = Math.max(...points, 10);
+              const min = Math.min(...points, 0);
+              const range = Math.max(max - min, 1);
+              const stepX = w / (points.length - 1);
+
+              ctx.beginPath();
+              ctx.moveTo(0, h);
+              points.forEach((v, i) => {
+                const y = h - ((v - min) / range) * (h - 10) - 5;
+                ctx.lineTo(i * stepX, y);
+              });
+              ctx.lineTo(w, h);
+              ctx.closePath();
+              const grad = ctx.createLinearGradient(0, 0, 0, h);
+              grad.addColorStop(0, "rgba(0,212,255,0.3)");
+              grad.addColorStop(1, "rgba(0,212,255,0.02)");
+              ctx.fillStyle = grad;
+              ctx.fill();
+
+              ctx.beginPath();
+              points.forEach((v, i) => {
+                const y = h - ((v - min) / range) * (h - 10) - 5;
+                i === 0 ? ctx.moveTo(i * stepX, y) : ctx.lineTo(i * stepX, y);
+              });
+              ctx.strokeStyle = "#00d4ff";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+
+              ctx.fillStyle = "#8899aa";
+              ctx.font = "10px sans-serif";
+              ctx.fillText("Mic peak level trend", 6, 14);
+            } else {
+              ctx.fillStyle = "#8899aa";
+              ctx.font = "11px sans-serif";
+              ctx.fillText(
+                "Run the mic test a few more times to see a trend",
+                10,
+                34,
+              );
+            }
+          }
+        }
+      }
+
+      document
+        .getElementById("btn-clear-history")
+        ?.addEventListener("click", () => {
+          localStorage.removeItem(HISTORY_KEY);
+          currentSessionHistoryId = null;
+          renderHistory();
+          showToast("History cleared");
+        });
+
+      renderHistory();
+
+      // ===================== FULL DIAGNOSTIC REPORT LINKING =====================
+      function isFromThisSession(key: string): boolean {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return false;
+          return JSON.parse(raw).sessionId === getDiagSessionId();
+        } catch {
+          return false;
+        }
+      }
+
+      function updateNextStepBanner() {
+        const banner = document.getElementById(
+          "next-step-banner",
+        ) as HTMLElement;
+        const text = document.getElementById("next-step-text") as HTMLElement;
+        if (!banner || !text) return;
+        const remaining: { label: string; url: string }[] = [];
+        if (!isFromThisSession("ls_diag_monitor"))
+          remaining.push({
+            label: "monitor",
+            url: "/tools/monitor-refresh-rate-test/",
+          });
+        if (!isFromThisSession("ls_diag_keyboard"))
+          remaining.push({
+            label: "keyboard",
+            url: "/tools/keyboard-latency-tester/",
+          });
+        if (!isFromThisSession("ls_diag_mouse"))
+          remaining.push({ label: "mouse", url: "/tools/mouse-rate-test/" });
+        if (!isFromThisSession("ls_diag_screen"))
+          remaining.push({ label: "screen", url: "/tools/screen-test/" });
+
+        let html: string;
+        if (remaining.length === 0) {
+          html =
+            '🎉 All tests done! <a href="/full-diagnostic-report/" target="_blank" rel="noopener" data-astro-reload style="color:var(--accent);font-weight:700;">View your Full Diagnostic Report →</a>';
+        } else {
+          html = `✅ Webcam/Mic/Speaker done. Also try: ${remaining.map((r) => `<a href="${r.url}" data-astro-reload style="color:var(--accent);font-weight:700;">${r.label}</a>`).join(", ")}`;
+        }
+        banner.style.display = "block";
+        text.innerHTML = html;
+      }
+
+      function saveWebcamResult(avgLum: number, avgEdge: number) {
+        const huntingText = readVal("camHunting");
+        const isHunting = huntingText.startsWith("⚠");
+        let status: "good" | "check" | "investigate" = "good";
+        if (avgLum < 40 || avgEdge < 4) status = "check";
+        if (isHunting && status === "good") status = "check";
+        const score = status === "good" ? 90 : status === "check" ? 68 : 42;
+        const metrics: Record<string, string> = {
+          "Light level": `${Math.round((avgLum / 255) * 100)}%`,
+          Sharpness: avgEdge.toFixed(1),
+          "Focus/exposure stability": huntingText,
+        };
+        if (lastLatencyResults && lastLatencyResults.length > 0) {
+          const avgLatency =
+            lastLatencyResults.reduce((a, b) => a + b, 0) /
+            lastLatencyResults.length;
+          metrics["Capture latency"] = `${avgLatency.toFixed(0)} ms`;
+        }
+        try {
+          localStorage.setItem(
+            "ls_diag_webcam",
+            JSON.stringify({
+              tool: "webcam",
+              score,
+              status,
+              metrics,
+              timestamp: Date.now(),
+              sessionId: getDiagSessionId(),
+            }),
+          );
+          updateNextStepBanner();
+        } catch (e) {}
+      }
+
+      function saveMicResult(peak: number, clips: number) {
+        if (peak === 0) return;
+        let status: "good" | "check" | "investigate" = "good";
+        if (clips > 10) status = "investigate";
+        else if (peak < 0.05) status = "check";
+        // Electrical hum, AGC pumping, or heavy plosives also downgrade
+        // an otherwise "good" reading, since they're real audio-quality
+        // issues even when peak level and clipping look fine.
+        if (
+          status === "good" &&
+          (lastHumResult === "50hz" ||
+            lastHumResult === "60hz" ||
+            lastAgcResult === "detected" ||
+            plosiveCount > 5)
+        ) {
+          status = "check";
+        }
+        const score = status === "good" ? 90 : status === "check" ? 68 : 42;
+        const humLabel =
+          lastHumResult === "50hz"
+            ? "50Hz detected"
+            : lastHumResult === "60hz"
+              ? "60Hz detected"
+              : lastHumResult === "none"
+                ? "None"
+                : "Not checked";
+        const agcLabel =
+          lastAgcResult === "detected"
+            ? "Pumping detected"
+            : lastAgcResult === "clean"
+              ? "Not detected"
+              : "Not checked";
+        const micMetrics: Record<string, string> = {
+          "Peak level": `${Math.round(peak * 100)}%`,
+          "Clipping events": String(clips),
+          "Electrical hum": humLabel,
+          "AGC / noise pumping": agcLabel,
+          "Plosives/pops": String(plosiveCount),
+        };
+        if (lastThdPercent !== null && lastThdFreq !== null) {
+          micMetrics["Speaker distortion (THD)"] =
+            `${lastThdPercent.toFixed(1)}% @ ${lastThdFreq}Hz`;
+        }
+        try {
+          localStorage.setItem(
+            "ls_diag_mic",
+            JSON.stringify({
+              tool: "mic",
+              score,
+              status,
+              metrics: micMetrics,
+              timestamp: Date.now(),
+              sessionId: getDiagSessionId(),
+            }),
+          );
+          updateNextStepBanner();
+        } catch (e) {}
+      }
+
+      // ===================== EXPORT: JSON / CSV / PDF =====================
+      function readVal(id: string): string {
+        return document.getElementById(id)?.textContent?.trim() || "—";
+      }
+
+      function collectSnapshot() {
+        return {
+          generatedAt: new Date().toISOString(),
+          webcam: {
+            resolution: readVal("camRes"),
+            liveFps: readVal("camFps"),
+            droppedFrames: readVal("camDrops"),
+            lightLevel: readVal("camLight"),
+            sharpness: readVal("camSharp"),
+            device: readVal("camLabel"),
+            focusStability: readVal("camHunting"),
+            captureLatency: lastLatencyResults
+              ? `${(lastLatencyResults.reduce((a, b) => a + b, 0) / lastLatencyResults.length).toFixed(0)} ms avg`
+              : "—",
+          },
+          microphone: {
+            peakLevel: readVal("micPeak"),
+            noiseFloor: readVal("micNoiseFloor"),
+            clippingEvents: readVal("micClip"),
+            sampleRate: readVal("micRate"),
+            echoCancellation: readVal("micEcho"),
+            noiseSuppression: readVal("micNoiseSetting"),
+            electricalHum: readVal("micHum"),
+            agcPumping: readVal("micAgc"),
+            plosivesPops: readVal("micPlosive"),
+            speakerThd:
+              lastThdPercent !== null && lastThdFreq !== null
+                ? `${lastThdPercent.toFixed(1)}% @ ${lastThdFreq}Hz`
+                : "—",
+          },
+        };
+      }
+
+      function hasAnyData(snap: ReturnType<typeof collectSnapshot>) {
+        return (
+          snap.webcam.resolution !== "—" || snap.microphone.peakLevel !== "—"
+        );
+      }
+
+      function downloadBlob(blob: Blob, filename: string) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById("btn-share")?.addEventListener("click", () => {
+        const snap = collectSnapshot();
+        if (!hasAnyData(snap)) {
+          showToast("Start the camera or mic test first");
+          return;
+        }
+
+        const SCALE = 3; // renders at 2400x1500 for crisp zoom/print quality
+        const cvs = document.createElement("canvas");
+        cvs.width = 800 * SCALE;
+        cvs.height = 500 * SCALE;
+        const ctx = cvs.getContext("2d");
+        if (!ctx) return;
+        ctx.scale(SCALE, SCALE);
+
+        const bgGrad = ctx.createLinearGradient(0, 0, 800, 500);
+        bgGrad.addColorStop(0, "#0a0e1a");
+        bgGrad.addColorStop(1, "#151b2e");
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 800, 500);
+
+        ctx.fillStyle = "#00d4ff";
+        ctx.font = "bold 22px sans-serif";
+        ctx.fillText("Webcam, Mic & Speaker Test", 40, 55);
+
+        let y = 100;
+        function row(label: string, val: string) {
+          ctx!.fillStyle = "#8899aa";
+          ctx!.font = "14px sans-serif";
+          ctx!.fillText(label, 40, y);
+          ctx!.fillStyle = "#ffffff";
+          ctx!.font = "bold 20px monospace";
+          ctx!.fillText(val, 40, y + 24);
+          y += 60;
+        }
+
+        ctx.fillStyle = "#00d4ff";
+        ctx.font = "bold 15px sans-serif";
+        ctx.fillText("📷 WEBCAM", 40, y);
+        y += 34;
+        row("Resolution", snap.webcam.resolution);
+        row("Live FPS", snap.webcam.liveFps);
+        row("Light Level", snap.webcam.lightLevel);
+        row("Sharpness (rel.)", snap.webcam.sharpness);
+
+        ctx.fillStyle = "#00d4ff";
+        ctx.font = "bold 15px sans-serif";
+        ctx.fillText("🎤 MICROPHONE", 420, 134);
+        let y2 = 168;
+        function row2(label: string, val: string) {
+          ctx!.fillStyle = "#8899aa";
+          ctx!.font = "14px sans-serif";
+          ctx!.fillText(label, 420, y2);
+          ctx!.fillStyle = "#ffffff";
+          ctx!.font = "bold 20px monospace";
+          ctx!.fillText(val, 420, y2 + 24);
+          y2 += 60;
+        }
+        row2("Peak Level", snap.microphone.peakLevel);
+        row2("Noise Floor", snap.microphone.noiseFloor);
+        row2("Clipping Events", snap.microphone.clippingEvents);
+        row2("Sample Rate", snap.microphone.sampleRate);
+
+        ctx.fillStyle = "#00d4ff";
+        ctx.font = "bold 18px sans-serif";
+        ctx.fillText(
+          "laptopsspecial.com/tools/webcam-mic-speaker-test",
+          40,
+          460,
+        );
+
+        cvs.toBlob((blob) => {
+          if (blob) {
+            downloadBlob(blob, `webcam-mic-result-${Date.now()}.png`);
+            showToast("Shareable result card downloaded");
+          }
+        }, "image/png");
+      });
+
+      document.getElementById("btn-export")?.addEventListener("click", () => {
+        const snap = collectSnapshot();
+        if (!hasAnyData(snap)) {
+          showToast("Start the camera or mic test first");
+          return;
+        }
+        const blob = new Blob([JSON.stringify(snap, null, 2)], {
+          type: "application/json",
+        });
+        downloadBlob(blob, `webcam-mic-speaker-test-${Date.now()}.json`);
+        showToast("Exported results as JSON");
+      });
+
+      document.getElementById("btn-csv")?.addEventListener("click", () => {
+        const snap = collectSnapshot();
+        if (!hasAnyData(snap)) {
+          showToast("Start the camera or mic test first");
+          return;
+        }
+        const rows = ["category,metric,value"];
+        Object.entries(snap.webcam).forEach(([k, v]) =>
+          rows.push(`webcam,${k},${v}`),
+        );
+        Object.entries(snap.microphone).forEach(([k, v]) =>
+          rows.push(`microphone,${k},${v}`),
+        );
+        const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+        downloadBlob(blob, `webcam-mic-speaker-test-${Date.now()}.csv`);
+        showToast("Exported results as CSV");
+      });
+
+      document.getElementById("btn-pdf")?.addEventListener("click", () => {
+        const snap = collectSnapshot();
+        if (!hasAnyData(snap)) {
+          showToast("Start the camera or mic test first");
+          return;
+        }
+        const jsPDFLib = (window as any).jspdf;
+        if (!jsPDFLib || !jsPDFLib.jsPDF) {
+          showToast("Report generator still loading — try again in a second");
+          return;
+        }
+        const { jsPDF } = jsPDFLib;
+        const doc = new jsPDF({ unit: "pt", format: "a4" });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 48;
+        let y = 56;
+
+        doc.setFillColor(10, 14, 26);
+        doc.rect(0, 0, pageWidth, 90, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text("Laptops Special — Hardware Diagnostic Report", margin, 40);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(180, 190, 210);
+        doc.text("Device: Webcam / Microphone", margin, 60);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 75);
+
+        y = 120;
+
+        function sectionHeading(text: string) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(13);
+          doc.setTextColor(20, 20, 30);
+          doc.text(text, margin, y);
+          y += 18;
+        }
+        function keyValRow(label: string, val: string) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10.5);
+          doc.setTextColor(90, 90, 100);
+          doc.text(label, margin, y);
+          doc.setTextColor(20, 20, 30);
+          doc.setFont("helvetica", "bold");
+          doc.text(val, pageWidth - margin, y, { align: "right" });
+          y += 16;
+        }
+        function divider() {
+          doc.setDrawColor(220, 220, 225);
+          doc.line(margin, y, pageWidth - margin, y);
+          y += 20;
+        }
+
+        sectionHeading("Webcam");
+        keyValRow("Resolution", snap.webcam.resolution);
+        keyValRow("Live FPS", snap.webcam.liveFps);
+        keyValRow("Dropped Frames", snap.webcam.droppedFrames);
+        keyValRow("Light Level", snap.webcam.lightLevel);
+        keyValRow("Sharpness (relative)", snap.webcam.sharpness);
+        keyValRow("Device", snap.webcam.device);
+        keyValRow("Focus/Exposure Stability", snap.webcam.focusStability);
+        keyValRow(
+          "Capture Latency (screen-to-camera)",
+          snap.webcam.captureLatency,
+        );
+        y += 8;
+        divider();
+
+        sectionHeading("Microphone");
+        keyValRow("Peak Level", snap.microphone.peakLevel);
+        keyValRow("Noise Floor", snap.microphone.noiseFloor);
+        keyValRow("Clipping Events", snap.microphone.clippingEvents);
+        keyValRow("Sample Rate", snap.microphone.sampleRate);
+        keyValRow("Echo Cancellation", snap.microphone.echoCancellation);
+        keyValRow("Noise Suppression", snap.microphone.noiseSuppression);
+        keyValRow("Electrical Hum", snap.microphone.electricalHum);
+        keyValRow("AGC / Noise Pumping", snap.microphone.agcPumping);
+        keyValRow("Plosives/Pops", snap.microphone.plosivesPops);
+        keyValRow("Speaker Distortion (THD est.)", snap.microphone.speakerThd);
+        y += 8;
+        divider();
+
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.5);
+        doc.setTextColor(130, 130, 140);
+        const disclaimer = doc.splitTextToSize(
+          "This report reflects browser-observed measurements, not calibrated hardware readings. Light level and sharpness are relative indicators; microphone level is relative signal strength, not calibrated decibels. See laptopsspecial.com/how-accurate-are-these-tests/ for full methodology.",
+          pageWidth - margin * 2,
+        );
+        doc.text(disclaimer, margin, y);
+        y += disclaimer.length * 11 + 10;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0, 150, 200);
+        doc.text(
+          "laptopsspecial.com/tools/webcam-mic-speaker-test/",
+          margin,
+          y,
+        );
+
+        doc.save(`webcam-mic-diagnostic-report-${Date.now()}.pdf`);
+        showToast("Diagnostic report downloaded");
+      });
+
+      // ===================== FREQUENCY RESPONSE (SPEAKER + MIC LOOPBACK) =====================
+      const btnFreqResponse = document.getElementById(
+        "btnFreqResponse",
+      ) as HTMLButtonElement | null;
+      const freqRespCanvas = document.getElementById(
+        "freqResponseCanvas",
+      ) as HTMLCanvasElement | null;
+      const freqRespStatus = document.getElementById("freqResponseStatus");
+      let lastFreqResponseData: { freq: number; db: number }[] | null = null;
+
+      function refreshFreqResponseButtonState() {
+        if (btnFreqResponse) btnFreqResponse.disabled = !micStream;
+      }
+
+      function drawFreqResponse(data: { freq: number; db: number }[]) {
+        if (!freqRespCanvas) return;
+        const ctx = freqRespCanvas.getContext("2d");
+        if (!ctx) return;
+        freqRespCanvas.width = freqRespCanvas.clientWidth;
+        freqRespCanvas.height = 120;
+        const w = freqRespCanvas.width;
+        const h = freqRespCanvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        if (data.length < 2) return;
+
+        const minDb = Math.min(...data.map((d) => d.db), -60);
+        const maxDb = Math.max(...data.map((d) => d.db), 0);
+        const range = Math.max(maxDb - minDb, 1);
+
+        // gridlines
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 3; i++) {
+          const y = (h / 3) * i;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        // log-scale x position for a frequency (60Hz–8000Hz)
+        const logMin = Math.log10(60);
+        const logMax = Math.log10(8000);
+        function xFor(freq: number) {
+          const t = (Math.log10(freq) - logMin) / (logMax - logMin);
+          return t * w;
+        }
+        function yFor(db: number) {
+          return h - ((db - minDb) / range) * h;
+        }
+
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, "rgba(0,212,255,0.35)");
+        grad.addColorStop(1, "rgba(0,212,255,0.02)");
+
+        ctx.beginPath();
+        ctx.moveTo(xFor(data[0].freq), h);
+        data.forEach((d) => ctx.lineTo(xFor(d.freq), yFor(d.db)));
+        ctx.lineTo(xFor(data[data.length - 1].freq), h);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.beginPath();
+        data.forEach((d, i) => {
+          const x = xFor(d.freq);
+          const y = yFor(d.db);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = "#00d4ff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      btnFreqResponse?.addEventListener("click", async () => {
+        if (!micStream || !analyser || !dataArrayTime) {
+          showToast("Start the microphone first");
+          return;
+        }
+        if (btnFreqResponse) btnFreqResponse.disabled = true;
+        if (freqRespStatus)
+          freqRespStatus.textContent = "Sweeping 60Hz → 8000Hz, listening...";
+
+        stopTone();
+        const ctx = ensureSpkCtx();
+        const sweepDurationSec = 8;
+        const startFreq = 60;
+        const endFreq = 8000;
+
+        const osc = ctx.createOscillator();
+        const pan = ctx.createStereoPanner();
+        pan.pan.value = 0;
+        osc.connect(pan).connect(ctx.destination);
+        osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(
+          endFreq,
+          ctx.currentTime + sweepDurationSec,
+        );
+        osc.start();
+
+        const samples: { freq: number; db: number }[] = [];
+        const sampleIntervalMs = 100;
+        const totalSamples = (sweepDurationSec * 1000) / sampleIntervalMs;
+        let sampleIndex = 0;
+
+        const sampleTimer = window.setInterval(() => {
+          if (!analyser || !dataArrayTime) return;
+          analyser.getByteTimeDomainData(
+            dataArrayTime as Uint8Array<ArrayBuffer>,
+          );
+          let sumSquares = 0;
+          for (let i = 0; i < dataArrayTime.length; i++) {
+            const norm = (dataArrayTime[i] - 128) / 128;
+            sumSquares += norm * norm;
+          }
+          const rms = Math.sqrt(sumSquares / dataArrayTime.length);
+          const db = 20 * Math.log10(Math.max(rms, 0.0001));
+
+          const t = sampleIndex / totalSamples;
+          const freq = startFreq * Math.pow(endFreq / startFreq, t);
+          samples.push({ freq, db });
+          sampleIndex++;
+
+          if (sampleIndex >= totalSamples) {
+            clearInterval(sampleTimer);
+            try {
+              osc.stop();
+            } catch (e) {}
+            osc.disconnect();
+
+            // Normalize so the loudest point sits at 0dB — makes relative
+            // dips/peaks easy to read regardless of mic sensitivity/volume.
+            const peakDb = Math.max(...samples.map((s) => s.db));
+            const normalized = samples.map((s) => ({
+              freq: s.freq,
+              db: s.db - peakDb,
+            }));
+            lastFreqResponseData = normalized;
+            drawFreqResponse(normalized);
+
+            const dipThreshold = -18;
+            const dips = normalized.filter((s) => s.db < dipThreshold);
+            if (freqRespStatus) {
+              freqRespStatus.textContent =
+                dips.length > 0
+                  ? `Done — noticeable dip(s) around ${Math.round(dips[0].freq)}Hz. Could be speaker, mic, or room — try repositioning and re-testing.`
+                  : "Done — response looks reasonably flat across the sweep.";
+            }
+            if (btnFreqResponse) btnFreqResponse.disabled = false;
+            showToast("Frequency response sweep complete");
+          }
+        }, sampleIntervalMs);
+      });
+
+      // ===================== THD (DISTORTION) ESTIMATE =====================
+      const btnThdTest = document.getElementById(
+        "btnThdTest",
+      ) as HTMLButtonElement | null;
+      const thdStatus = document.getElementById("thdStatus");
+      let lastThdPercent: number | null = null;
+      let lastThdFreq: number | null = null;
+
+      function refreshThdButtonState() {
+        if (btnThdTest) btnThdTest.disabled = !micStream || !micSourceNode;
+      }
+
+      function magnitudeAtFreq(
+        freqData: Float32Array,
+        binHz: number,
+        targetFreq: number,
+        searchBins = 2,
+      ): number {
+        const centerBin = Math.round(targetFreq / binHz);
+        let maxDb = -Infinity;
+        for (let b = centerBin - searchBins; b <= centerBin + searchBins; b++) {
+          if (b >= 0 && b < freqData.length) {
+            if (freqData[b] > maxDb) maxDb = freqData[b];
+          }
+        }
+        if (maxDb === -Infinity) return 0;
+        return Math.pow(10, maxDb / 20); // dB -> linear amplitude
+      }
+
+      btnThdTest?.addEventListener("click", async () => {
+        if (!micSourceNode || !audioCtx) {
+          showToast("Start the microphone first");
+          return;
+        }
+        if (btnThdTest) btnThdTest.disabled = true;
+        const resultBox = document.getElementById("thdResult");
+        if (resultBox) resultBox.style.display = "none";
+
+        stopTone();
+        const ctx = ensureSpkCtx();
+        // User picks the test frequency based on their speaker type — a
+        // single fixed tone can't fairly represent both a laptop speaker
+        // and a full-range/subwoofer setup. 1000Hz (mid) is the default
+        // since it's the standard reference point most speakers reproduce
+        // cleanly; bass/treble presets let bigger setups get tested where
+        // they're actually likely to show real distortion.
+        const freqSelect = document.getElementById(
+          "thdFreqSelect",
+        ) as HTMLSelectElement | null;
+        const testFreq = freqSelect ? Number(freqSelect.value) : 1000;
+
+        // Dedicated high-resolution analyser so harmonics (2000/3000/4000/5000Hz)
+        // land in cleanly separated bins. Widen the dynamic range so a loud
+        // tone doesn't get clipped at the default -30dB ceiling, which would
+        // otherwise flatten the fundamental's reading and inflate the ratio.
+        const thdAnalyser = audioCtx.createAnalyser();
+        thdAnalyser.fftSize = 16384;
+        thdAnalyser.smoothingTimeConstant = 0.2;
+        thdAnalyser.minDecibels = -100;
+        thdAnalyser.maxDecibels = 0;
+        micSourceNode.connect(thdAnalyser);
+        const thdFreqData = new Float32Array(thdAnalyser.frequencyBinCount);
+        const binHz = audioCtx.sampleRate / thdAnalyser.fftSize;
+
+        function readHarmonicSet(): {
+          fundamental: number;
+          h2: number;
+          h3: number;
+          h4: number;
+          h5: number;
+        } {
+          thdAnalyser.getFloatFrequencyData(thdFreqData);
+          return {
+            fundamental: magnitudeAtFreq(thdFreqData, binHz, testFreq),
+            h2: magnitudeAtFreq(thdFreqData, binHz, testFreq * 2),
+            h3: magnitudeAtFreq(thdFreqData, binHz, testFreq * 3),
+            h4: magnitudeAtFreq(thdFreqData, binHz, testFreq * 4),
+            h5: magnitudeAtFreq(thdFreqData, binHz, testFreq * 5),
+          };
+        }
+
+        // ---- Calibrate ambient noise floor BEFORE the tone plays ----
+        // Must happen before the oscillator starts — otherwise the tone
+        // itself leaks into this "noise" measurement. Average several
+        // snapshots so one noisy moment (a click, a footstep) doesn't
+        // skew the whole calibration.
+        if (thdStatus) thdStatus.textContent = "Measuring room noise floor...";
+        await sleep(300);
+        const noiseReadings: ReturnType<typeof readHarmonicSet>[] = [];
+        for (let i = 0; i < 4; i++) {
+          noiseReadings.push(readHarmonicSet());
+          await sleep(100);
+        }
+        function avgOf(key: "fundamental" | "h2" | "h3" | "h4" | "h5") {
+          return (
+            noiseReadings.reduce((a, r) => a + r[key], 0) / noiseReadings.length
+          );
+        }
+        const noiseFundamental = avgOf("fundamental");
+        const noiseH2 = avgOf("h2");
+        const noiseH3 = avgOf("h3");
+        const noiseH4 = avgOf("h4");
+        const noiseH5 = avgOf("h5");
+
+        // ---- Now start the tone ----
+        if (thdStatus)
+          thdStatus.textContent = `Playing ${testFreq}Hz test tone...`;
+        const osc = ctx.createOscillator();
+        const pan = ctx.createStereoPanner();
+        pan.pan.value = 0;
+        osc.frequency.value = testFreq;
+        osc.connect(pan).connect(ctx.destination);
+        osc.start();
+
+        // let the tone/room settle before sampling
+        await sleep(600);
+
+        function subtractNoise(signal: number, noise: number): number {
+          // power subtraction — signal and noise are uncorrelated, so their
+          // powers (amplitude²) add, not their amplitudes directly.
+          const diff = signal * signal - noise * noise;
+          return diff > 0 ? Math.sqrt(diff) : 0;
+        }
+
+        const samples: number[] = [];
+        const sampleCount = 10;
+        for (let i = 0; i < sampleCount; i++) {
+          const raw = readHarmonicSet();
+
+          const fundamental = subtractNoise(raw.fundamental, noiseFundamental);
+          const h2 = subtractNoise(raw.h2, noiseH2);
+          const h3 = subtractNoise(raw.h3, noiseH3);
+          const h4 = subtractNoise(raw.h4, noiseH4);
+          const h5 = subtractNoise(raw.h5, noiseH5);
+
+          // Only trust this sample if the fundamental is clearly audible
+          // above the noise floor — otherwise the ratio is meaningless.
+          if (fundamental > noiseFundamental * 2.5 && fundamental > 0.0015) {
+            const harmonicRms = Math.sqrt(
+              h2 * h2 + h3 * h3 + h4 * h4 + h5 * h5,
+            );
+            const pct = Math.min((harmonicRms / fundamental) * 100, 80);
+            samples.push(pct);
+          }
+          await sleep(120);
+        }
+
+        try {
+          osc.stop();
+        } catch (e) {}
+        osc.disconnect();
+        micSourceNode.disconnect(thdAnalyser);
+
+        if (btnThdTest) btnThdTest.disabled = false;
+
+        if (samples.length < 3) {
+          if (thdStatus)
+            thdStatus.textContent =
+              "Couldn't get a clean reading — turn up your speaker volume, move the mic closer, and try again.";
+          showToast(
+            "Distortion test inconclusive — try again at a higher volume",
+          );
+          return;
+        }
+
+        // median is more robust than mean against one noisy sample
+        const sorted = [...samples].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        lastThdPercent = median;
+        lastThdFreq = testFreq;
+
+        let rating = "Clean";
+        let ratingColor = "#22c55e";
+        if (median > 10) {
+          rating = "High distortion";
+          ratingColor = "#ef4444";
+        } else if (median > 4) {
+          rating = "Noticeable";
+          ratingColor = "#f59e0b";
+        }
+
+        const thdValueEl = document.getElementById("thdValue");
+        const thdRatingEl = document.getElementById("thdRating");
+        if (thdValueEl) thdValueEl.textContent = `${median.toFixed(1)}%`;
+        if (thdRatingEl) {
+          thdRatingEl.textContent = rating;
+          thdRatingEl.style.color = ratingColor;
+        }
+        if (resultBox) resultBox.style.display = "block";
+        if (thdStatus)
+          thdStatus.textContent = `Done — based on ${samples.length} samples at ${testFreq}Hz.`;
+        showToast("Distortion test complete");
+        recordHistorySnapshot();
+        if (micStream) saveMicResult(peakLevel, clipCount);
+      });
+
+      document.addEventListener(
+        "astro:before-swap",
+        () => {
+          if (camAnalysisTimer) clearInterval(camAnalysisTimer);
+          if (micRafId) cancelAnimationFrame(micRafId);
+          if (camStream) camStream.getTracks().forEach((t) => t.stop());
+          if (micStream) micStream.getTracks().forEach((t) => t.stop());
+          stopTone();
+        },
+        { once: true },
+      );
+    });
+  </script>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbSchema)}
+  />
+</Base>

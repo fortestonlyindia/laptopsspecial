@@ -1031,7 +1031,7 @@ const faqSchema = {
             id="btn-fulldiag"
             target="_blank"
             rel="noopener"
-            data-astro-reload>🧪 Full Diag Report</a
+            data-astro-reload="true">🧪 Full Diag Report</a
           >
         </div>
       </div>
@@ -1318,26 +1318,29 @@ const faqSchema = {
   <div class="cta-banner">
     <div class="cta-inner">
       <p class="cta-text">
-        <strong>Also test your monitor's refresh rate!</strong> Get live Hz, stability
-        grade and a VRR simulator.
-      </p>
-      <a
-        href="/tools/monitor-refresh-rate-test/"
-        class="cta-btn"
-        data-astro-reload>🖥️ Monitor Test →</a
-      >
-    </div>
-  </div>
-  <div class="cta-banner">
-    <div class="cta-inner">
-      <p class="cta-text">
-        <strong>Also test your keyboard & mouse!</strong> Full 104-key tester and
-        polling rate checker up to 8000Hz.
+        <strong>Also test your keyboard!</strong> Check key response time, scan rate,
+        and all 104 keys.
       </p>
       <a
         href="/tools/keyboard-latency-tester/"
         class="cta-btn"
-        data-astro-reload>⌨️ Keyboard Tester →</a
+        aria-label="Open full keyboard tester tool"
+        data-astro-reload="true">⌨️ Keyboard Tester →</a
+      >
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your monitor!</strong> Check your real refresh rate, frame
+        consistency, and motion clarity with Monitor Refresh Rate Test.
+      </p>
+      <a
+        href="/tools/monitor-refresh-rate-test/"
+        class="cta-btn"
+        aria-label="Open Monitor Refresh Rate Test tool"
+        data-astro-reload="true">🖥️ Monitor Test→</a
       >
     </div>
   </div>
@@ -1352,7 +1355,23 @@ const faqSchema = {
         href="/tools/mouse-rate-test/"
         class="cta-btn"
         aria-label="Open Mouse Rate Test tool"
-        data-astro-reload>🖱 Mouse Rate Test →</a
+        data-astro-reload="true">🖱 Mouse Rate Test →</a
+      >
+    </div>
+  </div>
+
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Test your webcam, mic & speakers!</strong> Live FPS, light/focus check,
+        mic waveform with clipping detection, & speaker test.
+      </p>
+
+      <a
+        href="/tools/webcam-mic-speaker-test/"
+        class="cta-btn"
+        aria-label="Open Webcam, Mic and Speaker Test tool"
+        data-astro-reload>🎙️ Webcam/Mic/Speaker →</a
       >
     </div>
   </div>
@@ -1707,6 +1726,7 @@ const faqSchema = {
           localStorage.removeItem("ls_diag_keyboard");
           localStorage.removeItem("ls_diag_mouse");
           localStorage.removeItem("ls_diag_screen");
+          localStorage.removeItem("ls_diag_webcam");
           sessionStorage.removeItem("ls_diag_session");
         } catch (e) {
           // storage unavailable — ignore
@@ -2037,10 +2057,11 @@ const faqSchema = {
       function startFsMotion() {
         const zone = document.getElementById("fs-motion-zone");
         if (!zone) return;
-        zone.style.display = "flex";
+        const zoneEl = zone;
+        zoneEl.style.display = "flex";
         function loop(ts: number) {
           fsMotionRaf = requestAnimationFrame(loop);
-          const w = zone.clientWidth - 34;
+          const w = zoneEl.clientWidth - 34;
           const cycle = 2000;
           const b1 = document.getElementById("fs-mb-1");
           const b2 = document.getElementById("fs-mb-2");
@@ -2374,6 +2395,11 @@ const faqSchema = {
           });
         if (!isFromThisSession("ls_diag_mouse"))
           remaining.push({ label: "mouse", url: "/tools/mouse-rate-test/" });
+        if (!isFromThisSession("ls_diag_webcam"))
+          remaining.push({
+            label: "webcam/mic/speaker",
+            url: "/tools/webcam-mic-speaker-test/",
+          });
 
         let html: string;
         if (remaining.length === 0) {

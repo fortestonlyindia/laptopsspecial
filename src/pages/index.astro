@@ -50,6 +50,16 @@ const tools = [
       "Check for dead/stuck pixels, backlight bleed, color accuracy, motion blur, and text sharpness — plus a one-click Full Screen Health Check that runs the full sequence automatically.",
     tags: ["Dead pixel", "Backlight bleed", "Color accuracy"],
   },
+  {
+    icon: "🎙️",
+    name: "Webcam/Mic/Speaker Test",
+    url: "/tools/webcam-mic-speaker-test/",
+    color: "#f472b6",
+    badge: "Live FPS + Audio",
+    description:
+      "Check your webcam's live FPS, light and focus, mic waveform with clipping detection, and a full left/right speaker channel test — all in one place.",
+    tags: ["Webcam FPS", "Mic test", "Speaker test"],
+  },
 ];
 
 // CollectionPage + ItemList schema — @id references point at the real
@@ -89,6 +99,18 @@ const collectionSchema = {
         position: 4,
         url: `${siteUrl}tools/screen-test/#webapp`,
         name: "Screen Test",
+      },
+      {
+        "@type": "ListItem",
+        position: 5,
+        url: `${siteUrl}tools/webcam-mic-speaker-test/#webapp`,
+        name: "Webcam/Mic/Speaker Test",
+      },
+      {
+        "@type": "ListItem",
+        position: 5,
+        url: `${siteUrl}tools/webcam-mic-speaker-test/#webapp`,
+        name: "Webcam/Mic/Speaker Test",
       },
     ],
   },
@@ -138,7 +160,7 @@ const faqSchema = {
       name: "Do I need to install anything to use these tools?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. All three tools run entirely in your browser using native web APIs — nothing is installed, and no drivers are required.",
+        text: "No. All five tools run entirely in your browser using native web APIs — nothing is installed, and no drivers are required.",
       },
     },
     {
@@ -163,6 +185,22 @@ const faqSchema = {
       acceptedAnswer: {
         "@type": "Answer",
         text: "Yes, indirectly. Inconsistent jitter, keys that fail to register, or a refresh rate that won't hold steady are all signs worth investigating before assuming you need a replacement.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I check for dead pixels before buying a laptop?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes — run the Screen Test's Full Health Check in a dark room at full brightness. It cycles through black, white, and color screens so you can spot dead or stuck pixels and backlight bleed in under a minute.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can this tool tell if my webcam or mic is actually broken?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "It can rule out a lot of false alarms — no signal at all usually means a permissions or device-selection issue, not broken hardware. Persistent clipping, a stuck-low FPS in good light, or audio from the wrong speaker channel are stronger signs worth investigating further.",
       },
     },
   ],
@@ -684,289 +722,396 @@ const faqSchema = {
         class="diag-cta-btn secondary"
         data-astro-reload>🟦 Start with Screen</a
       >
-    </div>
-  </div>
-
-  <!-- WHY US — differentiation block, not present before -->
-  <div class="why-section">
-    <h2
-      style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.4rem;"
-    >
-      What Makes These Tools Different
-    </h2>
-    <p
-      style="font-size:0.85rem;color:var(--text2);line-height:1.7;max-width:720px;"
-    >
-      Most online testers give you one number and stop there. Ours are built to
-      be measurement instruments, not just pass/fail checkers.
-    </p>
-    <div class="why-grid">
-      <div class="why-card">
-        <div class="why-card-title">📊 Real statistics, not just averages</div>
-        <div class="why-card-desc">
-          Jitter, peak vs average, stability grading, min/max intervals — the
-          numbers that tell you whether a reading is trustworthy.
-        </div>
-      </div>
-      <div class="why-card">
-        <div class="why-card-title">🎯 Honest about browser limits</div>
-        <div class="why-card-desc">
-          We tell you upfront where browser throttling affects a reading,
-          instead of presenting every number as gospel.
-        </div>
-      </div>
-      <div class="why-card">
-        <div class="why-card-title">📤 Exportable results</div>
-        <div class="why-card-desc">
-          Download your session as JSON or CSV to compare devices or track
-          changes over time — not locked in a single screen.
-        </div>
-      </div>
-      <div class="why-card">
-        <div class="why-card-title">🔒 Nothing leaves your device</div>
-        <div class="why-card-desc">
-          Every test runs fully client-side. No signup, no accounts, no data
-          sent anywhere.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- METHODOLOGY / TRUST — addresses "why should I trust this" -->
-  <div class="why-section" style="padding-top:0.5rem;">
-    <h2
-      style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.4rem;"
-    >
-      How Accurate Are These Tests?
-    </h2>
-    <p
-      style="font-size:0.85rem;color:var(--text2);line-height:1.7;max-width:720px;margin-bottom:1rem;"
-    >
-      Every browser-based test has real limits — event coalescing, OS
-      scheduling, and background CPU load can all affect a reading. We'd rather
-      explain that than hide it behind a single impressive-looking number.
-    </p>
-    <div class="why-grid">
-      <div class="why-card">
-        <div class="why-card-title">⌨️ Keyboard</div>
-        <div class="why-card-desc">
-          Physical key → OS → browser event → measured press duration. Reliable
-          for comparing keys against each other; not a substitute for a hardware
-          scan-rate spec.
-        </div>
-      </div>
-      <div class="why-card">
-        <div class="why-card-title">🖱 Mouse</div>
-        <div class="why-card-desc">
-          Mouse → OS → browser pointer events (using getCoalescedEvents where
-          supported) → statistical analysis. Reliable up to roughly 1500–2000Hz
-          in most Chromium browsers; higher rates can be under-reported.
-        </div>
-      </div>
-      <div class="why-card">
-        <div class="why-card-title">🖥️ Monitor</div>
-        <div class="why-card-desc">
-          Display → requestAnimationFrame → frame-timing analysis. Accurate to
-          roughly ±1–2Hz under normal conditions, with a stability grade to flag
-          when a reading isn't holding steady.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="hub-content">
-    <h2>Common Problems These Tools Help You Diagnose</h2>
-    <div class="info-grid">
-      <div class="info-card">
-        <div class="info-card-icon">⌨️</div>
-        <div class="info-card-title">Keys not registering or repeating</div>
-        <div class="info-card-desc">
-          Stuck keys, double inputs, or dead zones on your keyboard? Test every
-          key individually before assuming it's a hardware failure.
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-icon">🖱</div>
-        <div class="info-card-title">Cursor feels laggy or inconsistent</div>
-        <div class="info-card-desc">
-          Verify your mouse is actually hitting its rated polling rate — many
-          "gaming" mice ship running below spec out of the box.
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-icon">🖥️</div>
-        <div class="info-card-title">Monitor not showing full refresh rate</div>
-        <div class="info-card-desc">
-          A 144Hz monitor plugged in wrong (cable, port, or Windows setting)
-          often silently runs at 60Hz. Confirm what you're actually getting.
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-icon">🛒</div>
-        <div class="info-card-title">Buying a used or refurbished PC</div>
-        <div class="info-card-desc">
-          Before buying secondhand hardware, run a full check on the keyboard,
-          mouse, and display — takes under a minute per device.
-        </div>
-      </div>
-    </div>
-
-    <h2>Why Test Online Instead of Calling a Technician?</h2>
-    <p>
-      Most keyboard, mouse, and monitor issues aren't hardware failures —
-      they're driver conflicts, wrong Windows settings, or a cable running below
-      spec. Testing in-browser first means you skip the diagnostic fee and know
-      exactly what's wrong before spending money on a repair or replacement.
-    </p>
-
-    <h2>Want to Understand the Numbers?</h2>
-    <p>
-      Run a test, then read the full breakdown of what scan rate, polling rate,
-      and system latency actually mean for your setup.
-    </p>
-    <div class="info-grid">
       <a
-        href="/keyboard-latency-guide/"
-        class="info-card"
-        style="text-decoration:none;"
+        href="/tools/webcam-mic-speaker-test/"
+        class="diag-cta-btn secondary"
         data-astro-reload
-      >
-        <div class="info-card-icon">📖</div>
-        <div class="info-card-title">Keyboard Latency Guide →</div>
-        <div class="info-card-desc">
-          Scan rate vs polling rate vs system latency, explained with real
-          formulas and examples.
-        </div>
-      </a>
-      <a
-        href="/tools/mouse-rate-test/"
-        class="info-card"
-        style="text-decoration:none;"
-        data-astro-reload
-      >
-        <div class="info-card-icon">📖</div>
-        <div class="info-card-title">Mouse Polling Rate Guide →</div>
-        <div class="info-card-desc">
-          What jitter means, why browsers under-report high-Hz mice, and how to
-          read a stability score.
-        </div>
-      </a>
-      <a
-        href="/how-to-check-backlight-bleed/"
-        class="info-card"
-        style="text-decoration:none;"
-        data-astro-reload
-      >
-        <div class="info-card-icon">🔎</div>
-        <div class="info-card-title">Backlight Bleed & Dead Pixel Guide →</div>
-        <div class="info-card-desc">
-          Step-by-step method to check any screen for bleed, dead pixels, and
-          stuck pixels before you buy or return it.
-        </div>
-      </a>
-      <a
-        href="/how-accurate-are-these-tests/"
-        class="info-card"
-        style="text-decoration:none;"
-        data-astro-reload
-      >
-        <div class="info-card-icon">🔬</div>
-        <div class="info-card-title">Full Testing Methodology →</div>
-        <div class="info-card-desc">
-          How requestAnimationFrame, Pointer Events, and coalesced events work —
-          and exactly where browser-based testing hits its limits.
-        </div>
+        >🎙️ Start with Webcam
       </a>
     </div>
 
-    <h2>Frequently Asked Questions</h2>
-    <div class="faq-list">
-      <div class="faq-item">
-        <div class="faq-q">Is my data uploaded or stored anywhere?</div>
-        <div class="faq-a">
-          No. Every test runs locally in your browser. Key presses, mouse
-          movement, and refresh-rate measurements never leave your device or get
-          sent to any server.
+    <!-- WHY US — differentiation block, not present before -->
+    <div class="why-section">
+      <h2
+        style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.4rem;"
+      >
+        What Makes These Tools Different
+      </h2>
+      <p
+        style="font-size:0.85rem;color:var(--text2);line-height:1.7;max-width:720px;"
+      >
+        Most online testers give you one number and stop there. Ours are built
+        to be measurement instruments, not just pass/fail checkers.
+      </p>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-card-title">
+            📊 Real statistics, not just averages
+          </div>
+          <div class="why-card-desc">
+            Jitter, peak vs average, stability grading, min/max intervals — the
+            numbers that tell you whether a reading is trustworthy.
+          </div>
         </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          Why does my 1000Hz mouse show a lower polling rate in the test?
+        <div class="why-card">
+          <div class="why-card-title">🎯 Honest about browser limits</div>
+          <div class="why-card-desc">
+            We tell you upfront where browser throttling affects a reading,
+            instead of presenting every number as gospel.
+          </div>
         </div>
-        <div class="faq-a">
-          This is a browser limitation, not a problem with your mouse. Browsers
-          typically throttle input event updates to conserve battery and CPU, so
-          a 1000Hz mouse may display 60–120Hz in-browser even though the
-          hardware is reporting correctly at full rate.
+        <div class="why-card">
+          <div class="why-card-title">📤 Exportable results</div>
+          <div class="why-card-desc">
+            Download your session as JSON or CSV to compare devices or track
+            changes over time — not locked in a single screen.
+          </div>
         </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          Why is my keyboard stuck at 125Hz even on a gaming keyboard?
-        </div>
-        <div class="faq-a">
-          Standard office and budget keyboards are hardware-locked to 125Hz
-          regardless of software settings. Only keyboards explicitly marketed
-          with 1000Hz+ polling (common in gaming keyboards) can exceed this —
-          check your keyboard's spec sheet to confirm.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          Are these tests actually accurate, or just an estimate?
-        </div>
-        <div class="faq-a">
-          Browser-based tests measure input as it reaches your operating system
-          — through the same path any game or app would receive it. This makes
-          them highly reliable for comparison purposes, though a browser can't
-          bypass OS-level polling limits. For example, most browsers cap visual
-          updates around 60–120Hz, so a 1000Hz mouse may show a lower number
-          even when the hardware itself is working correctly.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          Do I need to install anything to use these tools?
-        </div>
-        <div class="faq-a">
-          No. All three tools run entirely in your browser using native web APIs
-          — nothing is installed, and no drivers are required.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Do these tools work on laptops and trackpads?</div>
-        <div class="faq-a">
-          Yes — the keyboard and mouse testers work with built-in laptop
-          keyboards and trackpads as well as external peripherals, on any modern
-          browser.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Which browser gives the most accurate results?</div>
-        <div class="faq-a">
-          Chromium-based browsers (Chrome, Edge) generally expose the most
-          precise timing APIs for polling-rate and refresh-rate measurement.
-          Firefox and Safari work fine too, but numbers can vary slightly
-          between browsers due to differences in event throttling.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">
-          Can these tools detect a faulty or dying peripheral?
-        </div>
-        <div class="faq-a">
-          Yes, indirectly. Inconsistent jitter on the mouse test, keys that fail
-          to register on the keyboard tester, or a refresh rate that won't hold
-          steady on the monitor test are all signs worth investigating further —
-          often before assuming you need a replacement.
+        <div class="why-card">
+          <div class="why-card-title">🔒 Nothing leaves your device</div>
+          <div class="why-card-desc">
+            Every test runs fully client-side. No signup, no accounts, no data
+            sent anywhere.
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script
-    type="application/ld+json"
-    set:html={JSON.stringify(collectionSchema)}
-  />
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    <!-- METHODOLOGY / TRUST — addresses "why should I trust this" -->
+    <div class="why-section" style="padding-top:0.5rem;">
+      <h2
+        style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.4rem;"
+      >
+        How Accurate Are These Tests?
+      </h2>
+      <p
+        style="font-size:0.85rem;color:var(--text2);line-height:1.7;max-width:720px;margin-bottom:1rem;"
+      >
+        Every browser-based test has real limits — event coalescing, OS
+        scheduling, and background CPU load can all affect a reading. We'd
+        rather explain that than hide it behind a single impressive-looking
+        number.
+      </p>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-card-title">⌨️ Keyboard</div>
+          <div class="why-card-desc">
+            Physical key → OS → browser event → measured press duration.
+            Reliable for comparing keys against each other; not a substitute for
+            a hardware scan-rate spec.
+          </div>
+        </div>
+        <div class="why-card">
+          <div class="why-card-title">🖱 Mouse</div>
+          <div class="why-card-desc">
+            Mouse → OS → browser pointer events (using getCoalescedEvents where
+            supported) → statistical analysis. Reliable up to roughly
+            1500–2000Hz in most Chromium browsers; higher rates can be
+            under-reported.
+          </div>
+        </div>
+        <div class="why-card">
+          <div class="why-card-title">🖥️ Monitor</div>
+          <div class="why-card-desc">
+            Display → requestAnimationFrame → frame-timing analysis. Accurate to
+            roughly ±1–2Hz under normal conditions, with a stability grade to
+            flag when a reading isn't holding steady.
+          </div>
+        </div>
+        <div class="why-card">
+          <div class="why-card-title">🟦 Screen</div>
+          <div class="why-card-desc">
+            Full-screen reference colors and patterns — the same principle used
+            by dedicated dead pixel checkers. A browser can't read back what's
+            physically displayed, so spotting a dead pixel or backlight bleed
+            still needs your own eyes; this tool gives you the cleanest possible
+            reference to check against.
+          </div>
+        </div>
+        <div class="why-card">
+          <div class="why-card-title">🎙️ Webcam/Mic/Speaker</div>
+          <div class="why-card-desc">
+            Camera → MediaStream track settings + live frame timing for FPS. Mic
+            → Web Audio API for relative level, noise floor, and clipping — not
+            a calibrated decibel reading. Speakers → real hard-panned tones per
+            channel, so what you hear is exactly what's being sent.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hub-content">
+      <h2>Common Problems These Tools Help You Diagnose</h2>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-icon">⌨️</div>
+          <div class="info-card-title">Keys not registering or repeating</div>
+          <div class="info-card-desc">
+            Stuck keys, double inputs, or dead zones on your keyboard? Test
+            every key individually before assuming it's a hardware failure.
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">🖱</div>
+          <div class="info-card-title">Cursor feels laggy or inconsistent</div>
+          <div class="info-card-desc">
+            Verify your mouse is actually hitting its rated polling rate — many
+            "gaming" mice ship running below spec out of the box.
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">🖥️</div>
+          <div class="info-card-title">
+            Monitor not showing full refresh rate
+          </div>
+          <div class="info-card-desc">
+            A 144Hz monitor plugged in wrong (cable, port, or Windows setting)
+            often silently runs at 60Hz. Confirm what you're actually getting.
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">🟦</div>
+          <div class="info-card-title">Dead pixels or backlight bleed</div>
+          <div class="info-card-desc">
+            Spotted a dark or oddly-colored dot on your screen? Run the full
+            color sequence to confirm whether it's a dead pixel, a stuck pixel,
+            or just glare.
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">🎙️</div>
+          <div class="info-card-title">Webcam, mic, or speaker acting up</div>
+          <div class="info-card-desc">
+            Blurry video calls, a mic that sounds distorted, or audio playing
+            from the wrong speaker — check FPS, clipping, and channel routing
+            before assuming the hardware is faulty.
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">🛒</div>
+          <div class="info-card-title">Buying a used or refurbished PC</div>
+          <div class="info-card-desc">
+            Before buying secondhand hardware, run a full check on the keyboard,
+            mouse, display, and webcam — takes under a minute per device.
+          </div>
+        </div>
+      </div>
+
+      <h2>Why Test Online Instead of Calling a Technician?</h2>
+      <p>
+        Most keyboard, mouse, and monitor issues aren't hardware failures —
+        they're driver conflicts, wrong Windows settings, or a cable running
+        below spec. Testing in-browser first means you skip the diagnostic fee
+        and know exactly what's wrong before spending money on a repair or
+        replacement.
+      </p>
+
+      <h2>Want to Understand the Numbers?</h2>
+      <p>
+        Run a test, then read the full breakdown of what scan rate, polling
+        rate, and system latency actually mean for your setup.
+      </p>
+      <div class="info-grid">
+        <a
+          href="/keyboard-latency-guide/"
+          class="info-card"
+          style="text-decoration:none;"
+          data-astro-reload
+        >
+          <div class="info-card-icon">📖</div>
+          <div class="info-card-title">Keyboard Latency Guide →</div>
+          <div class="info-card-desc">
+            Scan rate vs polling rate vs system latency, explained with real
+            formulas and examples.
+          </div>
+        </a>
+        <a
+          href="/tools/mouse-rate-test/"
+          class="info-card"
+          style="text-decoration:none;"
+          data-astro-reload
+        >
+          <div class="info-card-icon">📖</div>
+          <div class="info-card-title">Mouse Polling Rate Guide →</div>
+          <div class="info-card-desc">
+            What jitter means, why browsers under-report high-Hz mice, and how
+            to read a stability score.
+          </div>
+        </a>
+        <a
+          href="/how-to-check-backlight-bleed/"
+          class="info-card"
+          style="text-decoration:none;"
+          data-astro-reload
+        >
+          <div class="info-card-icon">🔎</div>
+          <div class="info-card-title">
+            Backlight Bleed & Dead Pixel Guide →
+          </div>
+          <div class="info-card-desc">
+            Step-by-step method to check any screen for bleed, dead pixels, and
+            stuck pixels before you buy or return it.
+          </div>
+        </a>
+
+        <a
+          href="/tools/monitor-refresh-rate-test/"
+          class="info-card"
+          style="text-decoration:none;"
+          data-astro-reload
+        >
+          <div class="info-card-icon">📖</div>
+          <div class="info-card-title">Monitor Refresh Rate Guide →</div>
+          <div class="info-card-desc">
+            How to confirm your monitor is actually running at its rated Hz, and
+            what the stability grade means.
+          </div>
+        </a>
+
+        <a
+          href="/webcam-mic-speaker-test-guide/"
+          class="info-card"
+          style="text-decoration:none;"
+          data-astro-reload
+        >
+          <div class="info-card-icon">🎙️</div>
+          <div class="info-card-title">Webcam/Mic/Speaker Guide →</div>
+          <div class="info-card-desc">
+            What FPS, light level, noise floor, and clipping actually mean, and
+            how to fix the most common camera/mic/speaker problems.
+          </div>
+        </a>
+
+        <a
+          href="/how-accurate-are-these-tests/"
+          class="info-card"
+          style="text-decoration:none;"
+          data-astro-reload
+        >
+          <div class="info-card-icon">🔬</div>
+          <div class="info-card-title">Full Testing Methodology →</div>
+          <div class="info-card-desc">
+            How requestAnimationFrame, Pointer Events, and coalesced events work
+            — and exactly where browser-based testing hits its limits.
+          </div>
+        </a>
+      </div>
+
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">Is my data uploaded or stored anywhere?</div>
+          <div class="faq-a">
+            No. Every test runs locally in your browser. Key presses, mouse
+            movement, and refresh-rate measurements never leave your device or
+            get sent to any server.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Why does my 1000Hz mouse show a lower polling rate in the test?
+          </div>
+          <div class="faq-a">
+            This is a browser limitation, not a problem with your mouse.
+            Browsers typically throttle input event updates to conserve battery
+            and CPU, so a 1000Hz mouse may display 60–120Hz in-browser even
+            though the hardware is reporting correctly at full rate.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Why is my keyboard stuck at 125Hz even on a gaming keyboard?
+          </div>
+          <div class="faq-a">
+            Standard office and budget keyboards are hardware-locked to 125Hz
+            regardless of software settings. Only keyboards explicitly marketed
+            with 1000Hz+ polling (common in gaming keyboards) can exceed this —
+            check your keyboard's spec sheet to confirm.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Are these tests actually accurate, or just an estimate?
+          </div>
+          <div class="faq-a">
+            Browser-based tests measure input as it reaches your operating
+            system — through the same path any game or app would receive it.
+            This makes them highly reliable for comparison purposes, though a
+            browser can't bypass OS-level polling limits. For example, most
+            browsers cap visual updates around 60–120Hz, so a 1000Hz mouse may
+            show a lower number even when the hardware itself is working
+            correctly.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Do I need to install anything to use these tools?
+          </div>
+          <div class="faq-a">
+            No. All five tools run entirely in your browser using native web
+            APIs — nothing is installed, and no drivers are required.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Do these tools work on laptops and trackpads?</div>
+          <div class="faq-a">
+            Yes — the keyboard and mouse testers work with built-in laptop
+            keyboards and trackpads as well as external peripherals, on any
+            modern browser.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Which browser gives the most accurate results?
+          </div>
+          <div class="faq-a">
+            Chromium-based browsers (Chrome, Edge) generally expose the most
+            precise timing APIs for polling-rate and refresh-rate measurement.
+            Firefox and Safari work fine too, but numbers can vary slightly
+            between browsers due to differences in event throttling.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Can these tools detect a faulty or dying peripheral?
+          </div>
+          <div class="faq-a">
+            Yes, indirectly. Inconsistent jitter on the mouse test, keys that
+            fail to register on the keyboard tester, or a refresh rate that
+            won't hold steady on the monitor test are all signs worth
+            investigating further — often before assuming you need a
+            replacement.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Can I check for dead pixels before buying a laptop?
+          </div>
+          <div class="faq-a">
+            Yes — run the Screen Test's Full Health Check in a dark room at full
+            brightness. It cycles through black, white, and color screens so you
+            can spot dead or stuck pixels and backlight bleed in under a minute.
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">
+            Can this tool tell if my webcam or mic is actually broken?
+          </div>
+          <div class="faq-a">
+            It can rule out a lot of false alarms — no signal at all usually
+            means a permissions or device-selection issue, not broken hardware.
+            Persistent clipping, a stuck-low FPS in good light, or audio from
+            the wrong speaker channel are stronger signs worth investigating
+            further.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(collectionSchema)}
+    />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  </div>
 </Base>

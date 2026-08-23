@@ -1075,6 +1075,22 @@ const faqSchema = {
     </div>
   </div>
 
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Test your webcam, mic & speaker!</strong> Live FPS check, mic waveform
+        with clipping detection, & speaker test.
+      </p>
+
+      <a
+        href="/tools/webcam-mic-speaker-test/"
+        class="cta-btn"
+        aria-label="Open Webcam, Mic and Speaker Test tool"
+        data-astro-reload>🎙️ Webcam/Mic/Speaker →</a
+      >
+    </div>
+  </div>
+
   <!-- CONTENT -->
   <div class="content-section">
     <h2 style="margin-top:2rem;">
@@ -2121,6 +2137,16 @@ const faqSchema = {
               remaining.push({
                 label: "screen",
                 url: "/tools/screen-test/",
+              });
+            if (!isFromThisSession("ls_diag_monitor"))
+              remaining.push({
+                label: "monitor",
+                url: "/tools/monitor-refresh-rate-test/",
+              });
+            if (!isFromThisSession("ls_diag_webcam"))
+              remaining.push({
+                label: "webcam/mic/speaker",
+                url: "/tools/webcam-mic-speaker-test/",
               });
 
             let newHtml: string;

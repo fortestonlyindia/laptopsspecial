@@ -1483,6 +1483,24 @@ const faqSchema = {
     </div>
   </div>
 
+  <div class="cta-banner">
+    <div class="cta-inner">
+      <p class="cta-text">
+        <strong>Also test your webcam, mic & speakers!</strong> Live FPS, light/focus
+        checks, mic waveform with clipping detection, and a full speaker test.
+      </p>
+
+      <a
+        href="/tools/webcam-mic-speaker-test/"
+        class="cta-btn"
+        aria-label="Open
+      Webcam, Mic and Speaker Test tool"
+        data-astro-reload
+        >🎙️ Webcam/Mic/Speaker →
+      </a>
+    </div>
+  </div>
+
   <!-- CONTENT -->
   <div
     class="callout"
@@ -1718,6 +1736,8 @@ const faqSchema = {
         localStorage.removeItem("ls_diag_keyboard");
         localStorage.removeItem("ls_diag_mouse");
         localStorage.removeItem("ls_diag_screen");
+        localStorage.removeItem("ls_diag_webcam");
+        localStorage.removeItem("ls_diag_mic");
         sessionStorage.removeItem("ls_diag_session");
       } catch (e) {
         // storage unavailable — ignore
@@ -1978,6 +1998,11 @@ const faqSchema = {
                 remaining.push({
                   label: "screen",
                   url: "/tools/screen-test/",
+                });
+              if (!isFromThisSession("ls_diag_webcam"))
+                remaining.push({
+                  label: "webcam/mic/speaker",
+                  url: "/tools/webcam-mic-speaker-test/",
                 });
 
               let newHtml: string;
