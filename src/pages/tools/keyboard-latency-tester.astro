@@ -83,6 +83,14 @@ const faqSchema = {
         text: "Not for everyday typing — but in competitive FPS games running at 240fps, a single frame is only 4.17ms, so even 1-2ms of extra latency can shift your reaction window in close encounters.",
       },
     },
+    {
+      "@type": "Question",
+      name: "What is keyboard debounce and how do I test it?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Debounce is the small delay a keyboard's controller adds after a key press to filter out mechanical bounce, so one press doesn't register as multiple. Typical debounce time is 5-20ms. This tool doesn't isolate debounce specifically, but a consistently slower or inconsistent response time on one key in the Key Press History can point to a debounce or switch issue.",
+      },
+    },
   ],
 };
 ---
@@ -1544,14 +1552,31 @@ const faqSchema = {
       this number <em>is</em> useful for: comparing keys against each other, or spotting
       one key that's noticeably slower than the rest.
     </p>
-
+    <h2 style="margin-top:2rem;">What About Rapid Trigger?</h2>
+    <p>
+      Rapid Trigger is a feature found on newer magnetic (Hall-effect) gaming
+      keyboards - instead of a fixed actuation point, the key registers a press
+      and release based on the direction you're moving your finger, at any point
+      in its travel. This makes double-tapping and direction changes noticeably
+      faster in games.
+    </p>
+    <p>
+      This is different from what this tool measures. Rapid Trigger is a
+      hardware-level actuation behavior set inside the keyboard's own firmware -
+      a browser can't detect or test it directly, since JavaScript only sees a
+      key as "pressed" or "released," not how far the switch has traveled. If
+      your keyboard supports Rapid Trigger, you'll configure and test its
+      sensitivity in the manufacturer's own software (e.g. Wooting, SteelSeries
+      GG, Razer Synapse). What you <em>can</em> use this tool for is confirming basic
+      response consistency across keys before fine-tuning actuation settings.
+    </p>
     <h2 style="margin-top:2rem;">How to Test Your Keyboard Latency</h2>
     <ol
       style="color: var(--text2); font-size: 0.88rem; line-height: 1.85; padding-left: 1.6rem; margin-bottom: 1rem;"
     >
       <li>Scroll up to the keyboard tester above.</li>
       <li>
-        Press any key on your physical keyboard — it will highlight instantly on
+        Press any key on your physical keyboard - it will highlight instantly on
         screen.
       </li>
       <li>
@@ -1561,7 +1586,7 @@ const faqSchema = {
         Your shortest press time and estimated scan rate update live at the top.
       </li>
       <li>
-        Test multiple keys to get a reliable average — then compare against the
+        Test multiple keys to get a reliable average - then compare against the
         table below.
       </li>
     </ol>
@@ -1571,7 +1596,7 @@ const faqSchema = {
           Scan Rate
         </div><div class="info-card-desc">
           How many times per second the keyboard's controller scans for key
-          presses (a fixed hardware spec — not something this browser tool can
+          presses (a fixed hardware spec - not something this browser tool can
           measure directly).
         </div>
       </div>
@@ -1587,7 +1612,7 @@ const faqSchema = {
         <div class="info-card-icon">⏱</div><div class="info-card-title">
           Response Time
         </div><div class="info-card-desc">
-          Total delay from key press to on-screen action — scan rate plus
+          Total delay from key press to on-screen action - scan rate plus
           polling rate plus system latency combined.
         </div>
       </div>
@@ -1667,7 +1692,7 @@ const faqSchema = {
         <div class="faq-q">Does polling rate affect keyboard latency?</div><div
           class="faq-a"
         >
-          Yes, it sets the maximum reporting interval — at 125Hz that's up to
+          Yes, it sets the maximum reporting interval - at 125Hz that's up to
           8ms, at 1000Hz up to 1ms. Total latency also depends on switch
           debounce time and system processing, so a higher polling rate lowers
           the ceiling on latency rather than guaranteeing a lower number every
@@ -1687,9 +1712,22 @@ const faqSchema = {
       <div class="faq-item">
         <div class="faq-q">Is 1ms keyboard latency actually noticeable?</div>
         <div class="faq-a">
-          Not for everyday typing — but in competitive FPS games running at
+          Not for everyday typing - but in competitive FPS games running at
           240fps, a single frame is only 4.17ms, so even 1-2ms of extra latency
           can shift your reaction window in close encounters.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What is keyboard debounce and how do I test it?</div>
+        <div class="faq-a">
+          Debounce is the small delay a keyboard's controller adds after a key
+          press to filter out mechanical "bounce" - the brief electrical flicker
+          a switch makes when pressed - so one press doesn't register as
+          multiple. Typical debounce time is 5-20ms. This tool doesn't isolate
+          debounce specifically, but if a key consistently shows a slower or
+          inconsistent response time in the Key Press History above compared to
+          others, that can point to a debounce or switch issue worth
+          investigating.
         </div>
       </div>
     </div>

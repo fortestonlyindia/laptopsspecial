@@ -19,6 +19,7 @@ const tools = [
     description:
       "Test every key on your full-size keyboard including numpad, arrows, and function keys. Measures fastest key response live in your browser.",
     tags: ["Latency test", "Key response", "104-key layout"],
+    cta: "Test Keyboard Debounce & Latency",
   },
   {
     icon: "🖱",
@@ -29,6 +30,7 @@ const tools = [
     description:
       "Check your mouse's browser-observed polling rate, click latency, jitter, and movement speed. Includes a live heatmap and CPS counter, with JSON/CSV export for deeper analysis.",
     tags: ["Polling rate", "Jitter", "Click latency"],
+    cta: "Test Mouse Polling & Latency",
   },
   {
     icon: "🖥️",
@@ -39,6 +41,7 @@ const tools = [
     description:
       "Measure your screen's browser-observed refresh rate and frame consistency with a stability grade. Includes a motion clarity test and a VRR/G-Sync simulator to see the difference.",
     tags: ["Refresh rate", "Frame timing", "VRR simulator"],
+    cta: "Test Monitor Refresh Rate",
   },
   {
     icon: "🟦",
@@ -49,6 +52,7 @@ const tools = [
     description:
       "Check for dead/stuck pixels, backlight bleed, color accuracy, motion blur, and text sharpness — plus a one-click Full Screen Health Check that runs the full sequence automatically.",
     tags: ["Dead pixel", "Backlight bleed", "Color accuracy"],
+    cta: "Check for Dead Pixels",
   },
   {
     icon: "🎙️",
@@ -59,6 +63,7 @@ const tools = [
     description:
       "Check your webcam's live FPS, light and focus, mic waveform with clipping detection, and a full left/right speaker channel test — all in one place.",
     tags: ["Webcam FPS", "Mic test", "Speaker test"],
+    cta: "Test Webcam, Mic & Speakers",
   },
 ];
 
@@ -647,7 +652,7 @@ const faqSchema = {
             ))}
           </div>
           <span class="tool-hub-cta" style={`color: ${tool.color};`}>
-            Open tool →
+            {tool.cta} →
           </span>
         </a>
       ))
