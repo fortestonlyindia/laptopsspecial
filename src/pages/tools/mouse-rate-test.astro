@@ -143,11 +143,12 @@ const faqSchema = {
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1rem 1.4rem;
+      padding: 0.4rem 1.4rem;
       text-align: center;
       min-width: 130px;
       flex: 1;
       transition: border-color 0.2s;
+      margin-bottom: -1rem;
     }
     .stat-card:hover {
       border-color: rgba(124, 58, 237, 0.35);
@@ -158,7 +159,7 @@ const faqSchema = {
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: var(--muted);
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.1rem;
     }
     .stat-value {
       font-family: var(--font-mono);
@@ -402,7 +403,7 @@ const faqSchema = {
       background: var(--bg3);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 0.8rem;
+      padding: 0.3rem 0.8rem;
       text-align: center;
     }
     .click-label {
@@ -411,7 +412,7 @@ const faqSchema = {
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.2rem;
     }
     .click-val {
       font-family: var(--font-mono);
@@ -461,7 +462,7 @@ const faqSchema = {
       background: var(--bg3);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 0.75rem 1rem;
+      padding: 0.45rem 1rem;
     }
     .metric-name {
       font-size: 0.65rem;
@@ -935,27 +936,6 @@ const faqSchema = {
         </div>
       </div>
 
-      <div
-        id="mouse-interpret"
-        style="display:none; margin: 0 1.5rem 1rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.82rem; color: var(--text2);"
-      >
-        <strong style="color: var(--text);">What this means: </strong>
-        <span id="mouse-interpret-text"></span>
-      </div>
-      <div
-        id="next-step-banner"
-        style="display:none; margin: 0 1.5rem 1rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(124,58,237,0.3); background:rgba(124,58,237,0.06); font-size:0.85rem; color:var(--text2); text-align:center;"
-      >
-        <span id="next-step-text"></span>
-        <br />
-        <button
-          id="btn-fresh-start"
-          style="margin-top:0.6rem; background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--font-display); font-size:0.72rem; font-weight:600; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer;"
-        >
-          ↺ Start Fresh Test Session
-        </button>
-      </div>
-
       <!-- POLLING HISTORY MINI-CHART -->
       <div class="chart-section">
         <div class="chart-label">Polling Rate History (last 120 events)</div>
@@ -1025,6 +1005,26 @@ const faqSchema = {
             </div>
           </div>
         </div>
+      </div>
+      <div
+        id="mouse-interpret"
+        style="display:none; margin: 0 1.5rem 1rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; font-size: 0.82rem; color: var(--text2);"
+      >
+        <strong style="color: var(--text);">What this means: </strong>
+        <span id="mouse-interpret-text"></span>
+      </div>
+      <div
+        id="next-step-banner"
+        style="display:none; margin: 0 1.5rem 1rem; padding:0.9rem 1.1rem; border-radius:10px; border:1px solid rgba(124,58,237,0.3); background:rgba(124,58,237,0.06); font-size:0.85rem; color:var(--text2); text-align:center;"
+      >
+        <span id="next-step-text"></span>
+        <br />
+        <button
+          id="btn-fresh-start"
+          style="margin-top:0.6rem; background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--font-display); font-size:0.72rem; font-weight:600; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer;"
+        >
+          ↺ Start Fresh Test Session
+        </button>
       </div>
     </div>
   </div>
