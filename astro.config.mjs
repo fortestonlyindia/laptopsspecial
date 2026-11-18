@@ -1,11 +1,9 @@
 import { defineConfig } from "astro/config";
-import vercel from "@astrojs/vercel/serverless";
 import { fileURLToPath } from "url";
 import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
-  output: "hybrid",
-  adapter: vercel(),
+  output: "static",
   site: "https://laptopsspecial.com",
   trailingSlash: "always", // ← YEH ADD KARO
   compressHTML: true,
