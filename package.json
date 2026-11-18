@@ -8,6 +8,9 @@
     "preview": "astro preview",
     "sanity": "sanity dev"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "@astrojs/vercel": "^7.8.2",
     "@sanity/client": "^6.28.4",
