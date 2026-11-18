@@ -1,0 +1,313 @@
+---
+// src/pages/tools/image-metadata-cleaner.astro
+import Base from '../../layouts/Base.astro';
+// import AiWatermarkRemover from '../../components/AiWatermarkRemover.astro'; // file missing in project, re-enable when it exists
+import MetadataBatchLab from '../../components/MetadataBatchLab.astro';
+
+const title = "Image Metadata Cleaner: Remove EXIF, GPS & C2PA Free | Laptops Special";
+const description = "Remove EXIF, GPS, XMP, C2PA Content Credentials and ComfyUI workflows from JPEG, PNG, WebP, HEIC and AVIF. Batch ZIP, lossless mode, before/after report. Runs in your browser, no uploads.";
+
+// Update this to the real date whenever you re-test the tool in current browsers.
+const lastTested = "2026-11-11";
+const lastTestedLabel = "11 November 2026";
+const testedBrowsers = "Chrome, Firefox, Safari and Edge (current versions)";
+
+// One FAQ list drives BOTH the visible FAQ and the FAQPage schema, so they always match.
+const faqs = [
+  {
+    q: "Does this tool upload my images to a server?",
+    a: "No. All decoding, binary inspection, canvas redrawing, ZIP building and frequency dithering happen 100% locally inside your browser using the HTML5 Canvas and Web Crypto/TypedArray APIs. Your images never leave your device."
+  },
+  {
+    q: "What is the difference between C2PA metadata and SynthID?",
+    a: "C2PA Content Credentials and EXIF tags are stored in the file container headers and are removed when the file is cleaned. SynthID is a steganographic watermark embedded into pixel frequency values, requiring sub-pixel warping, edge-adaptive dithering and DCT quantization to disrupt."
+  },
+  {
+    q: "Will Deep Scrub mode ruin my image quality?",
+    a: "No. Smooth areas (sky, skin, gradients) are altered by only ±1 RGB value out of 255, while stronger frequency disruption is masked inside complex textures like hair and foliage. If you need 100% bit-exact pixels, switch to Metadata Only mode or use the Lossless strip mode in the batch cleaner."
+  },
+  {
+    q: "What is Lossless strip mode and when should I use it?",
+    a: "Lossless strip removes EXIF, GPS, XMP, C2PA, IPTC, comments and PNG/WebP text chunks directly from the file without decoding the picture. Pixels, JPEG compression and the ICC color profile stay exactly as they were, so there is no quality loss and no color shift. Use it for privacy cleaning. It does not disrupt pixel-level watermarks such as SynthID."
+  },
+  {
+    q: "Which formats are supported, and what happens to HEIC and AVIF?",
+    a: "JPEG, PNG and WebP can be cleaned losslessly or re-encoded. HEIC/HEIF and AVIF files are scanned for metadata and then converted to JPEG or PNG, because browsers cannot save images in those two formats. The HEIC/AVIF metadata report is a best-effort scan."
+  },
+  {
+    q: "Why isn't a simple PNG redraw enough to remove SynthID?",
+    a: "Redrawing an image onto an HTML5 canvas and saving as a lossless PNG keeps the exact RGB pixel values intact. Because SynthID embeds its signal directly into pixel frequency coefficients rather than file headers, a 1:1 lossless redraw preserves the watermark. Switching to Deep Scrub shifts the spatial grid by 0.25%, applies non-linear wave warping, injects edge-masked noise, and forces an 8x8 DCT quantization pass."
+  },
+  {
+    q: "Does Deep Scrub flatten transparent PNG backgrounds?",
+    a: "No. Before running the RGB channels through the in-memory JPEG DCT quantization pass, the tool copies your original Alpha channel into a separate buffer and restores it pixel-for-pixel before generating your final PNG or WebP file."
+  },
+  {
+    q: "What is the 20x Pixel Diff Map toggle?",
+    a: "Because Deep Scrub changes pixel values by only ±1 to ±3.4 out of 255, the changes are invisible to the naked eye. Checking \"Show 20x Pixel Diff Map\" multiplies the mathematical difference between the original and cleaned pixels by 20 so you can verify that edge-adaptive frequency scrubbing took place."
+  }
+];
+
+const pageUrl = "https://laptopsspecial.com/tools/image-metadata-cleaner/";
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Image Metadata & AI Watermark Cleaner",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any (Web Browser)",
+      "browserRequirements": "Requires a modern browser with JavaScript enabled",
+      "url": pageUrl,
+      "isAccessibleForFree": true,
+      "dateModified": lastTested,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Before and after metadata report (GPS, camera serial, C2PA, AI prompts)",
+        "Lossless JPEG, PNG and WebP metadata stripping",
+        "Batch processing with ZIP download",
+        "HEIC/HEIF and AVIF input support",
+        "Deep Scrub pixel-level watermark disruption (best effort)",
+        "100% local processing, no uploads"
+      ],
+      "description": description
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://laptopsspecial.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://laptopsspecial.com/tools/" },
+        { "@type": "ListItem", "position": 3, "name": "Image Metadata Cleaner", "item": pageUrl }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      }))
+    }
+  ]
+};
+
+const audiences = [
+  {
+    icon: "🛍️",
+    who: "Online sellers",
+    why: "Listing photos taken at home can carry your exact GPS coordinates and phone model. Clean the whole batch and upload the ZIP."
+  },
+  {
+    icon: "📰",
+    who: "Journalists and researchers",
+    why: "Remove location, device serials and author fields before sharing images from a source or a sensitive location."
+  },
+  {
+    icon: "📱",
+    who: "Anyone posting photos publicly",
+    why: "Forums, classifieds and some websites keep EXIF intact. Check what a photo reveals, then strip it."
+  },
+  {
+    icon: "🎨",
+    who: "AI image creators",
+    why: "Prompts, seeds and ComfyUI workflows are often embedded in PNG files. Remove them before you share an image."
+  }
+];
+---
+
+<Base title={title} description={description}>
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+  <main class="tool-page">
+    <section class="tool-hero">
+      <span class="tool-badge">🟢 100% Free — Runs Locally in Browser</span>
+      <h1>Image Metadata & AI Watermark Cleaner</h1>
+      <p class="tool-lead">
+        Strip EXIF, GPS, XMP, C2PA Content Credentials, and embedded AI workflows — plus disrupt in-pixel steganography (SynthID) with sub-pixel micro-warping and DCT re-quantization.
+      </p>
+      <p class="tool-meta">
+        Last tested <time datetime={lastTested}>{lastTestedLabel}</time> in {testedBrowsers}.
+        <a href="#batch-cleaner">Jump to batch &amp; lossless cleaner</a>
+      </p>
+    </section>
+
+    <!-- Existing interactive tool (unchanged) -->
+    <!-- <AiWatermarkRemover /> -->
+
+    <!-- NEW: before/after viewer, lossless mode, batch + ZIP, HEIC/AVIF -->
+    <MetadataBatchLab />
+
+    <!-- NEW: who uses this -->
+    <section class="tool-audience" aria-labelledby="who-uses">
+      <h2 id="who-uses">Who Uses This Tool</h2>
+      <div class="audience-grid">
+        {audiences.map((a) => (
+          <div class="audience-card">
+            <span aria-hidden="true">{a.icon}</span>
+            <div>
+              <strong>{a.who}</strong>
+              <p>{a.why}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p class="tool-note">
+        <strong>Use it responsibly.</strong> Removing location and device data protects your privacy. Some platforms and
+        regulations require AI-generated content to stay labeled, so do not use this tool to pass off AI images as
+        real photographs where disclosure is required.
+      </p>
+      <p class="tool-note">
+        <strong>Last tested:</strong> <time datetime={lastTested}>{lastTestedLabel}</time> in {testedBrowsers}.
+      </p>
+    </section>
+
+    <!-- Cross-Links to Existing Laptops Special Tools -->
+    <section class="tool-crosslinks">
+      <h2>More Free Browser Diagnostic & Utility Tools</h2>
+      <div class="crosslink-grid">
+        <a href="/tools/keyboard-latency-tester/" class="crosslink-card">
+          <span>⌨️</span>
+          <div>
+            <strong>Keyboard Tester →</strong>
+            <p>Full 104-key test with live press duration & latency measurement.</p>
+          </div>
+        </a>
+        <a href="/tools/mouse-rate-test/" class="crosslink-card">
+          <span>🖱</span>
+          <div>
+            <strong>Mouse Rate Test →</strong>
+            <p>Check polling rate up to 8000Hz, jitter, click latency & heatmap.</p>
+          </div>
+        </a>
+        <a href="/tools/monitor-refresh-rate-test/" class="crosslink-card">
+          <span>🖥️</span>
+          <div>
+            <strong>Monitor Refresh Rate Test →</strong>
+            <p>Real Hz, frame consistency grade, motion clarity & VRR simulator.</p>
+          </div>
+        </a>
+        <a href="/tools/screen-test/" class="crosslink-card">
+          <span>🟦</span>
+          <div>
+            <strong>Screen Test →</strong>
+            <p>Check for dead pixels, backlight bleed, color banding & uniformity.</p>
+          </div>
+        </a>
+        <a href="/tools/webcam-mic-speaker-test/" class="crosslink-card">
+          <span>🎙️</span>
+          <div>
+            <strong>Webcam, Mic & Speaker Test →</strong>
+            <p>Live camera FPS, mic waveform with clipping check & stereo test.</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Honest Technical Breakdown (Matches Laptops Special's Transparency Ethos) -->
+    <section class="tool-guide">
+      <h2>How It Works — And What Browser Scrubbing Can & Cannot Do</h2>
+      <p>
+        Most "watermark removers" claim to erase every trace of AI generation without explaining the difference between <strong>file headers</strong> and <strong>pixel steganography</strong>. Here is exactly what happens to your file in the browser:
+      </p>
+
+      <div class="guide-table-wrap">
+        <table class="guide-table">
+          <thead>
+            <tr>
+              <th>Data / Watermark Type</th>
+              <th>Examples</th>
+              <th>What This Tool Does</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Container Metadata</strong></td>
+              <td>EXIF, GPS coordinates, camera serials, XMP, IPTC</td>
+              <td>Lossless mode deletes the metadata segments directly. Re-encode mode decodes the pixel bitmap and writes a brand-new file container.</td>
+              <td><strong>100% Removed</strong></td>
+            </tr>
+            <tr>
+              <td><strong>C2PA / Content Credentials</strong></td>
+              <td>JUMBF manifests (<code>c2pa</code>, <code>caBX</code>) from ChatGPT, DALL-E, Firefly</td>
+              <td>Drops all APP11/JUMBF, <code>caBX</code> and WebP <code>C2PA</code> boxes, then re-scans the output to confirm</td>
+              <td><strong>100% Removed</strong></td>
+            </tr>
+            <tr>
+              <td><strong>AI Workflow Chunks</strong></td>
+              <td>ComfyUI JSON graphs, Automatic1111 prompts, PNG <code>tEXt</code>/<code>iTXt</code></td>
+              <td>Strips all ancillary PNG/WebP text chunks and verifies binary output</td>
+              <td><strong>100% Removed</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Frequency Watermarks</strong></td>
+              <td>Google SynthID, Stable Diffusion <code>invisible-watermark</code></td>
+              <td>Deep Scrub applies 0.25% sub-pixel scale, sinusoidal wave warp, edge-adaptive dither & 8x8 DCT pass. Lossless mode does not touch pixels.</td>
+              <td><strong>Degraded / Disrupted (best effort, not verifiable)</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Latent / Structural Watermarks</strong></td>
+              <td>Tree-Ring watermarks, visual AI classifier artifacts</td>
+              <td>Cannot be removed by pixel math alone (requires AI VAE regeneration)</td>
+              <td><strong>Not Removed</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Frequently Asked Questions</h3>
+      {faqs.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p>{f.a}</p>
+        </details>
+      ))}
+    </section>
+  </main>
+</Base>
+
+<style>
+  .tool-page { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .tool-hero { text-align: center; max-width: 760px; margin: 0 auto 1.25rem; }
+  .tool-badge {
+    display: inline-block; padding: .3rem .75rem; border-radius: 999px;
+    font-size: .82rem; font-weight: 600; background: rgba(21, 128, 61, 0.12);
+    color: #16a34a; margin-bottom: .6rem;
+  }
+  .tool-hero h1 { font-size: clamp(1.65rem, 3.5vw, 2.25rem); margin: 0 0 .5rem; }
+  .tool-lead { color: #64748b; font-size: 1.05rem; line-height: 1.55; margin: 0; }
+  .tool-meta { color: #64748b; font-size: .85rem; margin: .75rem 0 0; }
+  .tool-meta a { color: #2563eb; }
+  .tool-audience, .tool-crosslinks, .tool-guide { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(148, 163, 184, 0.25); }
+  .tool-audience h2, .tool-crosslinks h2, .tool-guide h2 { font-size: 1.35rem; margin: 0 0 1rem; }
+  .audience-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .85rem; }
+  .audience-card { display: flex; gap: .75rem; align-items: flex-start; padding: .9rem 1rem; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.25); }
+  .audience-card span { font-size: 1.4rem; line-height: 1; }
+  .audience-card strong { display: block; margin-bottom: .2rem; font-size: .95rem; }
+  .audience-card p { margin: 0; font-size: .85rem; color: #64748b; line-height: 1.45; }
+  .tool-note { margin: 1rem 0 0; font-size: .88rem; color: #64748b; line-height: 1.55; }
+  .crosslink-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: .85rem; }
+  .crosslink-card {
+    display: flex; align-items: flex-start; gap: .75rem; padding: .9rem 1rem;
+    border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.25);
+    text-decoration: none; color: inherit; transition: border-color .15s, transform .15s;
+  }
+  .crosslink-card:hover { border-color: #2563eb; transform: translateY(-1px); }
+  .crosslink-card span { font-size: 1.4rem; line-height: 1; }
+  .crosslink-card strong { display: block; margin-bottom: .2rem; font-size: .95rem; }
+  .crosslink-card p { margin: 0; font-size: .83rem; color: #64748b; line-height: 1.4; }
+  .guide-table-wrap { overflow-x: auto; margin: 1.25rem 0 2rem; }
+  .guide-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  .guide-table th, .guide-table td {
+    padding: .7rem .85rem; text-align: left;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  }
+  .guide-table th { font-weight: 600; background: rgba(148, 163, 184, 0.08); }
+  details {
+    margin-bottom: .75rem; padding: .85rem 1rem; border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+  }
+  summary { font-weight: 600; cursor: pointer; }
+  details p { margin: .6rem 0 0; color: #64748b; line-height: 1.55; font-size: .92rem; }
+</style>

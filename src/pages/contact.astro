@@ -232,22 +232,25 @@ import Base from "@layouts/Base.astro";
                 possible.
             </p>
 
-            <form class="form" id="contact-form" novalidate>
+                        <form class="form" id="contact-form" novalidate>
+                <input type="checkbox" name="botcheck" style="display:none" tabindex="-1" autocomplete="off" />
                 <div class="form-row">
                     <div class="field">
                         <label for="name">Your Name</label>
                         <input
                             type="text"
                             id="name"
+                            name="name"
                             placeholder="John Doe"
                             required
                         />
                     </div>
                     <div class="field">
                         <label for="email">Email Address</label>
-                        <input
+                                                <input
                             type="email"
                             id="email"
+                            name="email"
                             placeholder="you@example.com"
                             required
                         />
@@ -255,7 +258,7 @@ import Base from "@layouts/Base.astro";
                 </div>
                 <div class="field">
                     <label for="subject">Subject</label>
-                    <select id="subject">
+                    <select id="subject" name="subject">
                         <option value="">Select a topic…</option>
                         <option>Bug Report</option>
                         <option>Tool Suggestion</option>
@@ -268,28 +271,62 @@ import Base from "@layouts/Base.astro";
                     <label for="message">Message</label>
                     <textarea
                         id="message"
+                        name="message"
                         rows="5"
                         placeholder="Describe your question or feedback in detail…"
                         required></textarea>
                 </div>
                 <button type="submit" class="btn-submit">Send Message →</button>
             </form>
-            <div class="success-msg" id="success-msg">
+                        <div class="success-msg" id="success-msg">
                 ✅ Message sent! We'll get back to you within 24–48 hours.
+            </div>
+            <div class="success-msg" id="error-msg" style="color:#ef4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.1);">
+                ❌ Something went wrong. Please email us at contact@laptopsspecial.com
             </div>
         </div>
     </div>
 
     <script>
-        // NOTE: Replace this with a real form backend — Formspree, Web3Forms, or EmailJS
-        // Example with Formspree: set action="https://formspree.io/f/YOUR_ID" on the form
         const form = document.getElementById("contact-form");
         const successMsg = document.getElementById("success-msg");
+        const errorMsg = document.getElementById("error-msg");
 
-        form?.addEventListener("submit", (e) => {
+        form?.addEventListener("submit", async (e) => {
             e.preventDefault();
-            if (form) form.style.display = "none";
-            if (successMsg) successMsg.style.display = "block";
+            const btn = form.querySelector(".btn-submit");
+
+            const name = form.querySelector("#name").value.trim();
+            const email = form.querySelector("#email").value.trim();
+            const message = form.querySelector("#message").value.trim();
+            if (!name || !email || !message) {
+                alert("Please fill in your name, email and message.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Sending…";
+            errorMsg.style.display = "none";
+
+            try {
+                                const res = await fetch("/api/contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(Object.fromEntries(new FormData(form))),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    form.style.display = "none";
+                    successMsg.style.display = "block";
+                } else {
+                    throw new Error(data.message);
+                }
+                        } catch (err) {
+                console.error("Contact form error:", err);
+                errorMsg.style.display = "block";
+                btn.disabled = false;
+                btn.textContent = "Send Message →";
+            }
         });
     </script>
 </Base>

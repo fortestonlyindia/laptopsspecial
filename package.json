@@ -9,11 +9,20 @@
     "sanity": "sanity dev"
   },
   "dependencies": {
+<<<<<<< HEAD
+=======
+    "@astrojs/vercel": "^7.8.2",
+>>>>>>> 19ce3a0 (resend setup for contact form and from domain)
     "@sanity/client": "^6.28.4",
     "@sanity/code-input": "^7.2.10",
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^6.5.0",
     "astro": "4.16.19",
+<<<<<<< HEAD
+=======
+    "heic2any": "^0.0.4",
+    "resend": "^6.38.1",
+>>>>>>> 19ce3a0 (resend setup for contact form and from domain)
     "sanity": "^6.5.0"
   },
   "devDependencies": {

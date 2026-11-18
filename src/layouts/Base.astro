@@ -637,6 +637,11 @@ const currentYear = new Date().getFullYear();
                     >Webcam/Mic/Speaker Test</a
                   >
                 </li>
+                <li>
+                  <a href="/tools/image-metadata-cleaner/" data-astro-reload
+                    >Image Cleaner</a
+                  >
+                </li>
                 <li class="dropdown-divider">
                   <a href="/full-diagnostic-report/" data-astro-reload
                     >🧪 Full Diagnostic Report</a
@@ -708,7 +713,7 @@ const currentYear = new Date().getFullYear();
         if (!btt) return;
 
         btt.onclick = () => {
-          window.scrollTo({ top: 0, behavior: "smooth" });
+          window.scrollTo({ top: 0, behavior: "instant" });
         };
 
         scrollHandler = () => {
