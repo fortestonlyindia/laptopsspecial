@@ -9,7 +9,7 @@
     "sanity": "sanity dev"
   },
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "dependencies": {
     "@sanity/client": "^6.28.4",
