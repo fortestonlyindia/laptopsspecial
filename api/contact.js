@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
         const { error } = await resend.emails.send({
             from: "Laptops Special <noreply@laptopsspecial.com>",
-            to: ["contact@laptopsspecial.com"],
+            to: ["reallaptopsspecial@gmail.com"],
             replyTo: email,
             subject: `[Contact] ${subject || "New message"} - ${name}`.slice(0, 150),
             html: `
